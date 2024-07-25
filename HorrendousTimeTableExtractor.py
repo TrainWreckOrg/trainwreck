@@ -1,15 +1,11 @@
 from datetime import *
 from pytz import *
 
-# TODO : fix Anglais
-# TODO : fix subject names
 # TODO : add filters
 # TODO : cleanup Event object
 # TODO : cleanup code
 # TODO : separate code better ?
 # TODO : add RSS compat ?
-
-
 
 weekday = [
     "Lundi",
@@ -35,15 +31,15 @@ class Event:
         
         descsplit = desc.split("\\n")
 
-        self.start_timestamp    = start
-        self.end_timestamp      = end
-        self.location           = loc if not loc == "" else "Ndf"
-        self.teacher            = descsplit[-3].replace("\n", "").removeprefix(" ")
-        self.subject            = subjects_table[descsplit[3]] if descsplit[3] in subjects_table.keys() else descsplit[3]
-        self.group              = ""
+        self.start_timestamp = start
+        self.end_timestamp = end
+        self.location = loc if not loc == "" else "Ndf"
+        self.teacher = descsplit[-3].replace("\n", "").removeprefix(" ")
+        self.subject = subjects_table[descsplit[3]] if descsplit[3] in subjects_table.keys() else descsplit[3]
+        self.group = ""
         # Note : isMIAGE and isINGE are not mutually exclusive
-        self.isMIAGE            = False
-        self.isINGE             = False
+        self.isMIAGE = False
+        self.isINGE  = False
         
         if self.subject == "Anglais":
             if "MIAGE" in sum :
@@ -97,13 +93,13 @@ def parse_calendar(file : str = "input/ADECal.ics") -> list[Event]:
                     break
     return sorted(events, key=lambda event: event.start_timestamp)
 
-events = parse_calendar()
-current_weekday = 0
-for event in events:
-    if event.start_timestamp.weekday() >= current_weekday:
-        print(f"**{weekday[current_weekday]} {event.start_timestamp.day}:**")
-        current_weekday+=1
-    print( f"{event.start_timestamp.strftime("%Hh%M")}-{event.end_timestamp.strftime("%Hh%M")} : {"MIAGE" if event.isMIAGE else ""}{" - " if event.isINGE and event.isMIAGE else ""}{"INGE" if event.isINGE else ""} {event.group} - {event.subject} - {event.location} - {event.teacher}")
-
-
+def display(events : list[Event]):
+    current_weekday = 0
+    for event in events:
+        if event.start_timestamp.weekday() >= current_weekday:
+            print(f"**{weekday[current_weekday]} {event.start_timestamp.day}:**")
+            current_weekday+=1
+        print( f"{event.start_timestamp.strftime("%Hh%M")}-{event.end_timestamp.strftime("%Hh%M")} : {"MIAGE" if (event.isMIAGE) else ""}{" - " if (event.isINGE and event.isMIAGE) else ""}{"INGE" if (event.isINGE) else ""} {event.group} - {event.subject} - {event.location} - {event.teacher}")
+        
+display(parse_calendar())
 
