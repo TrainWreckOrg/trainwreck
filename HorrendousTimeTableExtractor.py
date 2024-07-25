@@ -2,6 +2,8 @@ from datetime import *
 from pytz import *
 from urllib.request import urlretrieve
 from pathlib import Path
+from interactions import Embed
+
 
 
 # TODO : add filters
@@ -151,9 +153,32 @@ def display(events:list[Event]) -> None:
             print(f"**{weekday[current_weekday]} {event.start_timestamp.day} {month[event.start_timestamp.month -1]}:**")
         print(event)
 
+
+
+def getCalendar() -> list[Embed]:
+    current_weekday = 7
+    calendar = []
+    embed = Embed()
+    string = ""
+    for event in events:
+        if event.start_timestamp.weekday() != current_weekday:
+            current_weekday = event.end_timestamp.weekday()
+            if embed != Embed():
+                embed.description = string
+                calendar.append(embed)
+                string = ""
+                embed = Embed()
+            embed.title = "**"+ weekday[current_weekday] + " " + str(event.start_timestamp.day) + " " + month[event.start_timestamp.month -1] + " :**"
+        else:
+            string +="\n"
+        string += str(event)
+    calendar.pop(0)
+    return calendar
+
 events = parse_calendar("INGE")
 
 filtered_events = filter_events(events, before=date(2024,10,1), filiere="INGE")
 
-display(filtered_events)
 
+if __name__ == "__main__":
+    display(filtered_events)

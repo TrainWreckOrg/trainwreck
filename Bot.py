@@ -1,41 +1,73 @@
-from interactions import Client, Intents, listen, slash_command, SlashContext
+from interactions import Client, Intents, listen, slash_command, SlashContext, OptionType, slash_option
 from dotenv import load_dotenv
 import os
 from enum import Enum
-
+from HorrendousTimeTableExtractor import getCalendar
 load_dotenv("cle.env")
 
 token = os.getenv("TOKEN_BOT_DISCORD")
 server = os.getenv("SERVER_ID")
 
 bot = Client(intents=Intents.DEFAULT)
+limite = 7
 
 
-# intents are what events we want to receive from discord, `DEFAULT` is usually fine
-
-@listen()  # this decorator tells snek that it needs to listen for the corresponding event, and run this coroutine
+@listen() 
 async def on_ready():
-    # This event is called when the bot is ready to respond to commands
+    """Fonction qui dit quand le bot est opérationel au démarage du programme"""
     print("Ready")
     print(f"This bot is owned by {bot.owner}")
 
 
 @listen()
 async def on_message_create(event):
-    # This event is called when a message is sent in a channel the bot can see
+    """This event is called when a message is sent in a channel the bot can see"""
     print(f"message received: {event.message.jump_url}")
 
 
-@slash_command(name="my_command", description="My first command :)", scopes=server)
+@slash_command(name="bonjour", description="Te dit bonjour.", scopes=server)
 async def my_command(ctx: SlashContext):
-    await ctx.send(f"Hello World {ctx.author.nickname}!")
+    await ctx.send(f"Bonjour {getName(ctx.author)}!")
 
 
-@slash_command(name="today", description="L'emploi du temps du jour", scopes=server)
+@slash_command(name="get_info", description="Donne les infos sur l'utilisateur.", scopes=server)
 async def today(ctx: SlashContext):
-    await ctx.send(f"Voici l'emploi du temps du jour {getName(ctx.author)}!\nVotre filière est {getFilere(ctx.author).value} et votre groupe est {getGroupeTP(ctx.author).value} et votre groupe d'anglais est {getGroupeTDAnglais(ctx.author).value} .")
+    await ctx.send(f"Vous êtes {getName(ctx.author)}!\nVotre filière est {getFilere(ctx.author).value} et votre groupe est {getGroupeTP(ctx.author).value} et votre groupe d'anglais est {getGroupeTDAnglais(ctx.author).value} .")
 
-def getName(author):
+@slash_command(name="edt", description="L'emploi du temps en fonction de la limite.", scopes=server)
+async def today(ctx: SlashContext):
+    compteur = 0
+    calendar = getCalendar()
+    global limite
+    for day in calendar:
+        if compteur >= limite:
+            break
+        compteur+=1
+        await ctx.send(embed=day)
+
+
+
+@slash_command(name="setlimite", description="My first command :)", scopes=server)
+@slash_option(
+    name="nlimite",
+    description="Combien d'embed afficher ?",
+    required=True,
+    opt_type=OptionType.INTEGER
+)
+async def setLimite(ctx: SlashContext, nlimite : int):
+    global limite
+    limite = nlimite
+    await ctx.send("Limite Modifier")
+
+
+
+
+
+
+
+
+def getName(author) -> str:
+    """Permet d'obtenir le nickname si défini sinon le username"""
     return author.nickname if author.nickname else author.username
 
 
