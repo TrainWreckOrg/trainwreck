@@ -33,16 +33,10 @@ async def my_command(ctx: SlashContext):
 
 @slash_command(name="today", description="L'emploi du temps du jour", scopes=server)
 async def today(ctx: SlashContext):
-    await ctx.send(f"Voici l'emploi du temps du jour {getName(ctx.author)}!\nVotre filière est {getFilere(ctx.author).value} et votre groupe est {getGroupeTP(ctx.author).value}.")
+    await ctx.send(f"Voici l'emploi du temps du jour {getName(ctx.author)}!\nVotre filière est {getFilere(ctx.author).value} et votre groupe est {getGroupeTP(ctx.author).value} et votre groupe d'anglais est {getGroupeTDAnglais(ctx.author).value} .")
 
 def getName(author):
     return author.nickname if author.nickname else author.username
-
-
-
-
-
-
 
 
 
@@ -67,44 +61,54 @@ def getFilere(author):
 
 
 class TP(Enum):
-    TPA = "TP A"
-    TPB = "TP B"
-    TPC = "TP C"
-    TPD = "TP D"
+    TPAI = "TP A Inge"
+    TPBI = "TP B Inge"
+    TPCI = "TP C Inge"
+    TPDI = "TP D Inge"
+    TPAM = "TP A Miage"
+    TPBM = "TP B Miage"
+    TPCM = "TP C Miage"
+    TPDM = "TP D Miage"
 
 
 def getGroupeTP(author):
     for role in author.roles:
-        if role.name == TP.TPA.value:
-            return TP.TPA
-        if role.name == TP.TPB.value:
-            return TP.TPB
-        if role.name == TP.TPC.value:
-            return TP.TPC
-        if role.name == TP.TPD.value:
-            return TP.TPD
+        for tp in TP:
+            if role.name == tp.value:
+                return tp
+        
     raise InvalideRole("Vous n'avez pas de rôle indiquant votre groupe de TP.")
 
 
 class TD(Enum):
-    TD1 = "TD 1"
-    TD2 = "TD 2"
-    TD3 = "TD 3"
+    TD1I = "TD 1 Inge"
+    TD2I = "TD 2 Inge"
+    TD1M = "TD 1 Miage"
+    TD2M = "TD 2 Miage"
+    
 
 
 def getGroupeTD(author):
     for role in author.roles:
-        if role.name == TD.TD1.value:
-            return TD.TD1
-        if role.name == TD.TD2.value:
-            return TD.TD2
-        if role.name == TD.TD3.value:
-            return TD.TD3
+        for td in TD:
+            if role.name == td.value:
+                return td
     raise InvalideRole("Vous n'avez pas de rôle indiquant votre groupe de TD.")
 
 
+class TDAnglais(Enum):
+    TDA1I = "TD 1 Inge Anglais"
+    TDA2I = "TD 2 Inge Anglais"
+    TDA3I = "TD 3 Inge Anglais"
+    TDA1M = "TD 1 Miage Anglais"
+    TDA2M = "TD 2 Miage Anglais"
+    TDA3M = "TD 3 Miage Anglais"
 
-
-
+def getGroupeTDAnglais(author):
+    for role in author.roles:
+        for tda in TDAnglais:
+            if role.name == tda.value:
+                return tda
+    raise InvalideRole("Vous n'avez pas de rôle indiquant votre groupe de TD d'anglais.")
 
 bot.start(token)
