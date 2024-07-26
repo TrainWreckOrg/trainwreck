@@ -1,11 +1,10 @@
 from datetime import *
+from turtle import rt
 from pytz import *
 from urllib.request import urlretrieve
 from pathlib import Path
 from enum import Enum
 from interactions import Embed
-
-
 
 # TODO : add filters
 # TODO : cleanup Event object
@@ -78,7 +77,39 @@ class Event:
     def __str__(self) -> str:
         return f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {"MIAGE" if (self.isMIAGE) else ""}{" - " if (self.isINGE and self.isMIAGE) else ""}{"INGE" if (self.isINGE) else ""} {self.group} - {self.subject} - {self.location} - {self.teacher}"
 
-        
+class Filter:
+    def filter(self, e:Event) -> bool:
+        """Prend en argument un evenement `e` et retourne `True` si `e` passe le filtre défini par la sous classe"""
+        return True
+
+class TimeFilter(Filter):
+    def __init__(self, date:date, before:bool) -> None:
+        self.date   = date
+        self.before = before
+
+    def filter(self, e: Event) -> bool:
+        if self.before :
+            return e.end_timestamp.date() < self.date
+        else:
+            return e.start_timestamp.date() > self.date
+
+class FiliereFilter(Filter):
+    def __init__(self, filiere:Filiere) -> None:
+        self.filiere = filiere
+    
+    def filter(self, e: Event) -> bool:
+        if self.filiere == Filiere.INGE:
+            return e.isINGE
+        else:
+            return e.isMIAGE
+
+class TPFilter(Filter):
+    def __init__(self, tp:TP) -> None:
+        self.tp = tp
+    
+    def filter(self, e: Event) -> bool:
+        return True
+
 def fetch_calendar(url:str, filename:str):
     """Récupere le fichier .ics correspondant a une filiere donnée"""
     urlretrieve(url, filename)
@@ -207,8 +238,9 @@ def getCalendar() -> list[Embed]:
 
 events = parse_calendar("INGE")
 
+# display(events)
+
 filtered_events = filter_events(events, before=date(2024,10,1), filiere="INGE")
 
-
-if __name__ == "__main__":
-    display(filtered_events)
+# if __name__ == "__main__":
+#     display(filtered_events):
