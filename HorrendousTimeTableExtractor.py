@@ -2,6 +2,7 @@ from datetime import *
 from pytz import *
 from urllib.request import urlretrieve
 from pathlib import Path
+from enum import Enum
 from interactions import Embed
 
 
@@ -31,6 +32,35 @@ subjects_table = {
     "Log. Lam. Cal" : "Logique et Lambda Calcul",
     "Fram.Web 1" : "Frameworks Web 1"
 }
+
+class Filiere(Enum):
+    INGE = "Ingé"
+    MIAGE = "Miage"
+
+class TP(Enum):
+    TPAI = "TP A Inge"
+    TPBI = "TP B Inge"
+    TPCI = "TP C Inge"
+    TPDI = "TP D Inge"
+    TPAM = "TP A Miage"
+    TPBM = "TP B Miage"
+    TPCM = "TP C Miage"
+    TPDM = "TP D Miage"
+
+class TD(Enum):
+    TD1I = "TD 1 Inge"
+    TD2I = "TD 2 Inge"
+    TD1M = "TD 1 Miage"
+    TD2M = "TD 2 Miage"
+
+class TDAnglais(Enum):
+    TDA1I = "TD 1 Inge Anglais"
+    TDA2I = "TD 2 Inge Anglais"
+    TDA3I = "TD 3 Inge Anglais"
+    TDA1M = "TD 1 Miage Anglais"
+    TDA2M = "TD 2 Miage Anglais"
+    TDA3M = "TD 3 Miage Anglais"
+
 
 class Event:
     """Classe utilisée pour gerer les objets evenements"""

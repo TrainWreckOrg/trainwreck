@@ -5,8 +5,7 @@ from interactions.api.events import Component
 
 from dotenv import load_dotenv
 import os
-from enum import Enum
-from HorrendousTimeTableExtractor import getCalendar
+from HorrendousTimeTableExtractor import getCalendar, Filiere, TD, TP, TDAnglais
 load_dotenv("cle.env")
 
 from interactions import Button, ButtonStyle
@@ -96,10 +95,6 @@ def getName(author) -> str:
     return author.nickname if author.nickname else author.username
 
 
-class Filiere(Enum):
-    INGE = "Ingé"
-    MIAGE = "Miage"
-
 def getFilere(author) -> Filiere:
     print(Filiere.INGE.value)
     for role in author.roles:
@@ -108,17 +103,6 @@ def getFilere(author) -> Filiere:
         if role.name == Filiere.MIAGE.value:
             return Filiere.MIAGE
     return None
-
-
-class TP(Enum):
-    TPAI = "TP A Inge"
-    TPBI = "TP B Inge"
-    TPCI = "TP C Inge"
-    TPDI = "TP D Inge"
-    TPAM = "TP A Miage"
-    TPBM = "TP B Miage"
-    TPCM = "TP C Miage"
-    TPDM = "TP D Miage"
 
 
 def getGroupeTP(author) -> TP:
@@ -130,29 +114,12 @@ def getGroupeTP(author) -> TP:
     return None
 
 
-class TD(Enum):
-    TD1I = "TD 1 Inge"
-    TD2I = "TD 2 Inge"
-    TD1M = "TD 1 Miage"
-    TD2M = "TD 2 Miage"
-    
-
-
 def getGroupeTD(author) -> TD:
     for role in author.roles:
         for td in TD:
             if role.name == td.value:
                 return td
     return None
-
-
-class TDAnglais(Enum):
-    TDA1I = "TD 1 Inge Anglais"
-    TDA2I = "TD 2 Inge Anglais"
-    TDA3I = "TD 3 Inge Anglais"
-    TDA1M = "TD 1 Miage Anglais"
-    TDA2M = "TD 2 Miage Anglais"
-    TDA3M = "TD 3 Miage Anglais"
 
 def getGroupeTDAnglais(author) -> TDAnglais:
     for role in author.roles:
