@@ -1,16 +1,22 @@
-from interactions import Client, Intents, listen, slash_command, SlashContext, OptionType, slash_option
+from interactions import ActionRow, ButtonStyle, Client, Embed, Intents, listen
+from interactions import slash_command, SlashContext, OptionType, slash_option
+from interactions import Button, ButtonStyle
+from interactions.api.events import Component
+
 from dotenv import load_dotenv
 import os
 from enum import Enum
 from HorrendousTimeTableExtractor import getCalendar
 load_dotenv("cle.env")
 
+from interactions import Button, ButtonStyle
+from interactions.api.events import Component
+
 token = os.getenv("TOKEN_BOT_DISCORD")
 server = os.getenv("SERVER_ID")
 
 bot = Client(intents=Intents.DEFAULT)
-limite = 7
-
+limite = 2
 
 @listen() 
 async def on_ready():
@@ -18,12 +24,10 @@ async def on_ready():
     print("Ready")
     print(f"This bot is owned by {bot.owner}")
 
-
 @listen()
 async def on_message_create(event):
     """This event is called when a message is sent in a channel the bot can see"""
     print(f"message received: {event.message.jump_url}")
-
 
 @slash_command(name="bonjour", description="Te dit bonjour.", scopes=server)
 async def my_command(ctx: SlashContext):
@@ -45,9 +49,7 @@ async def today(ctx: SlashContext):
         compteur+=1
         await ctx.send(embed=day)
 
-
-
-@slash_command(name="setlimite", description="My first command :)", scopes=server)
+@slash_command(name="setlimite", description="Permet de règler le nombre d'embed à afficher (default = 2)", scopes=server)
 @slash_option(
     name="nlimite",
     description="Combien d'embed afficher ?",
@@ -59,6 +61,29 @@ async def setLimite(ctx: SlashContext, nlimite : int):
     limite = nlimite
     await ctx.send("Limite Modifier")
 
+@slash_command(name="bt", description="Permet d'avoir un bouton.", scopes=server)
+async def setLimite(ctx: SlashContext):
+    embed = Embed()
+    embed.title = "Titre"
+    embed.description = "Description"
+    
+    button = Button(
+        style=ButtonStyle.PRIMARY,
+        custom_id = "123467890",
+        label = "Bouton."
+    )
+    
+
+    action_row = ActionRow(button)
+    await ctx.send(embeds=[embed], components=[action_row])
+
+@listen(Component)
+async def on_component(event: Component):
+    ctx = event.ctx
+
+    match ctx.custom_id:
+        case "123467890":
+            await ctx.send("You clicked it!")
 
 
 
@@ -71,25 +96,18 @@ def getName(author) -> str:
     return author.nickname if author.nickname else author.username
 
 
-
-class InvalideRole(Exception):
-    def __init__(self, message):
-        super().__init__(message)
-
-
 class Filiere(Enum):
     INGE = "Ingé"
     MIAGE = "Miage"
 
-def getFilere(author):
+def getFilere(author) -> Filiere:
     print(Filiere.INGE.value)
     for role in author.roles:
         if role.name == Filiere.INGE.value:
             return Filiere.INGE
         if role.name == Filiere.MIAGE.value:
             return Filiere.MIAGE
-    raise InvalideRole("Vous n'avez pas de rôle indiquant votre filière.")
-
+    return None
 
 
 class TP(Enum):
@@ -103,13 +121,13 @@ class TP(Enum):
     TPDM = "TP D Miage"
 
 
-def getGroupeTP(author):
+def getGroupeTP(author) -> TP:
     for role in author.roles:
         for tp in TP:
             if role.name == tp.value:
                 return tp
         
-    raise InvalideRole("Vous n'avez pas de rôle indiquant votre groupe de TP.")
+    return None
 
 
 class TD(Enum):
@@ -120,12 +138,12 @@ class TD(Enum):
     
 
 
-def getGroupeTD(author):
+def getGroupeTD(author) -> TD:
     for role in author.roles:
         for td in TD:
             if role.name == td.value:
                 return td
-    raise InvalideRole("Vous n'avez pas de rôle indiquant votre groupe de TD.")
+    return None
 
 
 class TDAnglais(Enum):
@@ -136,11 +154,11 @@ class TDAnglais(Enum):
     TDA2M = "TD 2 Miage Anglais"
     TDA3M = "TD 3 Miage Anglais"
 
-def getGroupeTDAnglais(author):
+def getGroupeTDAnglais(author) -> TDAnglais:
     for role in author.roles:
         for tda in TDAnglais:
             if role.name == tda.value:
                 return tda
-    raise InvalideRole("Vous n'avez pas de rôle indiquant votre groupe de TD d'anglais.")
+    return None
 
 bot.start(token)
