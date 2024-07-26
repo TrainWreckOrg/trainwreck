@@ -36,7 +36,7 @@ class Filiere(Enum):
     INGE = "Ingé"
     MIAGE = "Miage"
 
-class TP(Enum):
+class Group(Enum):
     TPAI = "TP A Inge"
     TPBI = "TP B Inge"
     TPCI = "TP C Inge"
@@ -45,14 +45,10 @@ class TP(Enum):
     TPBM = "TP B Miage"
     TPCM = "TP C Miage"
     TPDM = "TP D Miage"
-
-class TD(Enum):
     TD1I = "TD 1 Inge"
     TD2I = "TD 2 Inge"
     TD1M = "TD 1 Miage"
     TD2M = "TD 2 Miage"
-
-class TDAnglais(Enum):
     TDA1I = "TD 1 Inge Anglais"
     TDA2I = "TD 2 Inge Anglais"
     TDA3I = "TD 3 Inge Anglais"
@@ -237,6 +233,9 @@ def getCalendar() -> list[Embed]:
     return calendar
 
 events = parse_calendar("INGE")
+
+for event in events:
+    print(event.group)
 
 # display(events)
 
