@@ -100,7 +100,7 @@ class FiliereFilter(Filter):
             return e.isMIAGE
 
 class TPFilter(Filter):
-    def __init__(self, tp:TP) -> None:
+    def __init__(self, tp) -> None:
         self.tp = tp
     
     def filter(self, e: Event) -> bool:

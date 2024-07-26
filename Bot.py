@@ -16,14 +16,10 @@ load_dotenv("cle.env")
 token = os.getenv("TOKEN_BOT_DISCORD")
 server = os.getenv("SERVER_ID")
 
-bot = Client(intents=Intents.DEFAULT)
+bot = Client(token=token,intents=Intents.DEFAULT, sync_interactions=True)
 limite = 2
 
-@listen() 
-async def on_ready():
-    """Fonction qui dit quand le bot est opérationel au démarage du programme"""
-    print("Ready")
-    print(f"This bot is owned by {bot.owner}")
+
 
 @listen()
 async def on_message_create(event):
@@ -31,16 +27,16 @@ async def on_message_create(event):
     print(f"message received: {event.message.jump_url}")
 
 @slash_command(name="bonjour", description="Te dit bonjour.", scopes=server)
-async def my_command(ctx: SlashContext):
+async def bonjour(ctx: SlashContext):
     await ctx.send(f"Bonjour {getName(ctx.author)}!")
 
 
 @slash_command(name="get_info", description="Donne les infos sur l'utilisateur.", scopes=server)
-async def today(ctx: SlashContext):
+async def get_info(ctx: SlashContext):
     await ctx.send(f"Vous êtes {getName(ctx.author)}!\nVotre filière est {getFiliere(ctx.author).value} et vos groupes sont {getGroupe(ctx.author)}.") 
 
 @slash_command(name="edt", description="L'emploi du temps en fonction de la limite.", scopes=server)
-async def today(ctx: SlashContext):
+async def edt(ctx: SlashContext):
     compteur = 0
     calendar = getCalendar()
     global limite
@@ -63,7 +59,7 @@ async def setLimite(ctx: SlashContext, nlimite : int):
     await ctx.send("Limite Modifier")
 
 @slash_command(name="bt", description="Permet d'avoir un bouton.", scopes=server)
-async def setLimite(ctx: SlashContext):
+async def bt(ctx: SlashContext):
     embed = Embed()
     embed.title = "Titre"
     embed.description = "Description"
@@ -115,4 +111,13 @@ def getGroupe(author) -> list[Group]:
                 out.append(gr)
     return out
 
-bot.start(token)
+
+@listen() 
+async def on_ready():
+    """Fonction qui dit quand le bot est opérationel au démarage du programme"""
+    print("Ready")
+    print(f"This bot is owned by {bot.owner}")
+    await bot.synchronise_interactions()
+
+
+bot.start()
