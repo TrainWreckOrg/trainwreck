@@ -1,5 +1,4 @@
 from datetime import *
-from turtle import rt
 from pytz import *
 from urllib.request import urlretrieve
 from pathlib import Path
@@ -37,29 +36,29 @@ class Filiere(Enum):
     MIAGE = "Miage"
 
 class Group(Enum):
-    TPAI = "TP A Inge"
-    TPBI = "TP B Inge"
-    TPCI = "TP C Inge"
-    TPDI = "TP D Inge"
-    TPAM = "TP A Miage"
-    TPBM = "TP B Miage"
-    TPCM = "TP C Miage"
-    TPDM = "TP D Miage"
-    TD1I = "TD 1 Inge"
-    TD2I = "TD 2 Inge"
-    TD1M = "TD 1 Miage"
-    TD2M = "TD 2 Miage"
-    TDA1I = "TD 1 Inge Anglais"
-    TDA2I = "TD 2 Inge Anglais"
-    TDA3I = "TD 3 Inge Anglais"
-    TDA1M = "TD 1 Miage Anglais"
-    TDA2M = "TD 2 Miage Anglais"
-    TDA3M = "TD 3 Miage Anglais"
+    TPAI    = "TP A Inge"
+    TPBI    = "TP B Inge"
+    TPCI    = "TP C Inge"
+    TPDI    = "TP D Inge"
+    TP1M    = "TP A Miage"
+    TP2M    = "TP B Miage"
+    TP3M    = "TP C Miage"
+    TD1I    = "TD 1 Inge"
+    TD2I    = "TD 2 Inge"
+    TD1M    = "TD 1 Miage"
+    TD2M    = "TD 2 Miage"
+    TDA1I   = "TD 1 Inge Anglais"
+    TDA2I   = "TD 2 Inge Anglais"
+    TDA3I   = "TD 3 Inge Anglais"
+    TDA1M   = "TD 1 Miage Anglais"
+    TDA2M   = "TD 2 Miage Anglais"
+    TDA3M   = "TD 3 Miage Anglais"
+    CM      = "CM"
 
 
 class Event:
     """Classe utilisée pour gerer les objets evenements"""
-    def __init__(self, start : datetime, end :datetime, subject : str, group :str, location:str, teacher:str, isINGE:bool, isMIAGE:bool) -> None:
+    def __init__(self, start:datetime, end:datetime, subject:str, group:Group, location:str, teacher:str, isINGE:bool, isMIAGE:bool) -> None:
         self.start_timestamp = start
         self.end_timestamp = end
         self.location = location
@@ -99,12 +98,13 @@ class FiliereFilter(Filter):
         else:
             return e.isMIAGE
 
-class TPFilter(Filter):
-    def __init__(self, tp:TP) -> None:
-        self.tp = tp
+class GroupFilter(Filter):
+    def __init__(self, group:Group) -> None:
+        self.group = group
     
     def filter(self, e: Event) -> bool:
         return True
+
 
 def fetch_calendar(url:str, filename:str):
     """Récupere le fichier .ics correspondant a une filiere donnée"""
@@ -126,23 +126,67 @@ def build_event_from_data(start : datetime, end :datetime, sum : str, loc :str, 
 
     isMIAGE = False
     isINGE  = False
+    group   = Group.CM
     
     if subject == "Anglais":
         if "MIAGE" in sum :
-            group = f"{sum[10:13]}"
             isMIAGE = True
+            match sum[13]:
+                case "1":
+                    group = Group.TDA1M
+                case "2":
+                    group = Group.TDA2M
+                case "3":
+                    group = Group.TDA3M  
         else :
-            group = f"TD{sum[13]}"
             isINGE = True
+            match sum[13]:
+                case "1":
+                    group = Group.TDA1I
+                case "2":
+                    group = Group.TDA2I
+                case "3":
+                    group = Group.TDA3I
     else:
         if "L3 INFO - INGENIERIE" in descsplit and "Pro. Pro. Per." not in sum:
             isINGE = True
         if "L3 INFORMATIQUE - MIAGE" in descsplit:
             isMIAGE = True
         if descsplit[2].startswith("Gr"):
-            group = descsplit[2][3:]
-        else :
-            group = "CM"
+            if isINGE:
+                match descsplit[2][3:]:
+                    case "TD1":
+                        group = Group.TD1I
+                    case "TD2":
+                        group = Group.TD2I
+                    case "TPA":
+                        group = Group.TPAI
+                    case "TPB":
+                        group = Group.TPBI                    
+                    case "TPC":
+                        group = Group.TPCI                    
+                    case "TPD":
+                        group = Group.TPDI
+                    # This case should NOT happen and should be fixed asap 
+                    case _:
+                        print("ERROR : NO GROUP FOUND :", sum , "---------------------")
+            else:
+                match descsplit[2][3:]:
+                    case "TD1":
+                        group = Group.TD1M
+                    case "TD2":
+                        group = Group.TD2M
+                    case "TP1":
+                        group = Group.TP1M
+                    case "TP2":
+                        group = Group.TP2M                    
+                    case "TP3":
+                        group = Group.TP3M
+                    # This case should NOT happen and should be fixed asap 
+                    case _:
+                        print("what")
+                        print("ERROR : NO GROUP FOUND :", sum , "---------------------")
+                        
     
     return Event(start, end, subject, group, location, teacher, isINGE, isMIAGE)
 
@@ -163,7 +207,6 @@ def parse_calendar(filiere:str="INGE") -> list[Event]:
         if line.startswith("BEGIN:VEVENT"):
             event = {}
         elif line.startswith("END:VEVENT"):
-            # print(event)
             e = build_event_from_data(
                 convert_timestamp(event["DTSTART"]),
                 convert_timestamp(event["DTEND"]),
@@ -233,9 +276,6 @@ def getCalendar() -> list[Embed]:
     return calendar
 
 events = parse_calendar("INGE")
-
-for event in events:
-    print(event.group)
 
 # display(events)
 
