@@ -1,9 +1,11 @@
-from datetime import *
-from pytz import *
+from datetime import datetime, date
+from pytz import timezone
 from urllib.request import urlretrieve
 from pathlib import Path
 from enum import Enum
 from interactions import Embed
+
+import time
 
 # TODO : add filters
 # TODO : cleanup Event object
@@ -32,9 +34,13 @@ subjects_table = {
     "Pro. Pro. Per." : "Projet Personnel & Professionnel"
 }
 
+class Timing(Enum):
+    BEFORE  = "Before"
+    AFTER   = "After"
+
 class Filiere(Enum):
-    INGE = "Ingé"
-    MIAGE = "Miage"
+    INGE    = "Ingé"
+    MIAGE   = "Miage"
 
 class Group(Enum):
     TPAI    = "TP A Inge"
@@ -75,20 +81,21 @@ class Event:
         return f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
 
 class Filter:
+    """Classe de Base pour les filtres"""
     def filter(self, e:Event) -> bool:
         """Prend en argument un evenement `e` et retourne `True` si `e` passe le filtre défini par la sous classe"""
         return True
 
 class TimeFilter(Filter):
-    def __init__(self, date:date, before:bool) -> None:
-        self.date   = date
-        self.before = before
+    def __init__(self, date:date, Timing:Timing) -> None:
+        self.date       = date
+        self.Timing  = Timing
 
     def filter(self, e: Event) -> bool:
-        if self.before :
-            return e.end_timestamp.date() < self.date
+        if self.Timing == Timing.BEFORE :
+            return e.end_timestamp.date() <= self.date
         else:
-            return e.start_timestamp.date() > self.date
+            return e.start_timestamp.date() >= self.date
 
 class FiliereFilter(Filter):
     def __init__(self, filiere:Filiere) -> None:
@@ -105,12 +112,17 @@ class GroupFilter(Filter):
         self.group = group
     
     def filter(self, e: Event) -> bool:
-        return True
+        return (e.group == self.group)
 
 
 def fetch_calendar(url:str, filename:str):
     """Récupere le fichier .ics correspondant a une filiere donnée"""
     urlretrieve(url, filename)
+
+
+def get_file_age(p:Path) -> int:
+    """Retourne l'age d'un fichier en minutes"""
+    return int(time.time() - p.stat().st_mtime) // 60
 
 
 def convert_timestamp(input : str) -> datetime :
@@ -169,6 +181,7 @@ def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:s
             isMIAGE = True
         if descsplit[2].startswith("Gr"):
             if isINGE:
+                isMIAGE = False
                 match descsplit[2][3:]:
                     case "TD1":
                         group = Group.TD1I
@@ -211,7 +224,7 @@ def parse_calendar(filiere:str="INGE") -> list[Event]:
     """Extrait les données du fichier .ics et le telecharge si il est manquant"""
     filename = f"input/{filiere}.ics"
     p = Path(filename)
-    if not p.exists() :
+    if not p.exists() or get_file_age(p) > 120:
         fetch_calendar(url[filiere], filename)
 
     with open(filename, "r", encoding="utf-8") as f:
@@ -242,20 +255,13 @@ def parse_calendar(filiere:str="INGE") -> list[Event]:
     return sorted(events, key=lambda event: event.start_timestamp)
 
 
-def filter_events(events:list[Event], before:date=None, after:date=None, filiere:str="") -> list[Event]:
-    output = []
-
-    for event in events:
-        if before != None:
-            if event.end_timestamp.date() > before :
-                continue
-        if after != None:
-            if event.start_timestamp.date() < after :
-                continue
-        if (filiere == "MIAGE" and not event.isMIAGE) or (filiere=="INGE" and not event.isINGE) :
-            continue
-        
-        output.append(event)
+def filter_events(events:list[Event], filters:list[Filter]) -> list[Event]:
+    output = events.copy()
+    for e in events:
+        for f in filters:
+            if not f.filter(e):
+                output.remove(e)
+                break
     return output
 
 
@@ -269,7 +275,15 @@ def display(events:list[Event]) -> None:
             print(f"**{weekday[current_weekday]} {event.start_timestamp.day} {month[event.start_timestamp.month -1]}:**")
         print(event)
 
-
+def export(events:list[Event], filename:str="output/log") -> None:
+    """Exporte une liste d'évenements dans un fichier spécifié"""
+    current_weekday = 7
+    with open(filename, "w") as f:
+        for event in events:
+            if event.start_timestamp.weekday() != current_weekday:
+                current_weekday = event.end_timestamp.weekday()
+                print(f"**{weekday[current_weekday]} {event.start_timestamp.day} {month[event.start_timestamp.month -1]}:**", file=f)
+            print(event, file=f)
 
 def getCalendar() -> list[Embed]:
     current_weekday = 7
@@ -291,11 +305,10 @@ def getCalendar() -> list[Embed]:
     calendar.pop(0)
     return calendar
 
-events = parse_calendar("MIAGE")
+events = parse_calendar("INGE")
 
-display(events)
+filtered_events = filter_events(events, [TimeFilter(date(2024, 10,9), Timing.AFTER), TimeFilter(date(2024,10,11), Timing.BEFORE), FiliereFilter(Filiere.MIAGE), GroupFilter(Group.TD2M)])
 
-# filtered_events = filter_events(events, before=date(2024,10,1), filiere="INGE")
+display(filtered_events)
+# export(events)
 
-# if __name__ == "__main__":
-#     display(filtered_events):
