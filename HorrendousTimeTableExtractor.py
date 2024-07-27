@@ -24,11 +24,12 @@ month = [
 ]
 
 subjects_table = {
-    "Con. Orien. Obj " : "Conception Orientée Objet",
-    "Pro. Imp. Pro. Ori. Obj" : "Programmation Impérative et Orientée Objet",
+    "Con. Orien. Obj" : "Conception Orientée Objet",
+    "Pro. Imp. Pro. Ori. Obj" : "Programmation Impérative & Orientée Objet",
     "Con. Ana. Algo" : "Conception et Analyse d'Algorithmes",
-    "Log. Lam. Cal" : "Logique et Lambda Calcul",
-    "Fram.Web 1" : "Frameworks Web 1"
+    "Log. Lam. Cal" : "Logique & Lambda Calcul",
+    "Fram.Web 1" : "Frameworks Web 1",
+    "Pro. Pro. Per." : "Projet Personnel & Professionnel"
 }
 
 class Filiere(Enum):
@@ -40,9 +41,9 @@ class Group(Enum):
     TPBI    = "TP B Inge"
     TPCI    = "TP C Inge"
     TPDI    = "TP D Inge"
-    TP1M    = "TP A Miage"
-    TP2M    = "TP B Miage"
-    TP3M    = "TP C Miage"
+    TP1M    = "TP 1 Miage"
+    TP2M    = "TP 2 Miage"
+    TP3M    = "TP 3 Miage"
     TD1I    = "TD 1 Inge"
     TD2I    = "TD 2 Inge"
     TD1M    = "TD 1 Miage"
@@ -54,6 +55,7 @@ class Group(Enum):
     TDA2M   = "TD 2 Miage Anglais"
     TDA3M   = "TD 3 Miage Anglais"
     CM      = "CM"
+    UKNW    = "UKNW"
 
 
 class Event:
@@ -70,7 +72,7 @@ class Event:
         self.isINGE  = isINGE
     
     def __str__(self) -> str:
-        return f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {"MIAGE" if (self.isMIAGE) else ""}{" - " if (self.isINGE and self.isMIAGE) else ""}{"INGE" if (self.isINGE) else ""} {self.group} - {self.subject} - {self.location} - {self.teacher}"
+        return f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
 
 class Filter:
     def filter(self, e:Event) -> bool:
@@ -117,12 +119,20 @@ def convert_timestamp(input : str) -> datetime :
     return datetime.fromisoformat(iso_date).astimezone(timezone("Europe/Paris"))
 
 
-def build_event_from_data(start : datetime, end :datetime, sum : str, loc :str, desc :str) -> Event:
+def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str) -> Event:
     """Permet d'extraire les informations des données parsées"""
+    # Evenements spéciaux
+    if sum == "Réunion rentrée - L3 INGENIERIE INFORMATIQUE":
+        return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", True, False)
+    elif sum == "HAPPY CAMPUS DAY":
+        return Event(start, end, sum, Group.CM, "Campus", "Équipe Enseignante", True, True)
+    elif sum == "Réunion rentrée - L3 MIAGE":
+        return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", False, True)
+
     descsplit = desc.split("\\n")
     subject = subjects_table[descsplit[3]] if descsplit[3] in subjects_table.keys() else descsplit[3]
-    teacher = descsplit[-3].replace("\n", "").removeprefix(" ")
-    location = loc if not loc == "" else "Ndf"
+    teacher = descsplit[-3].replace("\n", "").removeprefix(" ") if descsplit[-3] != "L3 INFORMAT-UPEX MINERVE" else "Enseignant ?"
+    location = loc if not loc == "" else "Salle ?"
 
     isMIAGE = False
     isINGE  = False
@@ -131,13 +141,16 @@ def build_event_from_data(start : datetime, end :datetime, sum : str, loc :str, 
     if subject == "Anglais":
         if "MIAGE" in sum :
             isMIAGE = True
-            match sum[13]:
+            match sum[12]:
                 case "1":
                     group = Group.TDA1M
                 case "2":
                     group = Group.TDA2M
                 case "3":
                     group = Group.TDA3M  
+                case _:
+                        group = Group.UKNW
+
         else :
             isINGE = True
             match sum[13]:
@@ -147,10 +160,12 @@ def build_event_from_data(start : datetime, end :datetime, sum : str, loc :str, 
                     group = Group.TDA2I
                 case "3":
                     group = Group.TDA3I
+                case _:
+                        group = Group.UKNW
     else:
-        if "L3 INFO - INGENIERIE" in descsplit and "Pro. Pro. Per." not in sum:
+        if "L3 INFO - INGENIERIE" in descsplit and "Pro. Pro. Per." not in sum and "MIAGE" not in sum:
             isINGE = True
-        if "L3 INFORMATIQUE - MIAGE" in descsplit:
+        if "L3 INFORMATIQUE - MIAGE" in descsplit or "MIAGE" in sum:
             isMIAGE = True
         if descsplit[2].startswith("Gr"):
             if isINGE:
@@ -169,7 +184,8 @@ def build_event_from_data(start : datetime, end :datetime, sum : str, loc :str, 
                         group = Group.TPDI
                     # This case should NOT happen and should be fixed asap 
                     case _:
-                        print("ERROR : NO GROUP FOUND :", sum , "---------------------")
+                        group = Group.UKNW
+                        print("ERROR : NO GROUP FOUND (INGE) :", sum , "---------------------")
             else:
                 match descsplit[2][3:]:
                     case "TD1":
@@ -184,8 +200,8 @@ def build_event_from_data(start : datetime, end :datetime, sum : str, loc :str, 
                         group = Group.TP3M
                     # This case should NOT happen and should be fixed asap 
                     case _:
-                        print("what")
-                        print("ERROR : NO GROUP FOUND :", sum , "---------------------")
+                        group = Group.UKNW
+                        print("ERROR : NO GROUP FOUND (MIAGE) :", sum , "---------------------")
                         
     
     return Event(start, end, subject, group, location, teacher, isINGE, isMIAGE)
@@ -275,11 +291,11 @@ def getCalendar() -> list[Embed]:
     calendar.pop(0)
     return calendar
 
-events = parse_calendar("INGE")
+events = parse_calendar("MIAGE")
 
-# display(events)
+display(events)
 
-filtered_events = filter_events(events, before=date(2024,10,1), filiere="INGE")
+# filtered_events = filter_events(events, before=date(2024,10,1), filiere="INGE")
 
 # if __name__ == "__main__":
 #     display(filtered_events):
