@@ -2,7 +2,7 @@ from interactions import ActionRow, ButtonStyle, Client, Embed, Intents, listen
 from interactions import slash_command, SlashContext, OptionType, slash_option
 from interactions import Button, ButtonStyle
 from interactions.api.events import Component
-from HorrendousTimeTableExtractor import getCalendar, Filiere, Group
+from HorrendousTimeTableExtractor import getCalendar, Filiere, Group, Timing
 from dotenv import load_dotenv
 import os
 import datetime
