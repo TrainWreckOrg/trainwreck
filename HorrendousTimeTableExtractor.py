@@ -6,10 +6,13 @@ from enum import Enum
 from interactions import Embed
 
 import time
-
-# TODO : add filters
-# TODO : cleanup Event object
-# TODO : cleanup code
+                                            
+#   ______           _          _       __               __  
+#  /_  __/________ _(_)___     | |     / /_______  _____/ /__
+#   / / / ___/ __ `/ / __ \    | | /| / / ___/ _ \/ ___/ //_/
+#  / / / /  / /_/ / / / / /    | |/ |/ / /  /  __/ /__/ ,<   
+# /_/ /_/   \__,_/_/_/ /_/     |__/|__/_/   \___/\___/_/|_|(_)
+# 
 
 # URL utilisée pour fetch les EDT de chaque filiere
 url = {
@@ -63,7 +66,7 @@ class Group(Enum):
     CM      = "CM"
     UKNW    = "UKNW"
 
-
+# ----- CLASSES -----
 class Event:
     """Classe utilisée pour gerer les objets evenements"""
     def __init__(self, start:datetime, end:datetime, subject:str, group:Group, location:str, teacher:str, isINGE:bool, isMIAGE:bool) -> None:
@@ -115,15 +118,14 @@ class GroupFilter(Filter):
         return (e.group == self.group)
 
 
+# ----- HElPER  -----
 def fetch_calendar(url:str, filename:str):
     """Récupere le fichier .ics correspondant a une filiere donnée"""
     urlretrieve(url, filename)
 
-
 def get_file_age(p:Path) -> int:
     """Retourne l'age d'un fichier en minutes"""
     return int(time.time() - p.stat().st_mtime) // 60
-
 
 def convert_timestamp(input : str) -> datetime :
     """Permet de convertir les timestamp en ISO-8601, et les passer en UTC+2"""
@@ -131,6 +133,7 @@ def convert_timestamp(input : str) -> datetime :
     return datetime.fromisoformat(iso_date).astimezone(timezone("Europe/Paris"))
 
 
+# ----- PARSING -----
 def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str) -> Event:
     """Permet d'extraire les informations des données parsées"""
     # Evenements spéciaux
@@ -141,17 +144,25 @@ def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:s
     elif sum == "Réunion rentrée - L3 MIAGE":
         return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", False, True)
 
+    # Descsplit contient les informations correspondant à la description de l'evenement, séparé par lignes
+    # ex : ['', '', 'Gr TPC', 'Con. Ana. Algo', 'Con. Ana. Algo', 'L3 INFO - INGENIERIE', 'L3 INFORMAT-UPEX MINERVE', 'LIEDLOFF', '(Exporté le:27/07/2024 20:20)', '\n\n']
     descsplit = desc.split("\\n")
+    
+    # Si la Matiere (4eme element) est une abbrev connu dans la subjects_table, remplacer par le nom complet
     subject = subjects_table[descsplit[3]] if descsplit[3] in subjects_table.keys() else descsplit[3]
+
+    # Nettoie le nom du professeur (antépénultième élément), et inclu un fallback si le nom n'est pas renseigné
     teacher = descsplit[-3].replace("\n", "").removeprefix(" ") if descsplit[-3] != "L3 INFORMAT-UPEX MINERVE" else "Enseignant ?"
     location = loc if not loc == "" else "Salle ?"
 
+    # Valeur par défaut
     isMIAGE = False
     isINGE  = False
     group   = Group.CM
     
     if subject == "Anglais":
         if "MIAGE" in sum :
+            # ex : Anglais - TD3 MIAGE
             isMIAGE = True
             match sum[12]:
                 case "1":
@@ -161,9 +172,11 @@ def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:s
                 case "3":
                     group = Group.TDA3M  
                 case _:
+                        # This case should NOT happen and should be fixed asap 
                         group = Group.UKNW
 
         else :
+            # ex : Anglais - TD 1
             isINGE = True
             match sum[13]:
                 case "1":
@@ -173,12 +186,14 @@ def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:s
                 case "3":
                     group = Group.TDA3I
                 case _:
+                        # This case should NOT happen and should be fixed asap 
                         group = Group.UKNW
     else:
         if "L3 INFO - INGENIERIE" in descsplit and "Pro. Pro. Per." not in sum and "MIAGE" not in sum:
             isINGE = True
         if "L3 INFORMATIQUE - MIAGE" in descsplit or "MIAGE" in sum:
             isMIAGE = True
+        # descsplit[2] contient le numéro de groupe ou le nom de la matière si CM
         if descsplit[2].startswith("Gr"):
             if isINGE:
                 isMIAGE = False
@@ -216,9 +231,8 @@ def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:s
                         group = Group.UKNW
                         print("ERROR : NO GROUP FOUND (MIAGE) :", sum , "---------------------")
                         
-    
+    # Crée un nouvel Objet Event a partir des infos calculées
     return Event(start, end, subject, group, location, teacher, isINGE, isMIAGE)
-
 
 def parse_calendar(filiere:str="INGE") -> list[Event]:
     """Extrait les données du fichier .ics et le telecharge si il est manquant"""
@@ -233,8 +247,10 @@ def parse_calendar(filiere:str="INGE") -> list[Event]:
     events = []
     event = {}
     for line in lines:
+        # Balise Ouvrante, crée un nouveau dictionnaire vide
         if line.startswith("BEGIN:VEVENT"):
-            event = {}
+            event = {"DTSTART":"", "DTEND":"", "SUMMARY":"", "LOCATION":"", "DESCRIPTION":""}
+        # Balise Fermante, envoie les informations récoltées (Timestamps début et fin, le summary (titre), la salle et la description)
         elif line.startswith("END:VEVENT"):
             e = build_event_from_data(
                 convert_timestamp(event["DTSTART"]),
@@ -255,6 +271,7 @@ def parse_calendar(filiere:str="INGE") -> list[Event]:
     return sorted(events, key=lambda event: event.start_timestamp)
 
 
+# ----- EXPORTING -----
 def filter_events(events:list[Event], filters:list[Filter]) -> list[Event]:
     output = events.copy()
     for e in events:
@@ -263,7 +280,6 @@ def filter_events(events:list[Event], filters:list[Filter]) -> list[Event]:
                 output.remove(e)
                 break
     return output
-
 
 def display(events:list[Event]) -> None:
     """affiche une liste d'évenements"""
@@ -304,6 +320,7 @@ def getCalendar() -> list[Embed]:
         string += str(event)
     calendar.pop(0)
     return calendar
+
 
 events = parse_calendar("INGE")
 
