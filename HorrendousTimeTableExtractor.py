@@ -42,6 +42,7 @@ subjects_table = {
 
 class Timing(Enum):
     BEFORE  = "Before"
+    DURING = "During"
     AFTER   = "After"
 
 class Filiere(Enum):
@@ -99,15 +100,22 @@ class Filter:
         return True
 
 class TimeFilter(Filter):
-    def __init__(self, date:date, Timing:Timing) -> None:
-        self.date       = date
-        self.Timing  = Timing
+    def __init__(self, date:date, timing:Timing) -> None:
+        self.date   = date
+        self.tming = timing
 
     def filter(self, e: Event) -> bool:
-        if self.Timing == Timing.BEFORE :
-            return e.end_timestamp.date() <= self.date
-        else:
-            return e.start_timestamp.date() >= self.date
+        match self.timing:
+            case Timing.BEFORE:
+                return e.end_timestamp.date() <= self.date
+            case Timing.AFTER:
+                return e.start_timestamp.date() >= self.date
+            case Timing.DURING:
+                return e.start_timestamp.date() == self.date
+            case _:
+                # This case should NOT happen and should be fixed asap 
+                print("ERROR----------------------------------")
+                return False
 
 class FiliereFilter(Filter):
     def __init__(self, filiere:Filiere) -> None:
@@ -206,6 +214,7 @@ def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:s
                 case _:
                         # This case should NOT happen and should be fixed asap 
                         group = Group.UKNW
+                        print("ERROR : NO GROUP FOUND (INGE) :", sum , "---------------------")
 
         else :
             # ex : Anglais - TD 1
@@ -220,6 +229,7 @@ def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:s
                 case _:
                         # This case should NOT happen and should be fixed asap 
                         group = Group.UKNW
+                        print("ERROR : NO GROUP FOUND (INGE) :", sum , "---------------------")
     else:
         if "L3 INFO - INGENIERIE" in descsplit and "Pro. Pro. Per." not in sum and "MIAGE" not in sum:
             isINGE = True
@@ -242,8 +252,8 @@ def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:s
                         group = Group.TPCI                    
                     case "TPD":
                         group = Group.TPDI
-                    # This case should NOT happen and should be fixed asap 
                     case _:
+                        # This case should NOT happen and should be fixed asap 
                         group = Group.UKNW
                         print("ERROR : NO GROUP FOUND (INGE) :", sum , "---------------------")
             else:
@@ -258,8 +268,8 @@ def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:s
                         group = Group.TP2M                    
                     case "TP3":
                         group = Group.TP3M
-                    # This case should NOT happen and should be fixed asap 
                     case _:
+                        # This case should NOT happen and should be fixed asap 
                         group = Group.UKNW
                         print("ERROR : NO GROUP FOUND (MIAGE) :", sum , "---------------------")
                         
