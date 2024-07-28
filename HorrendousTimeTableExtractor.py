@@ -343,22 +343,19 @@ def export(events:list[Event], filename:str="output/log.txt") -> None:
                 print(f"**{weekday[current_weekday]} {event.start_timestamp.day} {month[event.start_timestamp.month -1]}:**", file=f)
             print(event, file=f)
 
-def get_embed(events:list[Event]) -> Embed:
+def get_embeds(events:list[Event]) -> list[Embed]:
     if len(events) == 0:
         return [Embed(title="Aucun Cours")]
     current_weekday = 7
-    embed = Embed()
-    embed.set_footer("Les emploi du temps sont fournis a titre informatif uniquement,\n -> Veuillez vous referrer à votre page personnelle sur l'ENT")
+    embeds : list[Embed] = []
     for event in events:
         if event.start_timestamp.weekday() != current_weekday:
             current_weekday = event.start_timestamp.weekday()
-            embed.add_field(
-                f"**{weekday[current_weekday]} {event.start_timestamp.day} {month[event.start_timestamp.month -1]}:**",
-                "",
-                False
-            )
-        embed.fields[-1].value += str(event) + "\n"
-    return [embed]
+            embed = Embed(f"{weekday[current_weekday]} {event.start_timestamp.day} {month[event.start_timestamp.month -1]}:", "", colors[current_weekday])
+            embeds.append(embed)
+        embeds[-1].description += "- " + str(event) + "\n"
+    embeds[-1].set_footer("Les emploi du temps sont fournis a titre informatif uniquement,\n -> Veuillez vous referrer à votre page personnelle sur l'ENT")
+    return embeds
 
 events :list[Event] = []
 
