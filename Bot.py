@@ -121,16 +121,12 @@ async def get_week(ctx: SlashContext, semaine : str):
 @slash_command(name="week", description="Permet d'avoir l'emploie du temps pour la semaine", scopes=server)
 async def week(ctx: SlashContext):
     """Fonction qui permet d'obtenir l'edt de cette semaine"""
-    embed = Embed()
-    embed.title = "Titre"
-    embed.description = "Description"
     
-
-    today = datetime.date.today()
+    today = date.today()
     days_until_next_monday = (7 - today.weekday() + 0) % 7
     if days_until_next_monday == 0:
         days_until_next_monday = 7
-    next_monday = today + datetime.timedelta(days=days_until_next_monday)
+    next_monday = today + timedelta(days=days_until_next_monday)
 
 
     button = Button(
