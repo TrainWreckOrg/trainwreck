@@ -1,8 +1,6 @@
-from interactions import ActionRow, ButtonStyle, Client, Embed, Intents, listen
-from interactions import slash_command, SlashContext, OptionType, slash_option
-from interactions import Button, ButtonStyle
+from interactions import ActionRow, Button, ButtonStyle, Client, Embed, Intents, listen, slash_command, SlashContext, OptionType, slash_option, client, User
 from interactions.api.events import Component
-from HorrendousTimeTableExtractor import GroupFilter, get_embeds, Filiere, Group, Timing, FiliereFilter, TimeFilter, get_events, filter_events
+from TrainWreck import GroupFilter, get_embeds, Filiere, Group, Timing, FiliereFilter, TimeFilter, get_events, filter_events, ascii
 from dotenv import load_dotenv
 import os
 from datetime import datetime, date, timedelta
@@ -140,6 +138,27 @@ async def week(ctx: SlashContext):
     )
     action_row = ActionRow(button)
     await ctx.send(embeds=embeds, components=[action_row])
+
+
+@slash_command(name="about", description="Affiche la page 'About'", scopes=server)
+async def about(ctx :SlashContext):
+    """Affiche le Contenu de README.md"""
+    with open("README.md", "r", encoding="utf-8") as f:
+        l = f.read()
+    await ctx.send(ascii + l )
+
+
+@slash_command(name="dm", description="tries to dm the user", scopes=server)
+async def dm(ctx :SlashContext):
+    """tries to dm the user"""
+    dany = bot.get_user(776867184420716584)
+    nathan = bot.get_user()
+    try :
+        await dany.send("👀 est ce que ça a marché ?")
+        await ctx.send("done :)")
+    except :
+        await ctx.send("no :(")
+
 
 def get_name(author) -> str:
     """Permet d'obtenir le nickname si défini sinon le username"""
