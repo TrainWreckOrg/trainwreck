@@ -338,7 +338,7 @@ def export(events:list[Event], filename:str="output/log.txt") -> None:
                 print(f"**{weekday[current_weekday]} {event.start_timestamp.day} {month[event.start_timestamp.month -1]}:**", file=f)
             print(event, file=f)
 
-def getCalendar() -> list[Embed]:
+def getEmbed(events: list[Event]) -> list[Embed]:
     current_weekday = 7
     calendar = []
     embed = Embed()
@@ -355,8 +355,15 @@ def getCalendar() -> list[Embed]:
         else:
             string +="\n"
         string += str(event)
-    calendar.pop(0)
-    return calendar
+    if len(calendar) == 0:
+        return [Embed(title="Aucun cours")]
+    else:
+        calendar.pop(0)
+        return calendar
+
+
+def filter_e(filters:list[Filter]) -> list[Event]:
+    return filter_events(update_events(), filters)
 
 
 # Utilisée pour stocker les evenements
