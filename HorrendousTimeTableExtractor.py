@@ -4,8 +4,9 @@ from urllib.request import urlretrieve
 from pathlib import Path
 from enum import Enum
 from interactions import Embed
+from dotenv import load_dotenv
 
-import time
+import time, os
 
 print(
 """
@@ -17,10 +18,12 @@ print(
 """
 )
 
+load_dotenv("cle.env")
+
 # URL utilisée pour fetch les EDT de chaque filiere
 url = {
-    "INGE" : "https://aderead.univ-orleans.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?data=e476946ed5447b1050d7a6c48ccf4bad4592592d3b282f749c9a606b710f264f6250ba3fea2e12caebbcd166cfe88476f6893987a472171c27978e76da251b877c79900682576cf2be48a3169e635e57166c54e36382c1aa3eb0ff5cb8980cdb,1",
-    "MIAGE" : "https://aderead.univ-orleans.fr/jsp/custom/modules/plannings/anonymous_cal.jsp?data=047ece9af44e28b7aebedd6848891aa04592592d3b282f749c9a606b710f264f6250ba3fea2e12caebbcd166cfe88476574604eff8c5d3443632e6f8ddd25c327c79900682576cf2be48a3169e635e57166c54e36382c1aa3eb0ff5cb8980cdb,1",
+    "INGE" : os.getenv("INGEICS"),
+    "MIAGE" : os.getenv("MIAGEICS"),
 }
 
 weekday = [
@@ -338,41 +341,34 @@ def export(events:list[Event], filename:str="output/log.txt") -> None:
                 print(f"**{weekday[current_weekday]} {event.start_timestamp.day} {month[event.start_timestamp.month -1]}:**", file=f)
             print(event, file=f)
 
-def getEmbed(events: list[Event]) -> list[Embed]:
+def get_embed(events:list[Event]) -> Embed:
+    if len(events) == 0:
+        return [Embed(title="Aucun Cours")]
     current_weekday = 7
-    calendar = []
     embed = Embed()
-    string = ""
+    embed.set_footer("Les emploi du temps sont fournis a titre informatif uniquement,\n -> Veuillez vous referrer à votre page personnelle sur l'ENT")
     for event in events:
         if event.start_timestamp.weekday() != current_weekday:
-            current_weekday = event.end_timestamp.weekday()
-            if embed != Embed():
-                embed.description = string
-                calendar.append(embed)
-                string = ""
-                embed = Embed()
-            embed.title = "**"+ weekday[current_weekday] + " " + str(event.start_timestamp.day) + " " + month[event.start_timestamp.month -1] + " :**"
-        else:
-            string +="\n"
-        string += str(event)
-    embed.description = string
-    calendar.append(embed)
-    if len(calendar) >=1:
-        return [Embed(title="Aucun cours")]
-    else:
-        calendar.pop(0)
-        return calendar
+            current_weekday = event.start_timestamp.weekday()
+            embed.add_field(
+                f"**{weekday[current_weekday]} {event.start_timestamp.day} {month[event.start_timestamp.month -1]}:**",
+                "",
+                False
+            )
+        embed.fields[-1].value += str(event) + "\n"
+    return [embed]
 
 
 def filter_e(filters:list[Filter]) -> list[Event]:
     return filter_events(update_events(), filters)
 
+events :list[Event] = []
 
-# Utilisée pour stocker les evenements
-events:list[Event] = []
+def get_events() -> list[Event]:
+    global events
+    if need_updating(events):
+        events = update_events()
+    return events
 
-events = update_events()
+# filtered_events = filter_events(events, [TimeFilter(date(2024, 10,9), Timing.AFTER), TimeFilter(date(2024,10,11), Timing.BEFORE), FiliereFilter(Filiere.MIAGE), GroupFilter([Group.TD2M, Group.CM])])
 
-filtered_events = filter_events(events, [TimeFilter(date(2024, 10,9), Timing.AFTER), TimeFilter(date(2024,10,11), Timing.BEFORE), FiliereFilter(Filiere.MIAGE), GroupFilter([Group.TD2M, Group.CM])])
-
-(filtered_events)

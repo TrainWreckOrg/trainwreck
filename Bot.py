@@ -1,8 +1,9 @@
+from ast import alias
 from interactions import ActionRow, ButtonStyle, Client, Embed, Intents, listen
 from interactions import slash_command, SlashContext, OptionType, slash_option
 from interactions import Button, ButtonStyle
 from interactions.api.events import Component
-from HorrendousTimeTableExtractor import GroupFilter, getEmbed, Filiere, Group, Timing, FiliereFilter, TimeFilter, filter_e
+from HorrendousTimeTableExtractor import GroupFilter, get_embed, Filiere, Group, Timing, FiliereFilter, TimeFilter, get_events, filter_events
 from dotenv import load_dotenv
 import os
 from datetime import datetime, date, timedelta
@@ -43,7 +44,7 @@ async def on_component(event: Component):
 @slash_command(name="get_edt_from_date", description="Permet d'avoir l'emploi du temps pour une journée", scopes=server)
 @slash_option(
     name="jour",
-    description="Quel jour ? (DD-MM-YY)",
+    description="Quel jour ? (DD-MM-YYYY)",
     required=True,
     opt_type=OptionType.STRING
 )
@@ -55,16 +56,16 @@ async def get_edt_from_date(ctx: SlashContext, jour : str):
 async def get_edt_from_date_bt(ctx, jour : str):
     """Fonction qui permet d'obtenir l'edt d'une journée spécifique"""
     date_formater = datetime.strptime(jour, "%d-%m-%Y").date()
-    events = filter_e([TimeFilter(date_formater, Timing.AFTER), TimeFilter(date_formater, Timing.BEFORE),getFiliere(ctx.author), getGroupes(ctx.author)] )
-    embeds = getEmbed(events)
+    events = filter_events(get_events(), [TimeFilter(date_formater, Timing.AFTER), TimeFilter(date_formater, Timing.BEFORE),getFiliere(ctx.author), getGroupes(ctx.author)] )
+    embeds = get_embed(events)
     await ctx.send(embeds=embeds)
 
 @slash_command(name="day", description="Permet d'avoir l'emploie du temps pour aujourd'hui", scopes=server)
 async def day(ctx: SlashContext):
     """Fonction qui permet d'obtenir l'edt d'ajourd'hui"""
     
-    events = filter_e([TimeFilter(date.today(), Timing.AFTER), TimeFilter(date.today(), Timing.BEFORE),getFiliere(ctx.author), getGroupes(ctx.author)] )
-    embeds = getEmbed(events)
+    events = filter_events(get_events(), [TimeFilter(date.today(), Timing.AFTER), TimeFilter(date.today(), Timing.BEFORE),getFiliere(ctx.author), getGroupes(ctx.author)] )
+    embeds = get_embed(events)
     button = Button(
         style=ButtonStyle.PRIMARY,
         custom_id = "day-" + (date.today() + timedelta(days=1)).strftime("%d-%m-%Y"),
@@ -79,10 +80,11 @@ async def day(ctx: SlashContext):
 async def demain(ctx: SlashContext):
     """Fonction qui permet d'obtenir l'edt de demain"""
 
-    events = filter_e(
+    events = filter_events(
+        get_events(),
         [TimeFilter(date.today() + timedelta(days=1), Timing.AFTER), TimeFilter(date.today() + timedelta(days=1), Timing.BEFORE), getFiliere(ctx.author),
          getGroupes(ctx.author)])
-    embeds = getEmbed(events)
+    embeds = get_embed(events)
     button = Button(
         style=ButtonStyle.PRIMARY,
         custom_id = "day-" + date.today().strftime("%d-%m-%Y"),
@@ -99,13 +101,14 @@ async def get_info(ctx: SlashContext):
     str_role = ""
     for groupe in getGroupes(ctx.author).groups:
         str_role += groupe.value + ", "
+    str_role = str_role.removesuffix(", ")
     await ctx.send(f"Vous êtes {getName(ctx.author)}!\nVotre filière est {getFiliere(ctx.author).filiere.value} et vos groupes sont {str_role}.")
 
 
-@slash_command(name="get_edt_from_semaine", description="Permet d'avoir l'emploi du temps pour une semaine", scopes=server)
+@slash_command(name="get_edt_from_semaine", description="Permet d'avoir l'emploi du temps pour une semaine", scopes=server, )
 @slash_option(
     name="semaine",
-    description="Quel semaine ? (DD-MM-YY)",
+    description="Quel semaine ? (DD-MM-YYYY)",
     required=True,
     opt_type=OptionType.STRING
 )
@@ -115,10 +118,11 @@ async def get_edt_from_semaine(ctx: SlashContext, semaine : str):
     days_since_monday = date_formater.weekday()
     monday_date = date_formater - timedelta(days=days_since_monday)
     sunday_date = monday_date + timedelta(days=6)
-    events = filter_e(
+    events = filter_events(
+        get_events(),
         [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), getFiliere(ctx.author),
          getGroupes(ctx.author)])
-    embeds = getEmbed(events)
+    embeds = get_embed(events)
     await ctx.send(embeds=embeds)
 
 
