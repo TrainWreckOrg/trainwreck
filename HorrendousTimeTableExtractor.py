@@ -354,8 +354,6 @@ events:list[Event] = []
 
 events = update_events()
 
-export(events)
+filtered_events = filter_events(events, [TimeFilter(date(2024, 10,9), Timing.AFTER), TimeFilter(date(2024,10,11), Timing.BEFORE), FiliereFilter(Filiere.MIAGE), GroupFilter([Group.TD2M, Group.CM])])
 
-# filtered_events = filter_events(events, [TimeFilter(date(2024, 10,9), Timing.AFTER), TimeFilter(date(2024,10,11), Timing.BEFORE), FiliereFilter(Filiere.MIAGE), GroupFilter([Group.TD2M, Group.CM])])
-
-# display(filtered_events)
+(filtered_events)
