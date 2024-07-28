@@ -6,13 +6,16 @@ from enum import Enum
 from interactions import Embed
 
 import time
-                                            
-#   ______           _          _       __               __  
-#  /_  __/________ _(_)___     | |     / /_______  _____/ /__
-#   / / / ___/ __ `/ / __ \    | | /| / / ___/ _ \/ ___/ //_/
-#  / / / /  / /_/ / / / / /    | |/ |/ / /  /  __/ /__/ ,<   
-# /_/ /_/   \__,_/_/_/ /_/     |__/|__/_/   \___/\___/_/|_|(_)
-# 
+
+print(
+"""
+\u001b[2;35m  ______           _       _       __               __   
+\u001b[0m\u001b[2;31m /_  __/________ _(_)___  | |     / /_______  _____/ /__ 
+\u001b[0m\u001b[2;33m  / / / ___/ __ `/ / __ \\ | | /| / / ___/ _ \\/ ___/ //_/ 
+\u001b[0m\u001b[2;36m / / / /  / /_/ / / / / / | |/ |/ / /  /  __/ /__/ ,<    
+\u001b[0m\u001b[2;34m/_/ /_/   \\__,_/_/_/ /_/  |__/|__/_/   \\___/\\___/_/|_|(_)\u001b[0m
+"""
+)
 
 # URL utilisée pour fetch les EDT de chaque filiere
 url = {
@@ -80,6 +83,12 @@ class Event:
         self.isMIAGE = isMIAGE
         self.isINGE  = isINGE
     
+    def __eq__(self, value: object) -> bool:
+        return (self.start_timestamp == value.start_timestamp) and (self.location == value.location)
+
+    def __hash__(self) -> int:
+        return hash(f"{self.start_timestamp.ctime()}{self.end_timestamp.ctime()}{self.location}{self.subject}")
+    
     def __str__(self) -> str:
         return f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
 
@@ -111,21 +120,44 @@ class FiliereFilter(Filter):
             return e.isMIAGE
 
 class GroupFilter(Filter):
-    def __init__(self, group:Group) -> None:
-        self.group = group
+    def __init__(self, groups:list[Group]) -> None:
+        self.groups = groups
     
     def filter(self, e: Event) -> bool:
-        return (e.group == self.group)
+        return (e.group in self.groups)
 
 
 # ----- HElPER  -----
+def need_updating(events:list[Event]) -> bool:
+    """Verifie si la liste d'évenement doit être mise a jour, c'est a dire si elle est trop vieille ou vide"""
+    filenameINGE = "input/INGE.ics"
+    filenameMIAGE = "input/MIAGE.ics"
+    pINGE = Path(filenameINGE)
+    pMIAGE = Path(filenameMIAGE)
+
+    return get_file_age(pINGE) > 120 or get_file_age(pMIAGE) > 120 or events == []
+
+def update_events() -> list[Event]:
+    """Retourne une nouvelle liste d'evenements melant les evenements issus des deux .ics et trié"""
+    output = []
+    filenameINGE = "input/INGE.ics"
+    filenameMIAGE = "input/MIAGE.ics"
+
+    fetch_calendar(url["INGE"], filenameINGE)
+    fetch_calendar(url["MIAGE"], filenameMIAGE)
+    
+    output.extend(parse_calendar(filenameINGE))
+    output.extend(parse_calendar(filenameMIAGE))
+
+    return sorted(list(set(output)),key=lambda event: event.start_timestamp) 
+
 def fetch_calendar(url:str, filename:str):
     """Récupere le fichier .ics correspondant a une filiere donnée"""
     urlretrieve(url, filename)
 
 def get_file_age(p:Path) -> int:
     """Retourne l'age d'un fichier en minutes"""
-    return int(time.time() - p.stat().st_mtime) // 60
+    return int(time.time() - p.stat().st_mtime) // 60 if p.exists() else 666 # file does not exist
 
 def convert_timestamp(input : str) -> datetime :
     """Permet de convertir les timestamp en ISO-8601, et les passer en UTC+2"""
@@ -234,13 +266,8 @@ def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:s
     # Crée un nouvel Objet Event a partir des infos calculées
     return Event(start, end, subject, group, location, teacher, isINGE, isMIAGE)
 
-def parse_calendar(filiere:str="INGE") -> list[Event]:
-    """Extrait les données du fichier .ics et le telecharge si il est manquant"""
-    filename = f"input/{filiere}.ics"
-    p = Path(filename)
-    if not p.exists() or get_file_age(p) > 120:
-        fetch_calendar(url[filiere], filename)
-
+def parse_calendar(filename:str) -> list[Event]:
+    """Extrait les données du fichier .ics passé dans filename"""
     with open(filename, "r", encoding="utf-8") as f:
         lines = f.readlines()
     
@@ -268,11 +295,11 @@ def parse_calendar(filiere:str="INGE") -> list[Event]:
                 if line.startswith(prefix):
                     event[prefix.removesuffix(":")] = line.removeprefix(prefix).removesuffix("\n")
                     break
-    return sorted(events, key=lambda event: event.start_timestamp)
-
+    return events
 
 # ----- EXPORTING -----
 def filter_events(events:list[Event], filters:list[Filter]) -> list[Event]:
+    """Applique une liste de filtres à la liste d'evenenements passé en parametre et retourne une nouvelle liste"""
     output = events.copy()
     for e in events:
         for f in filters:
@@ -291,7 +318,7 @@ def display(events:list[Event]) -> None:
             print(f"**{weekday[current_weekday]} {event.start_timestamp.day} {month[event.start_timestamp.month -1]}:**")
         print(event)
 
-def export(events:list[Event], filename:str="output/log") -> None:
+def export(events:list[Event], filename:str="output/log.txt") -> None:
     """Exporte une liste d'évenements dans un fichier spécifié"""
     current_weekday = 7
     with open(filename, "w") as f:
@@ -322,10 +349,13 @@ def getCalendar() -> list[Embed]:
     return calendar
 
 
-events = parse_calendar("INGE")
+# Utilisée pour stocker les evenements
+events:list[Event] = []
 
-filtered_events = filter_events(events, [TimeFilter(date(2024, 10,9), Timing.AFTER), TimeFilter(date(2024,10,11), Timing.BEFORE), FiliereFilter(Filiere.MIAGE), GroupFilter(Group.TD2M)])
+events = update_events()
 
-display(filtered_events)
-# export(events)
+export(events)
 
+# filtered_events = filter_events(events, [TimeFilter(date(2024, 10,9), Timing.AFTER), TimeFilter(date(2024,10,11), Timing.BEFORE), FiliereFilter(Filiere.MIAGE), GroupFilter([Group.TD2M, Group.CM])])
+
+# display(filtered_events)
