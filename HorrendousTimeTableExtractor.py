@@ -355,7 +355,9 @@ def getEmbed(events: list[Event]) -> list[Embed]:
         else:
             string +="\n"
         string += str(event)
-    if len(calendar) == 0:
+    embed.description = string
+    calendar.append(embed)
+    if len(calendar) >=1:
         return [Embed(title="Aucun cours")]
     else:
         calendar.pop(0)

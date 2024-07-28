@@ -30,7 +30,7 @@ async def on_component(event: Component):
     pattern_day = re.compile("day-")
     pattern_week = re.compile("week-")
     if pattern_day.search(ctx.custom_id):
-        await ctx.send(ctx.custom_id[4:])
+         await get_edt_from_date_bt(ctx,ctx.custom_id[4:])
     elif pattern_week.search(ctx.custom_id):
         await ctx.send(ctx.custom_id[5:])
     else:
@@ -49,11 +49,15 @@ async def on_component(event: Component):
 )
 async def get_edt_from_date(ctx: SlashContext, jour : str):
     """Fonction qui permet d'obtenir l'edt d'une journée spécifique"""
+    await get_edt_from_date_bt(ctx, jour)
+
+
+async def get_edt_from_date_bt(ctx, jour : str):
+    """Fonction qui permet d'obtenir l'edt d'une journée spécifique"""
     date_formater = datetime.strptime(jour, "%d-%m-%Y").date()
     events = filter_e([TimeFilter(date_formater, Timing.AFTER), TimeFilter(date_formater, Timing.BEFORE),getFiliere(ctx.author), getGroupes(ctx.author)] )
     embeds = getEmbed(events)
     await ctx.send(embeds=embeds)
-
 
 @slash_command(name="day", description="Permet d'avoir l'emploie du temps pour aujourd'hui", scopes=server)
 async def day(ctx: SlashContext):
@@ -71,79 +75,52 @@ async def day(ctx: SlashContext):
     await ctx.send(embeds=embeds, components=[action_row])
 
 
-"""
-@slash_command(name="day", description="Permet d'avoir l'emploie du temps pour aujourd'hui", scopes=server)
-async def day(ctx: SlashContext):
-    embed = Embed()
-    embed.title = "Titre"
-    embed.description = "Description"
-    
-    button = Button(
-        style=ButtonStyle.PRIMARY,
-        custom_id = "day-" + (datetime.date.today() + datetime.timedelta(days=1)).strftime("%d-%m-%Y"),
-        label = "Demain"
-    )
-    
-    action_row = ActionRow(button)
-    await ctx.send(embeds=[embed], components=[action_row]"""
-
-
 @slash_command(name="demain", description="Permet d'avoir l'emploie du temps pour demain", scopes=server)
 async def demain(ctx: SlashContext):
     """Fonction qui permet d'obtenir l'edt de demain"""
-    embed = Embed()
-    embed.title = "Titre"
-    embed.description = "Description"
-    
+
+    events = filter_e(
+        [TimeFilter(date.today() + timedelta(days=1), Timing.AFTER), TimeFilter(date.today() + timedelta(days=1), Timing.BEFORE), getFiliere(ctx.author),
+         getGroupes(ctx.author)])
+    embeds = getEmbed(events)
     button = Button(
         style=ButtonStyle.PRIMARY,
-        custom_id = "day-" + datetime.datetime.date(datetime.datetime.now()).strftime("%d-%m-%Y"),
+        custom_id = "day-" + date.today().strftime("%d-%m-%Y"),
         label = "Ajourd'hui"
     )
     
     action_row = ActionRow(button)
-    await ctx.send(embeds=[embed], components=[action_row])
-
-
-
-
-@slash_command(name="edt", description="L'emploi du temps en fonction de la limite.", scopes=server)
-async def edt(ctx: SlashContext):
-    """Fonction qui affiche l'edt (jusqu'à la limite)"""
-    compteur = 0
-    calendar = [] #getCalendar()
-    global limite
-    for day in calendar:
-        if compteur >= limite:
-            break
-        compteur+=1
-        await ctx.send(embed=day)
+    await ctx.send(embeds=embeds, components=[action_row])
 
 
 @slash_command(name="get_info", description="Donne les infos sur l'utilisateur.", scopes=server)
 async def get_info(ctx: SlashContext):
     """Fonction qui permet d'afficher le nom, la filière et les groupes de la personne"""
     str_role = ""
-    for groupe in getGroupes(ctx.author):
+    for groupe in getGroupes(ctx.author).groups:
         str_role += groupe.value + ", "
-    await ctx.send(f"Vous êtes {getName(ctx.author)}!\nVotre filière est {getFiliere(ctx.author).value} et vos groupes sont {str_role}.") 
+    await ctx.send(f"Vous êtes {getName(ctx.author)}!\nVotre filière est {getFiliere(ctx.author).filiere.value} et vos groupes sont {str_role}.")
 
 
-@slash_command(name="semaine", description="Permet d'avoir l'emploi du temps pour une semaine", scopes=server)
+@slash_command(name="get_edt_from_semaine", description="Permet d'avoir l'emploi du temps pour une semaine", scopes=server)
 @slash_option(
-    name="date",
+    name="semaine",
     description="Quel semaine ? (DD-MM-YY)",
     required=True,
     opt_type=OptionType.STRING
 )
-async def semaine(ctx: SlashContext, date : str):
+async def get_edt_from_semaine(ctx: SlashContext, semaine : str):
     """Fonction qui permet d'obtenir l'edt d'une semaine spécifique"""
-    date = datetime.datetime.strptime(date, "%d-%m-%Y")
-    
-    days_since_monday = date.weekday() - 2
-    monday_date = date - datetime.timedelta(days=days_since_monday)
+    date_formater = datetime.strptime(semaine, "%d-%m-%Y").date()
+    days_since_monday = date_formater.weekday()
+    monday_date = date_formater - timedelta(days=days_since_monday)
+    sunday_date = monday_date + timedelta(days=6)
+    events = filter_e(
+        [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), getFiliere(ctx.author),
+         getGroupes(ctx.author)])
+    embeds = getEmbed(events)
+    await ctx.send(embeds=embeds)
 
-    await ctx.send("EDT du " + monday_date.strftime("%d-%m-%Y"))
 
 
 @slash_command(name="setlimite", description="Permet de règler le nombre d'embed à afficher (default = 2)", scopes=server)
