@@ -25,7 +25,7 @@ async def on_component(event: Component):
     if pattern_day.search(ctx.custom_id):
          await get_day_bt(ctx,ctx.custom_id[4:])
     elif pattern_week.search(ctx.custom_id):
-        await ctx.send(ctx.custom_id[5:])
+        await get_week_bt(ctx,ctx.custom_id[5:])
     else:
         await ctx.send("Bouton cliqué mais aucune action définie")
 
@@ -97,7 +97,7 @@ async def info(ctx: SlashContext):
     await ctx.send(f"Vous êtes {get_name(ctx.author)}!\nVotre filière est {get_filiere(ctx.author).filiere.value} et vos groupes sont {str_role}.")
 
 
-@slash_command(name="get_week", description="Permet d'avoir l'emploi du temps pour une semaine", scopes=server, )
+@slash_command(name="get_week", description="Permet d'avoir l'emploi du temps pour une semaine", scopes=server)
 @slash_option(
     name="semaine",
     description="Quel semaine ? (DD-MM-YYYY)",
@@ -105,6 +105,10 @@ async def info(ctx: SlashContext):
     opt_type=OptionType.STRING
 )
 async def get_week(ctx: SlashContext, semaine : str):
+    """Fonction qui permet d'obtenir l'edt d'une semaine spécifique"""
+    await get_week_bt(ctx, semaine)
+
+async def get_week_bt(ctx: SlashContext, semaine : str):
     """Fonction qui permet d'obtenir l'edt d'une semaine spécifique"""
     date_formater = datetime.strptime(semaine, "%d-%m-%Y").date()
     days_since_monday = date_formater.weekday()
@@ -117,28 +121,25 @@ async def get_week(ctx: SlashContext, semaine : str):
     embeds = get_embeds(events)
     await ctx.send(embeds=embeds)
 
-
 @slash_command(name="week", description="Permet d'avoir l'emploie du temps pour la semaine", scopes=server)
 async def week(ctx: SlashContext):
     """Fonction qui permet d'obtenir l'edt de cette semaine"""
-    
-    today = date.today()
-    days_until_next_monday = (7 - today.weekday() + 0) % 7
-    if days_until_next_monday == 0:
-        days_until_next_monday = 7
-    next_monday = today + timedelta(days=days_until_next_monday)
-
-
+    date_formater = date.today()
+    days_since_monday = date_formater.weekday()
+    monday_date = date_formater - timedelta(days=days_since_monday)
+    sunday_date = monday_date + timedelta(days=6)
+    events = filter_events(
+        get_events(),
+        [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), get_filiere(ctx.author),
+         get_groupes(ctx.author)])
+    embeds = get_embeds(events)
     button = Button(
         style=ButtonStyle.PRIMARY,
-        custom_id = "week-" + next_monday.strftime("%d-%m-%Y"),
+        custom_id = "week-" + (monday_date + timedelta(days=7)).strftime("%d-%m-%Y"),
         label = "Semaine prochaine"
     )
-    
     action_row = ActionRow(button)
-    await ctx.send(embeds=[embed], components=[action_row])
-
-
+    await ctx.send(embeds=embeds, components=[action_row])
 
 def get_name(author) -> str:
     """Permet d'obtenir le nickname si défini sinon le username"""
