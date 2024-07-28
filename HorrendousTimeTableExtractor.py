@@ -102,7 +102,7 @@ class Filter:
 class TimeFilter(Filter):
     def __init__(self, date:date, timing:Timing) -> None:
         self.date   = date
-        self.tming = timing
+        self.timing = timing
 
     def filter(self, e: Event) -> bool:
         match self.timing:
