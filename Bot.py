@@ -1,4 +1,3 @@
-from ast import alias
 from interactions import ActionRow, ButtonStyle, Client, Embed, Intents, listen
 from interactions import slash_command, SlashContext, OptionType, slash_option
 from interactions import Button, ButtonStyle
@@ -55,10 +54,13 @@ async def get_edt_from_date(ctx: SlashContext, jour : str):
 
 async def get_edt_from_date_bt(ctx, jour : str):
     """Fonction qui permet d'obtenir l'edt d'une journée spécifique"""
-    date_formater = datetime.strptime(jour, "%d-%m-%Y").date()
-    events = filter_events(get_events(), [TimeFilter(date_formater, Timing.AFTER), TimeFilter(date_formater, Timing.BEFORE),getFiliere(ctx.author), getGroupes(ctx.author)] )
-    embeds = get_embed(events)
-    await ctx.send(embeds=embeds)
+    try :
+        date_formater = datetime.strptime(jour, "%d-%m-%Y").date()
+        events = filter_events(get_events(), [TimeFilter(date_formater, Timing.DURING), getFiliere(ctx.author), getGroupes(ctx.author)] )
+        embeds = get_embed(events)
+        await ctx.send(embeds=embeds)
+    except ValueError:
+        await ctx.send(embeds=[create_error_embed(f"La valeur `{jour}` ne correspond pas à une date")])
 
 @slash_command(name="day", description="Permet d'avoir l'emploie du temps pour aujourd'hui", scopes=server)
 async def day(ctx: SlashContext):
@@ -195,6 +197,8 @@ def getGroupes(author) -> GroupFilter:
                 out.append(gr)
     return GroupFilter(out)
 
+def create_error_embed(message:str) -> Embed:
+    return Embed(":warning: Erreur: ", message, 0x992d22)
 
 @listen() 
 async def on_ready():

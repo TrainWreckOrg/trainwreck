@@ -43,6 +43,8 @@ subjects_table = {
     "Pro. Pro. Per." : "Projet Personnel & Professionnel"
 }
 
+colors = [0xc62139,0xe16136,0xd8a74c,0x4a668c,0x304d7a, 0x213150, 0xf3f5f7]
+
 class Timing(Enum):
     BEFORE  = "Before"
     DURING = "During"
@@ -358,10 +360,6 @@ def get_embed(events:list[Event]) -> Embed:
         embed.fields[-1].value += str(event) + "\n"
     return [embed]
 
-
-def filter_e(filters:list[Filter]) -> list[Event]:
-    return filter_events(update_events(), filters)
-
 events :list[Event] = []
 
 def get_events() -> list[Event]:
@@ -369,6 +367,3 @@ def get_events() -> list[Event]:
     if need_updating(events):
         events = update_events()
     return events
-
-# filtered_events = filter_events(events, [TimeFilter(date(2024, 10,9), Timing.AFTER), TimeFilter(date(2024,10,11), Timing.BEFORE), FiliereFilter(Filiere.MIAGE), GroupFilter([Group.TD2M, Group.CM])])
-
