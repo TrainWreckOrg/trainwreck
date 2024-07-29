@@ -9,7 +9,7 @@ import re
 load_dotenv("cle.env")
 
 token = os.getenv("TOKEN_BOT_DISCORD")
-server = os.getenv("SERVER_ID")
+server = [os.getenv("SERVER_ID")]
 bot = Client(token=token,intents=Intents.DEFAULT, sync_interactions=True)
 channel = None
 
@@ -28,7 +28,7 @@ async def on_component(event: Component):
         else:
             await ctx.send("Bouton cliqué mais aucune action définie")
     except BaseException as error:
-        await send_error("on_component",error, ctx, bouton = event.ctx.custom_id)
+        await send_error("on_component",error, event.ctx, bouton = event.ctx.custom_id)
 
 
 
@@ -136,14 +136,7 @@ async def get_week_bt(ctx: SlashContext, semaine : str):
     """Fonction qui permet d'obtenir l'edt d'une semaine spécifique"""
     try:
         date_formater = datetime.strptime(semaine, "%d-%m-%Y").date()
-        days_since_monday = date_formater.weekday()
-        monday_date = date_formater - timedelta(days=days_since_monday)
-        sunday_date = monday_date + timedelta(days=6)
-        events = filter_events(
-            get_events(),
-            [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), get_filiere(ctx.author),
-             get_groupes(ctx.author)])
-        embeds = get_embeds(events)
+        embeds, monday_date = get_week_embeds(date_formater, ctx)
         await ctx.send(embeds=embeds)
     except BaseException as error:
         await send_error("get_week_bt",error, ctx, semaine=semaine)
@@ -154,14 +147,7 @@ async def week(ctx: SlashContext):
     """Fonction qui permet d'obtenir l'edt de cette semaine"""
     try:
         date_formater = date.today()
-        days_since_monday = date_formater.weekday()
-        monday_date = date_formater - timedelta(days=days_since_monday)
-        sunday_date = monday_date + timedelta(days=6)
-        events = filter_events(
-            get_events(),
-            [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), get_filiere(ctx.author),
-             get_groupes(ctx.author)])
-        embeds = get_embeds(events)
+        embeds, monday_date = get_week_embeds(date_formater, ctx)
         button = Button(
             style=ButtonStyle.PRIMARY,
             custom_id = "week-" + (monday_date + timedelta(days=7)).strftime("%d-%m-%Y"),
@@ -172,6 +158,16 @@ async def week(ctx: SlashContext):
     except BaseException as error:
         await send_error("week",error, ctx)
 
+
+def get_week_embeds(date_formater, ctx):
+    days_since_monday = date_formater.weekday()
+    monday_date = date_formater - timedelta(days=days_since_monday)
+    sunday_date = monday_date + timedelta(days=6)
+    events = filter_events(
+        get_events(),
+        [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), get_filiere(ctx.author),
+         get_groupes(ctx.author)])
+    return get_embeds(events), monday_date
 
 
 @slash_command(name="about", description="Affiche la page 'About'", scopes=server)
@@ -231,6 +227,9 @@ def create_error_embed(message:str) -> Embed:
 
 
 async def send_error(channel_name, error, ctx, semaine=None, jour=None, bouton=None):
+    global channel
+    if not channel:
+        channel = bot.get_channel(os.getenv("CHANNEL_ID"))
     message_erreur = f"ERREUR dans : {channel_name} - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\nLes paramètres de la fonction étais : \n - auteur : {ctx.author}\n - serveur :  {ctx.guild}\n - message :  {ctx.message}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}"
     if semaine:
         message_erreur += f"\n - semaine : {semaine}"
@@ -249,8 +248,6 @@ async def on_ready():
     """Fonction qui dit quand le bot est opérationel au démarage du programme"""
     print("Ready")
     print(f"This bot is owned by {bot.owner}")
-    global channel
-    channel = bot.get_channel(os.getenv("CHANNEL_ID"))
     await bot.synchronise_interactions()
 
 
