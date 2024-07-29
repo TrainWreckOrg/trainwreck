@@ -183,11 +183,14 @@ class UserBase:
         """Enrgistre l'utilisateur si il n'est pas déjà enregistré, sinon ne fait rien"""
         if not self.has_user(id):
             self.users[id] = groups
+            dump_user_base(self)
 
     def update_user_groups(self, id:int, new_groups:list[Group]) -> None:
         """Remplace les groupe de l'utilisateur par une ceux de `new_groups`"""
         if self.has_user(id):
             self.users[id] = new_groups
+            dump_user_base(self)
+
             
     def user_subscribe(self, id:int, subscription:Subscription):
         """Abonne un utilisateur a une ou plusieurs des listes"""
@@ -200,7 +203,9 @@ class UserBase:
                 case Subscription.BOTH:
                     self.daily_subscribed_users.add(id)
                     self.weekly_subscribed_users.add(id)
-    
+            dump_user_base(self)
+            
+
     def user_unsubscribe(self, id:int, subscription:Subscription):
         """Désabonne un utilisateur a une ou plusieurs des listes"""
         if self.has_user(id):
@@ -212,6 +217,19 @@ class UserBase:
                 case Subscription.BOTH if self.is_user_subscribed(id, subscription):
                     self.daily_subscribed_users.remove(id)
                     self.weekly_subscribed_users.remove(id)
+            dump_user_base(self)
+
+
+def load_user_base():
+    """Récupere la base d'utilisateur depuis le fichier UserBase.pkl"""
+    with open("data/UserBase.pkl", "rb") as f:
+        return pickle.load(f)
+
+def dump_user_base(user_base:UserBase):
+    """Charge la base d'utilisateur dans fichier UserBase.pkl"""
+    with open("data/UserBase.pkl", "wb") as f:
+        pickle.dump(user_base, f, pickle.HIGHEST_PROTOCOL)
+
 
 
 
@@ -261,18 +279,6 @@ def filter_events(events:list[Event], filters:list[Filter]) -> list[Event]:
                 output.remove(e)
                 break
     return output
-
-def load_user_base() -> UserBase:
-    """Récupere la base d'utilisateur depuis le fichier UserBase.pkl"""
-    with open("data/UserBase.pkl", "rb") as f:
-        return pickle.load(f)
-
-
-def dump_user_base(user_base:UserBase) -> None:
-    """Charge la base d'utilisateur dans fichier UserBase.pkl"""
-    with open("data/UserBase.pkl", "wb") as f:
-        pickle.dump(user_base, f, pickle.HIGHEST_PROTOCOL)
-
 
 # ----- PARSING -----
 def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str) -> Event:
@@ -444,11 +450,15 @@ def get_embeds(events:list[Event]) -> list[Embed]:
     return embeds
 
 
-
 events :list[Event] = []
+user_base :UserBase = load_user_base()
 
 def get_events() -> list[Event]:
     global events
     if need_updating(events):
         events = update_events()
     return events
+
+def get_user_base() -> UserBase:
+    global user_base
+    return user_base
