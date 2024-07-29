@@ -186,13 +186,9 @@ async def about(ctx :SlashContext):
 async def dm(ctx :SlashContext):
     """tries to dm the user"""
     try:
-        dany = bot.get_user(776867184420716584)
-        nathan = bot.get_user()
-        try :
-            await dany.send("👀 est ce que ça a marché ?")
-            await ctx.send("done :)")
-        except :
-            await ctx.send("no :(")
+        user = bot.get_user(ctx.author.id)
+        await user.send("👀 est ce que ça a marché ?")
+        await ctx.send("done :)")
     except BaseException as error:
        await send_error("dm",error, ctx)
 
