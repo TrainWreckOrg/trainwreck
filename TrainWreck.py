@@ -114,6 +114,25 @@ class Event:
     def __str__(self) -> str:
         return f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"  
 
+    def ics(self) -> str:
+        ics = "BEGIN:VEVENT"
+        stamp = str(datetime.now().astimezone(timezone("UTC")).isoformat()).replace("-", "").replace(":", "").replace("+0000","Z")
+        ics += "DTSTAMP:" + stamp
+        start = str(self.start_timestamp.astimezone(timezone("UTC")).isoformat()).replace("-", "").replace(":", "").replace("+0000","Z")
+        ics += "DTSTART:" + start
+        end = str(self.end_timestamp.astimezone(timezone("UTC")).isoformat()).replace("-", "").replace(":", "").replace("+0000","Z")
+        ics += "DTEND:" + end
+        ics += "SUMMARY:" + self.subject
+        ics += "LOCATION:" + self.location
+        ics += "DESCRIPTION:\n\n" + self.group.value + "\n" + self.subject + self.subject + "\nL3 INFO - INGENIERIE\nL3 INFORMAT-UPEX MINERVE\n" + self.teacher + "\n(Exporté le:" + str(datetime.now()) + ")\n"
+        ics += "UID:"
+        ics += "CREATED:"
+        ics += "LAST-MODIFIED:"
+        ics += "SEQUENCE:"
+        ics += "END: VEVENT"
+
+        return ics
+
 class Filter:
     """Classe de Base pour les filtres"""
     def filter(self, e:Event) -> bool:
@@ -475,3 +494,20 @@ def get_user_base() -> UserBase:
     global user_base
     user_base = load_user_base()
     return user_base
+
+
+def get_ics(filters:list[Filter]):
+    ics = ("BEGIN:VCALENDAR"
+           "METHOD:REQUEST"
+           "PRODID:-//ADE/version 6.0"
+           "VERSION:2.0"
+           "CALSCALE:GREGORIAN")
+    list_event = filter_events(events, filters)
+
+    for event in list_event:
+        ics += event.ics()
+
+    ics += "END:VCALENDAR"
+    with open("output/calendar.ics", "a") as f:
+        f.write(ics)
+    return True

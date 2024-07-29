@@ -1,7 +1,7 @@
 from interactions import ActionRow, Button, ButtonStyle, Client, Embed, Intents, listen, slash_command, SlashContext, OptionType, slash_option
 
 from interactions.api.events import Component, MemberUpdate
-from TrainWreck import GroupFilter, get_embeds, Filiere, Group, Timing, FiliereFilter, TimeFilter, get_events, filter_events, ascii
+from TrainWreck import GroupFilter, get_embeds, Filiere, Group, Timing, FiliereFilter, TimeFilter, get_events, filter_events, ascii, get_ics
 from dotenv import load_dotenv
 import os
 from datetime import datetime, date, timedelta
@@ -196,7 +196,14 @@ async def dm(ctx :SlashContext):
     except BaseException as error:
        await send_error("dm",error, ctx)
 
-
+@slash_command(name="ics", description="Génère le ics", scopes=server)
+async def ics(ctx :SlashContext):
+    """Génère le ics"""
+    try:
+        get_ics([get_filiere(ctx.author), get_groupes(ctx.author)])
+        await ctx.send("done :)")
+    except BaseException as error:
+       await send_error("ics",error, ctx)
 
 def get_name(author) -> str:
     """Permet d'obtenir le nickname si défini sinon le username"""
