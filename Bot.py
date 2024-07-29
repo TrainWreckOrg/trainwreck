@@ -17,15 +17,21 @@ bot = Client(token=token,intents=Intents.DEFAULT, sync_interactions=True)
 @listen(Component)
 async def on_component(event: Component):
     """Fonction permettant d'écouter les cliques des boutons"""
-    ctx = event.ctx
-    pattern_day = re.compile("day-")
-    pattern_week = re.compile("week-")
-    if pattern_day.search(ctx.custom_id):
-         await get_day_bt(ctx,ctx.custom_id[4:])
-    elif pattern_week.search(ctx.custom_id):
-        await get_week_bt(ctx,ctx.custom_id[5:])
-    else:
-        await ctx.send("Bouton cliqué mais aucune action définie")
+    try:
+        ctx = event.ctx
+        pattern_day = re.compile("day-")
+        pattern_week = re.compile("week-")
+        if pattern_day.search(ctx.custom_id):
+             await get_day_bt(ctx,ctx.custom_id[4:])
+        elif pattern_week.search(ctx.custom_id):
+            await get_week_bt(ctx,ctx.custom_id[5:])
+        else:
+            await ctx.send("Bouton cliqué mais aucune action définie")
+    except BaseException as error:
+        print(f"ERREUR dans : on_component - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\n"
+              f"Les paramètres de la fonction étais : \n - auteur : {event.ctx.author}\n - id bouton :  {event.ctx.custom_id}\n - serveur :  {event.ctx.guild}\n "
+              f"- message :  {event.ctx.message}\n - message content :  {event.ctx.message.content}\n - channel :  {event.ctx.channel}\n - role member :  {event.ctx.member.roles}", file="output/error.log")
+
 
         
 @slash_command(name="get_day", description="Permet d'avoir l'emploi du temps pour une journée", scopes=server)
@@ -37,7 +43,12 @@ async def on_component(event: Component):
 )
 async def get_day(ctx: SlashContext, jour : str):
     """Fonction qui permet d'obtenir l'edt d'une journée spécifique"""
-    await get_day_bt(ctx, jour)
+    try:
+        await get_day_bt(ctx, jour)
+    except BaseException as error:
+        print(f"ERREUR dans : get_day - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\n"
+              f"Les paramètres de la fonction étais : \n - jour : {jour}\n - auteur : {ctx.author}\n - id bouton :  {ctx.custom_id}\n - serveur :  {ctx.guild}\n "
+              f"- message :  {ctx.message}\n - message content :  {ctx.message.content}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}", file="output/error.log")
 
 
 async def get_day_bt(ctx, jour : str):
@@ -49,50 +60,67 @@ async def get_day_bt(ctx, jour : str):
         await ctx.send(embeds=embeds)
     except ValueError:
         await ctx.send(embeds=[create_error_embed(f"La valeur `{jour}` ne correspond pas à une date")])
+    except BaseException as error:
+        print(f"ERREUR dans : get_day_bt - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\n"
+              f"Les paramètres de la fonction étais : \n - jour : {jour}\n - auteur : {ctx.author}\n - id bouton :  {ctx.custom_id}\n - serveur :  {ctx.guild}\n "
+              f"- message :  {ctx.message}\n - message content :  {ctx.message.content}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}", file="output/error.log")
 
 @slash_command(name="today", description="Permet d'avoir l'emploie du temps pour aujourd'hui", scopes=server)
 async def today(ctx: SlashContext):
     """Fonction qui permet d'obtenir l'edt d'ajourd'hui"""
-    
-    events = filter_events(get_events(), [TimeFilter(date.today(), Timing.AFTER), TimeFilter(date.today(), Timing.BEFORE),get_filiere(ctx.author), get_groupes(ctx.author)] )
-    embeds = get_embeds(events)
-    button = Button(
-        style=ButtonStyle.PRIMARY,
-        custom_id = "day-" + (date.today() + timedelta(days=1)).strftime("%d-%m-%Y"),
-        label = "Demain"
-    )
-    
-    action_row = ActionRow(button)
-    await ctx.send(embeds=embeds, components=[action_row])
+    try:
+        events = filter_events(get_events(), [TimeFilter(date.today(), Timing.AFTER), TimeFilter(date.today(), Timing.BEFORE),get_filiere(ctx.author), get_groupes(ctx.author)] )
+        embeds = get_embeds(events)
+        button = Button(
+            style=ButtonStyle.PRIMARY,
+            custom_id = "day-" + (date.today() + timedelta(days=1)).strftime("%d-%m-%Y"),
+            label = "Demain"
+        )
+
+        action_row = ActionRow(button)
+        await ctx.send(embeds=embeds, components=[action_row])
+    except BaseException as error:
+        print(f"ERREUR dans : today - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\n"
+              f"Les paramètres de la fonction étais : \n - auteur : {ctx.author}\n - id bouton :  {ctx.custom_id}\n - serveur :  {ctx.guild}\n "
+              f"- message :  {ctx.message}\n - message content :  {ctx.message.content}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}", file="output/error.log")
 
 
 @slash_command(name="tomorrow", description="Permet d'avoir l'emploie du temps pour demain", scopes=server)
 async def tomorrow(ctx: SlashContext):
     """Fonction qui permet d'obtenir l'edt de demain"""
+    try:
+        events = filter_events(
+            get_events(),
+            [TimeFilter(date.today() + timedelta(days=1), Timing.AFTER), TimeFilter(date.today() + timedelta(days=1), Timing.BEFORE), get_filiere(ctx.author),
+             get_groupes(ctx.author)])
+        embeds = get_embeds(events)
+        button = Button(
+            style=ButtonStyle.PRIMARY,
+            custom_id = "day-" + date.today().strftime("%d-%m-%Y"),
+            label = "Ajourd'hui"
+        )
 
-    events = filter_events(
-        get_events(),
-        [TimeFilter(date.today() + timedelta(days=1), Timing.AFTER), TimeFilter(date.today() + timedelta(days=1), Timing.BEFORE), get_filiere(ctx.author),
-         get_groupes(ctx.author)])
-    embeds = get_embeds(events)
-    button = Button(
-        style=ButtonStyle.PRIMARY,
-        custom_id = "day-" + date.today().strftime("%d-%m-%Y"),
-        label = "Ajourd'hui"
-    )
-    
-    action_row = ActionRow(button)
-    await ctx.send(embeds=embeds, components=[action_row])
+        action_row = ActionRow(button)
+        await ctx.send(embeds=embeds, components=[action_row])
+    except BaseException as error:
+        print(f"ERREUR dans : tomorrow - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\n"
+              f"Les paramètres de la fonction étais : \n - auteur : {ctx.author}\n - id bouton :  {ctx.custom_id}\n - serveur :  {ctx.guild}\n "
+              f"- message :  {ctx.message}\n - message content :  {ctx.message.content}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}", file="output/error.log")
 
 
 @slash_command(name="info", description="Donne les infos sur l'utilisateur.", scopes=server)
 async def info(ctx: SlashContext):
     """Fonction qui permet d'afficher le nom, la filière et les groupes de la personne"""
-    str_role = ""
-    for groupe in get_groupes(ctx.author).groups:
-        str_role += groupe.value + ", "
-    str_role = str_role.removesuffix(", ")
-    await ctx.send(f"Vous êtes {get_name(ctx.author)}!\nVotre filière est {get_filiere(ctx.author).filiere.value} et vos groupes sont {str_role}.")
+    try:
+        str_role = ""
+        for groupe in get_groupes(ctx.author).groups:
+            str_role += groupe.value + ", "
+        str_role = str_role.removesuffix(", ")
+        await ctx.send(f"Vous êtes {get_name(ctx.author)}!\nVotre filière est {get_filiere(ctx.author).filiere.value} et vos groupes sont {str_role}.")
+    except BaseException as error:
+        print(f"ERREUR dans : info - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\n"
+              f"Les paramètres de la fonction étais : \n - auteur : {ctx.author}\n - id bouton :  {ctx.custom_id}\n - serveur :  {ctx.guild}\n "
+              f"- message :  {ctx.message}\n - message content :  {ctx.message.content}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}", file="output/error.log")
 
 
 @slash_command(name="get_week", description="Permet d'avoir l'emploi du temps pour une semaine", scopes=server)
@@ -104,60 +132,85 @@ async def info(ctx: SlashContext):
 )
 async def get_week(ctx: SlashContext, semaine : str):
     """Fonction qui permet d'obtenir l'edt d'une semaine spécifique"""
-    await get_week_bt(ctx, semaine)
+    try:
+        await get_week_bt(ctx, semaine)
+    except BaseException as error:
+        print(f"ERREUR dans : get_week - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\n"
+              f"Les paramètres de la fonction étais : \n - semaine : {semaine}\n - auteur : {ctx.author}\n - id bouton :  {ctx.custom_id}\n - serveur :  {ctx.guild}\n "
+              f"- message :  {ctx.message}\n - message content :  {ctx.message.content}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}", file="output/error.log")
 
 async def get_week_bt(ctx: SlashContext, semaine : str):
     """Fonction qui permet d'obtenir l'edt d'une semaine spécifique"""
-    date_formater = datetime.strptime(semaine, "%d-%m-%Y").date()
-    days_since_monday = date_formater.weekday()
-    monday_date = date_formater - timedelta(days=days_since_monday)
-    sunday_date = monday_date + timedelta(days=6)
-    events = filter_events(
-        get_events(),
-        [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), get_filiere(ctx.author),
-         get_groupes(ctx.author)])
-    embeds = get_embeds(events)
-    await ctx.send(embeds=embeds)
+    try:
+        date_formater = datetime.strptime(semaine, "%d-%m-%Y").date()
+        days_since_monday = date_formater.weekday()
+        monday_date = date_formater - timedelta(days=days_since_monday)
+        sunday_date = monday_date + timedelta(days=6)
+        events = filter_events(
+            get_events(),
+            [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), get_filiere(ctx.author),
+             get_groupes(ctx.author)])
+        embeds = get_embeds(events)
+        await ctx.send(embeds=embeds)
+    except BaseException as error:
+        print(f"ERREUR dans : get_week_bt - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\n"
+              f"Les paramètres de la fonction étais : \n - semaine : {semaine}\n - auteur : {ctx.author}\n - id bouton :  {ctx.custom_id}\n - serveur :  {ctx.guild}\n "
+              f"- message :  {ctx.message}\n - message content :  {ctx.message.content}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}", file="output/error.log")
 
 @slash_command(name="week", description="Permet d'avoir l'emploie du temps pour la semaine", scopes=server)
 async def week(ctx: SlashContext):
     """Fonction qui permet d'obtenir l'edt de cette semaine"""
-    date_formater = date.today()
-    days_since_monday = date_formater.weekday()
-    monday_date = date_formater - timedelta(days=days_since_monday)
-    sunday_date = monday_date + timedelta(days=6)
-    events = filter_events(
-        get_events(),
-        [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), get_filiere(ctx.author),
-         get_groupes(ctx.author)])
-    embeds = get_embeds(events)
-    button = Button(
-        style=ButtonStyle.PRIMARY,
-        custom_id = "week-" + (monday_date + timedelta(days=7)).strftime("%d-%m-%Y"),
-        label = "Semaine prochaine"
-    )
-    action_row = ActionRow(button)
-    await ctx.send(embeds=embeds, components=[action_row])
+    try:
+        date_formater = date.today()
+        days_since_monday = date_formater.weekday()
+        monday_date = date_formater - timedelta(days=days_since_monday)
+        sunday_date = monday_date + timedelta(days=6)
+        events = filter_events(
+            get_events(),
+            [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), get_filiere(ctx.author),
+             get_groupes(ctx.author)])
+        embeds = get_embeds(events)
+        button = Button(
+            style=ButtonStyle.PRIMARY,
+            custom_id = "week-" + (monday_date + timedelta(days=7)).strftime("%d-%m-%Y"),
+            label = "Semaine prochaine"
+        )
+        action_row = ActionRow(button)
+        await ctx.send(embeds=embeds, components=[action_row])
+    except BaseException as error:
+        print(f"ERREUR dans : week - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\n"
+              f"Les paramètres de la fonction étais : \n - auteur : {ctx.author}\n - id bouton :  {ctx.custom_id}\n - serveur :  {ctx.guild}\n "
+              f"- message :  {ctx.message}\n - message content :  {ctx.message.content}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}", file="output/error.log")
 
 
 @slash_command(name="about", description="Affiche la page 'About'", scopes=server)
 async def about(ctx :SlashContext):
     """Affiche le Contenu de README.md"""
-    with open("README.md", "r", encoding="utf-8") as f:
-        l = f.read()
-    await ctx.send(ascii + l )
+    try:
+        with open("README.md", "r", encoding="utf-8") as f:
+            l = f.read()
+        await ctx.send(ascii + l )
+    except BaseException as error:
+        print(f"ERREUR dans : about - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\n"
+              f"Les paramètres de la fonction étais : \n - auteur : {ctx.author}\n - id bouton :  {ctx.custom_id}\n - serveur :  {ctx.guild}\n "
+              f"- message :  {ctx.message}\n - message content :  {ctx.message.content}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}", file="output/error.log")
 
 
 @slash_command(name="dm", description="tries to dm the user", scopes=server)
 async def dm(ctx :SlashContext):
     """tries to dm the user"""
-    dany = bot.get_user(776867184420716584)
-    nathan = bot.get_user()
-    try :
-        await dany.send("👀 est ce que ça a marché ?")
-        await ctx.send("done :)")
-    except :
-        await ctx.send("no :(")
+    try:
+        dany = bot.get_user(776867184420716584)
+        nathan = bot.get_user()
+        try :
+            await dany.send("👀 est ce que ça a marché ?")
+            await ctx.send("done :)")
+        except :
+            await ctx.send("no :(")
+    except BaseException as error:
+        print(f"ERREUR dans : dm - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\n"
+              f"Les paramètres de la fonction étais : \n - auteur : {ctx.author}\n - id bouton :  {ctx.custom_id}\n - serveur :  {ctx.guild}\n "
+              f"- message :  {ctx.message}\n - message content :  {ctx.message.content}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}", file="output/error.log")
 
 
 def get_name(author) -> str:
