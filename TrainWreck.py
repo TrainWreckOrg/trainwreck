@@ -6,7 +6,7 @@ from enum import Enum
 from interactions import Embed
 from dotenv import load_dotenv
 
-import time, os
+import time, os, pickle
 
 print(
 """
@@ -85,6 +85,12 @@ class Group(Enum):
     CM      = "CM"
     UKNW    = "UKNW"
 
+class Subscription(Enum):
+    DAILY   = "Daily"
+    WEEKLY  = "Weekly"
+    BOTH    = "Both"
+    NONE    = "None"
+
 # ----- CLASSES -----
 class Event:
     """Classe utilisée pour gerer les objets evenements"""
@@ -106,7 +112,7 @@ class Event:
         return hash(f"{self.start_timestamp.ctime()}{self.end_timestamp.ctime()}{self.location}{self.subject}")
     
     def __str__(self) -> str:
-        return f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
+        return f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"  
 
 class Filter:
     """Classe de Base pour les filtres"""
@@ -149,6 +155,65 @@ class GroupFilter(Filter):
     def filter(self, e: Event) -> bool:
         return (e.group in self.groups)
 
+class UserBase:
+    def __init__(self, users:dict[int:list[Group]], daily_subscribed_users:set[int]=[], weekly_subscribed_users:set[int]=[]) -> None:
+        self.users                      = users
+        self.daily_subscribed_users     = daily_subscribed_users
+        self.weekly_subscribed_users    = weekly_subscribed_users
+    
+    def has_user(self, id:int) -> bool:
+        """Verifie si l'utilisateur est déjà enregistré"""
+        return id in self.users.keys()
+    
+    def is_user_subscribed(self, id:int, subscription:Subscription) -> bool:
+        if self.has_user(id):
+            is_daily = id in self.daily_subscribed_users
+            is_weekly = id in self.weekly_subscribed_users
+            match subscription:
+                case Subscription.DAILY:
+                    return is_daily
+                case Subscription.WEEKLY:
+                    return is_weekly
+                case Subscription.BOTH:
+                    return is_daily and is_weekly
+                case Subscription.NONE:
+                    return (not is_daily) and (not is_weekly)
+        
+    def add_user(self, id:int, groups:list[Group]) -> None:
+        """Enrgistre l'utilisateur si il n'est pas déjà enregistré, sinon ne fait rien"""
+        if not self.has_user(id):
+            self.users[id] = groups
+
+    def update_user_groups(self, id:int, new_groups:list[Group]) -> None:
+        """Remplace les groupe de l'utilisateur par une ceux de `new_groups`"""
+        if self.has_user(id):
+            self.users[id] = new_groups
+            
+    def user_subscribe(self, id:int, subscription:Subscription):
+        """Abonne un utilisateur a une ou plusieurs des listes"""
+        if self.has_user(id):
+            match subscription:
+                case Subscription.DAILY:
+                    self.daily_subscribed_users.add(id)
+                case Subscription.WEEKLY:
+                    self.weekly_subscribed_users.add(id)
+                case Subscription.BOTH:
+                    self.daily_subscribed_users.add(id)
+                    self.weekly_subscribed_users.add(id)
+    
+    def user_unsubscribe(self, id:int, subscription:Subscription):
+        """Désabonne un utilisateur a une ou plusieurs des listes"""
+        if self.has_user(id):
+            match subscription:
+                case Subscription.DAILY if self.is_user_subscribed(id, subscription):
+                    self.daily_subscribed_users.remove(id)
+                case Subscription.WEEKLY if self.is_user_subscribed(id, subscription):
+                    self.weekly_subscribed_users.remove(id)
+                case Subscription.BOTH if self.is_user_subscribed(id, subscription):
+                    self.daily_subscribed_users.remove(id)
+                    self.weekly_subscribed_users.remove(id)
+
+
 
 # ----- HElPER  -----
 def need_updating(events:list[Event]) -> bool:
@@ -186,6 +251,27 @@ def convert_timestamp(input : str) -> datetime :
     """Permet de convertir les timestamp en ISO-8601, et les passer en UTC+2"""
     iso_date = f"{input[0:4]}-{input[4:6]}-{input[6:11]}:{input[11:13]}:{input[13:]}"
     return datetime.fromisoformat(iso_date).astimezone(timezone("Europe/Paris"))
+
+def filter_events(events:list[Event], filters:list[Filter]) -> list[Event]:
+    """Applique une liste de filtres à la liste d'evenenements passé en parametre et retourne une nouvelle liste"""
+    output = events.copy()
+    for e in events:
+        for f in filters:
+            if not f.filter(e):
+                output.remove(e)
+                break
+    return output
+
+def load_user_base() -> UserBase:
+    """Récupere la base d'utilisateur depuis le fichier UserBase.pkl"""
+    with open("data/UserBase.pkl", "rb") as f:
+        return pickle.load(f)
+
+
+def dump_user_base(user_base:UserBase) -> None:
+    """Charge la base d'utilisateur dans fichier UserBase.pkl"""
+    with open("data/UserBase.pkl", "wb") as f:
+        pickle.dump(user_base, f, pickle.HIGHEST_PROTOCOL)
 
 
 # ----- PARSING -----
@@ -322,17 +408,7 @@ def parse_calendar(filename:str) -> list[Event]:
                     break
     return events
 
-# ----- EXPORTING -----
-def filter_events(events:list[Event], filters:list[Filter]) -> list[Event]:
-    """Applique une liste de filtres à la liste d'evenenements passé en parametre et retourne une nouvelle liste"""
-    output = events.copy()
-    for e in events:
-        for f in filters:
-            if not f.filter(e):
-                output.remove(e)
-                break
-    return output
-
+# ----- DISPLAYING -----
 def display(events:list[Event]) -> None:
     """affiche une liste d'évenements"""
     current_weekday = 7
@@ -366,6 +442,8 @@ def get_embeds(events:list[Event]) -> list[Embed]:
         embeds[-1].description += "- " + str(event) + "\n"
     embeds[-1].set_footer("Les emploi du temps sont fournis a titre informatif uniquement,\n -> Veuillez vous referrer à votre page personnelle sur l'ENT")
     return embeds
+
+
 
 events :list[Event] = []
 
