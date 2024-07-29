@@ -10,8 +10,8 @@ load_dotenv("cle.env")
 
 token = os.getenv("TOKEN_BOT_DISCORD")
 server = os.getenv("SERVER_ID")
-
 bot = Client(token=token,intents=Intents.DEFAULT, sync_interactions=True)
+channel = None
 
 
 @listen(Component)
@@ -28,9 +28,8 @@ async def on_component(event: Component):
         else:
             await ctx.send("Bouton cliqué mais aucune action définie")
     except BaseException as error:
-        print(f"ERREUR dans : on_component - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\n"
-              f"Les paramètres de la fonction étais : \n - auteur : {event.ctx.author}\n - id bouton :  {event.ctx.custom_id}\n - serveur :  {event.ctx.guild}\n "
-              f"- message :  {event.ctx.message}\n - message content :  {event.ctx.message.content}\n - channel :  {event.ctx.channel}\n - role member :  {event.ctx.member.roles}", file="output/error.log")
+        await send_error("on_component",error, ctx, bouton = event.ctx.custom_id)
+
 
 
         
@@ -46,9 +45,8 @@ async def get_day(ctx: SlashContext, jour : str):
     try:
         await get_day_bt(ctx, jour)
     except BaseException as error:
-        print(f"ERREUR dans : get_day - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\n"
-              f"Les paramètres de la fonction étais : \n - jour : {jour}\n - auteur : {ctx.author}\n - id bouton :  {ctx.custom_id}\n - serveur :  {ctx.guild}\n "
-              f"- message :  {ctx.message}\n - message content :  {ctx.message.content}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}", file="output/error.log")
+        await send_error("get_day",error, ctx, jour=jour)
+
 
 
 async def get_day_bt(ctx, jour : str):
@@ -61,9 +59,8 @@ async def get_day_bt(ctx, jour : str):
     except ValueError:
         await ctx.send(embeds=[create_error_embed(f"La valeur `{jour}` ne correspond pas à une date")])
     except BaseException as error:
-        print(f"ERREUR dans : get_day_bt - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\n"
-              f"Les paramètres de la fonction étais : \n - jour : {jour}\n - auteur : {ctx.author}\n - id bouton :  {ctx.custom_id}\n - serveur :  {ctx.guild}\n "
-              f"- message :  {ctx.message}\n - message content :  {ctx.message.content}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}", file="output/error.log")
+        await send_error("get_day_bt",error, ctx, jour=jour)
+
 
 @slash_command(name="today", description="Permet d'avoir l'emploie du temps pour aujourd'hui", scopes=server)
 async def today(ctx: SlashContext):
@@ -80,9 +77,8 @@ async def today(ctx: SlashContext):
         action_row = ActionRow(button)
         await ctx.send(embeds=embeds, components=[action_row])
     except BaseException as error:
-        print(f"ERREUR dans : today - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\n"
-              f"Les paramètres de la fonction étais : \n - auteur : {ctx.author}\n - id bouton :  {ctx.custom_id}\n - serveur :  {ctx.guild}\n "
-              f"- message :  {ctx.message}\n - message content :  {ctx.message.content}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}", file="output/error.log")
+        await send_error("today", error, ctx)
+
 
 
 @slash_command(name="tomorrow", description="Permet d'avoir l'emploie du temps pour demain", scopes=server)
@@ -103,9 +99,8 @@ async def tomorrow(ctx: SlashContext):
         action_row = ActionRow(button)
         await ctx.send(embeds=embeds, components=[action_row])
     except BaseException as error:
-        print(f"ERREUR dans : tomorrow - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\n"
-              f"Les paramètres de la fonction étais : \n - auteur : {ctx.author}\n - id bouton :  {ctx.custom_id}\n - serveur :  {ctx.guild}\n "
-              f"- message :  {ctx.message}\n - message content :  {ctx.message.content}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}", file="output/error.log")
+        await send_error("tomorrow", error, ctx)
+
 
 
 @slash_command(name="info", description="Donne les infos sur l'utilisateur.", scopes=server)
@@ -118,9 +113,8 @@ async def info(ctx: SlashContext):
         str_role = str_role.removesuffix(", ")
         await ctx.send(f"Vous êtes {get_name(ctx.author)}!\nVotre filière est {get_filiere(ctx.author).filiere.value} et vos groupes sont {str_role}.")
     except BaseException as error:
-        print(f"ERREUR dans : info - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\n"
-              f"Les paramètres de la fonction étais : \n - auteur : {ctx.author}\n - id bouton :  {ctx.custom_id}\n - serveur :  {ctx.guild}\n "
-              f"- message :  {ctx.message}\n - message content :  {ctx.message.content}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}", file="output/error.log")
+        await send_error("info",error, ctx)
+
 
 
 @slash_command(name="get_week", description="Permet d'avoir l'emploi du temps pour une semaine", scopes=server)
@@ -135,9 +129,8 @@ async def get_week(ctx: SlashContext, semaine : str):
     try:
         await get_week_bt(ctx, semaine)
     except BaseException as error:
-        print(f"ERREUR dans : get_week - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\n"
-              f"Les paramètres de la fonction étais : \n - semaine : {semaine}\n - auteur : {ctx.author}\n - id bouton :  {ctx.custom_id}\n - serveur :  {ctx.guild}\n "
-              f"- message :  {ctx.message}\n - message content :  {ctx.message.content}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}", file="output/error.log")
+        await send_error("get_week",error, ctx, semaine=semaine)
+
 
 async def get_week_bt(ctx: SlashContext, semaine : str):
     """Fonction qui permet d'obtenir l'edt d'une semaine spécifique"""
@@ -153,9 +146,8 @@ async def get_week_bt(ctx: SlashContext, semaine : str):
         embeds = get_embeds(events)
         await ctx.send(embeds=embeds)
     except BaseException as error:
-        print(f"ERREUR dans : get_week_bt - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\n"
-              f"Les paramètres de la fonction étais : \n - semaine : {semaine}\n - auteur : {ctx.author}\n - id bouton :  {ctx.custom_id}\n - serveur :  {ctx.guild}\n "
-              f"- message :  {ctx.message}\n - message content :  {ctx.message.content}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}", file="output/error.log")
+        await send_error("get_week_bt",error, ctx, semaine=semaine)
+
 
 @slash_command(name="week", description="Permet d'avoir l'emploie du temps pour la semaine", scopes=server)
 async def week(ctx: SlashContext):
@@ -178,9 +170,8 @@ async def week(ctx: SlashContext):
         action_row = ActionRow(button)
         await ctx.send(embeds=embeds, components=[action_row])
     except BaseException as error:
-        print(f"ERREUR dans : week - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\n"
-              f"Les paramètres de la fonction étais : \n - auteur : {ctx.author}\n - id bouton :  {ctx.custom_id}\n - serveur :  {ctx.guild}\n "
-              f"- message :  {ctx.message}\n - message content :  {ctx.message.content}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}", file="output/error.log")
+        await send_error("week",error, ctx)
+
 
 
 @slash_command(name="about", description="Affiche la page 'About'", scopes=server)
@@ -191,9 +182,8 @@ async def about(ctx :SlashContext):
             l = f.read()
         await ctx.send(ascii + l )
     except BaseException as error:
-        print(f"ERREUR dans : about - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\n"
-              f"Les paramètres de la fonction étais : \n - auteur : {ctx.author}\n - id bouton :  {ctx.custom_id}\n - serveur :  {ctx.guild}\n "
-              f"- message :  {ctx.message}\n - message content :  {ctx.message.content}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}", file="output/error.log")
+        await send_error("about",error, ctx)
+
 
 
 @slash_command(name="dm", description="tries to dm the user", scopes=server)
@@ -208,9 +198,8 @@ async def dm(ctx :SlashContext):
         except :
             await ctx.send("no :(")
     except BaseException as error:
-        print(f"ERREUR dans : dm - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\n"
-              f"Les paramètres de la fonction étais : \n - auteur : {ctx.author}\n - id bouton :  {ctx.custom_id}\n - serveur :  {ctx.guild}\n "
-              f"- message :  {ctx.message}\n - message content :  {ctx.message.content}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}", file="output/error.log")
+       await send_error("dm",error, ctx)
+
 
 
 def get_name(author) -> str:
@@ -240,12 +229,30 @@ def get_groupes(author) -> GroupFilter:
 def create_error_embed(message:str) -> Embed:
     return Embed(":warning: Erreur: ", message, 0x992d22)
 
-@listen() 
+
+async def send_error(channel_name, error, ctx, semaine=None, jour=None, bouton=None):
+    message_erreur = f"ERREUR dans : {channel_name} - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\nLes paramètres de la fonction étais : \n - auteur : {ctx.author}\n - serveur :  {ctx.guild}\n - message :  {ctx.message}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}"
+    if semaine:
+        message_erreur += f"\n - semaine : {semaine}"
+    if jour:
+        message_erreur += f"\n - jour : {jour}"
+    if bouton:
+        message_erreur += f"\n - id_bouton : {bouton}"
+    with open("output/error.log", "a") as f:
+        f.write(message_erreur)
+    await channel.send(f"<@&{os.getenv("ADMIN_ID")}> " + message_erreur)
+    await ctx.send(embeds=[create_error_embed(
+        "Une erreur est survenue, veuillez réessayer ultérieurement, l'équipe de modération est avertie du problème")])
+
+@listen()
 async def on_ready():
     """Fonction qui dit quand le bot est opérationel au démarage du programme"""
     print("Ready")
     print(f"This bot is owned by {bot.owner}")
+    global channel
+    channel = bot.get_channel(os.getenv("CHANNEL_ID"))
     await bot.synchronise_interactions()
 
 
 bot.start()
+
