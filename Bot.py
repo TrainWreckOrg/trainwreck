@@ -9,7 +9,7 @@ import re
 load_dotenv("cle.env")
 
 token = os.getenv("TOKEN_BOT_DISCORD")
-server = [os.getenv("SERVER_ID")]
+server = os.getenv("SERVER_ID")
 bot = Client(token=token,intents=Intents.DEFAULT, sync_interactions=True)
 channel = None
 
