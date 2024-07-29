@@ -163,8 +163,8 @@ def need_updating(events:list[Event]) -> bool:
 def update_events() -> list[Event]:
     """Retourne une nouvelle liste d'evenements melant les evenements issus des deux .ics et trié"""
     output = []
-    filenameINGE = "input/INGE.ics"
-    filenameMIAGE = "input/MIAGE.ics"
+    filenameINGE = "data/INGE.ics"
+    filenameMIAGE = "data/MIAGE.ics"
 
     fetch_calendar(url["INGE"], filenameINGE)
     fetch_calendar(url["MIAGE"], filenameMIAGE)
