@@ -463,7 +463,7 @@ def get_embeds(events:list[Event]) -> list[Embed]:
 
 
 events :list[Event] = []
-user_base :UserBase = load_user_base()
+#user_base :UserBase = load_user_base()
 
 def get_events() -> list[Event]:
     global events

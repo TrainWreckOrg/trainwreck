@@ -1,5 +1,6 @@
-from interactions import ActionRow, Button, ButtonStyle, Client, Embed, Intents, listen, slash_command, SlashContext, OptionType, slash_option, client, User
-from interactions.api.events import Component
+from interactions import ActionRow, Button, ButtonStyle, Client, Embed, Intents, listen, slash_command, SlashContext, OptionType, slash_option
+
+from interactions.api.events import Component, MemberUpdate
 from TrainWreck import GroupFilter, get_embeds, Filiere, Group, Timing, FiliereFilter, TimeFilter, get_events, filter_events, ascii
 from dotenv import load_dotenv
 import os
@@ -10,7 +11,7 @@ load_dotenv("cle.env")
 
 token = os.getenv("TOKEN_BOT_DISCORD")
 server = os.getenv("SERVER_ID")
-bot = Client(token=token,intents=Intents.DEFAULT, sync_interactions=True)
+bot = Client(token=token, intents=Intents.DEFAULT | Intents.GUILD_MEMBERS, sync_interactions=True)
 channel = None
 
 
@@ -31,6 +32,9 @@ async def on_component(event: Component):
         await send_error("on_component",error, event.ctx, bouton = event.ctx.custom_id)
 
 
+@listen(MemberUpdate)
+async def on_member_update(event: MemberUpdate):
+    print('Ready!')
 
         
 @slash_command(name="get_day", description="Permet d'avoir l'emploi du temps pour une journée", scopes=server)
