@@ -1,0 +1,57 @@
+ERREUR dans : get_day_bt - 2024-07-29 21:39:03.200738
+Erreur de type : <class 'AttributeError'>
+Agrument de l'erreur : ("'NoneType' object has no attribute 'filter'",)
+Description de l'erreur : 'NoneType' object has no attribute 'filter'
+Les paramètres de la fonction étais : 
+ - auteur : @kaawan
+ - serveur :  Guild(id=1265571990052274207, name='Serveur de test', description=None)
+ - message :  None
+ - channel :  GuildText(id=1265572459286106183, name='test-bot', type=<ChannelType.GUILD_TEXT: 0>)
+ - role member :  [Role(id=1265572644095393833, name='Admin', position=23, purchasable_or_has_subscribers=False)]
+ - jour : 10-10-2024ERREUR dans : get_day - 2024-07-29 21:39:03.679735
+Erreur de type : <class 'interactions.client.errors.NotFound'>
+Agrument de l'erreur : ('404|Not Found: (10062) Unknown interaction',)
+Description de l'erreur : HTTPException: 404|Not Found || Unknown interaction
+Les paramètres de la fonction étais : 
+ - auteur : @kaawan
+ - serveur :  Guild(id=1265571990052274207, name='Serveur de test', description=None)
+ - message :  None
+ - channel :  GuildText(id=1265572459286106183, name='test-bot', type=<ChannelType.GUILD_TEXT: 0>)
+ - role member :  [Role(id=1265572644095393833, name='Admin', position=23, purchasable_or_has_subscribers=False)]
+ - jour : 10-10-2024ERREUR dans : info - 2024-07-29 21:43:59.904488
+Erreur de type : <class 'AttributeError'>
+Agrument de l'erreur : ("'NoneType' object has no attribute 'filiere'",)
+Description de l'erreur : 'NoneType' object has no attribute 'filiere'
+Les paramètres de la fonction étais : 
+ - auteur : @kaawan
+ - serveur :  Guild(id=1265571990052274207, name='Serveur de test', description=None)
+ - message :  None
+ - channel :  GuildText(id=1267397506518483045, name='error-log', type=<ChannelType.GUILD_TEXT: 0>)
+ - role member :  [Role(id=1265572644095393833, name='Admin', position=23, purchasable_or_has_subscribers=False)]ERREUR dans : info - 2024-07-29 21:44:44.644491
+Erreur de type : <class 'AttributeError'>
+Agrument de l'erreur : ("'NoneType' object has no attribute 'value'",)
+Description de l'erreur : 'NoneType' object has no attribute 'value'
+Les paramètres de la fonction étais : 
+ - auteur : @kaawan
+ - serveur :  Guild(id=1265571990052274207, name='Serveur de test', description=None)
+ - message :  None
+ - channel :  GuildText(id=1265572459286106183, name='test-bot', type=<ChannelType.GUILD_TEXT: 0>)
+ - role member :  [Role(id=1265572644095393833, name='Admin', position=23, purchasable_or_has_subscribers=False)]ERREUR dans : info - 2024-07-29 21:48:55.636560
+Erreur de type : <class 'TypeError'>
+Agrument de l'erreur : ("'function' object is not iterable",)
+Description de l'erreur : 'function' object is not iterable
+Les paramètres de la fonction étais : 
+ - auteur : @kaawan
+ - serveur :  Guild(id=1265571990052274207, name='Serveur de test', description=None)
+ - message :  None
+ - channel :  GuildText(id=1265572459286106183, name='test-bot', type=<ChannelType.GUILD_TEXT: 0>)
+ - role member :  [Role(id=1265572644095393833, name='Admin', position=23, purchasable_or_has_subscribers=False)]ERREUR dans : info - 2024-07-29 21:52:25.733299
+Erreur de type : <class 'TypeError'>
+Agrument de l'erreur : ("'function' object is not iterable",)
+Description de l'erreur : 'function' object is not iterable
+Les paramètres de la fonction étais : 
+ - auteur : @kaawan
+ - serveur :  Guild(id=1265571990052274207, name='Serveur de test', description=None)
+ - message :  None
+ - channel :  GuildText(id=1265572459286106183, name='test-bot', type=<ChannelType.GUILD_TEXT: 0>)
+ - role member :  [Role(id=1265572644095393833, name='Admin', position=23, purchasable_or_has_subscribers=False)]

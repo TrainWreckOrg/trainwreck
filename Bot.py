@@ -1,7 +1,7 @@
 from interactions import ActionRow, Button, ButtonStyle, Client, Embed, Intents, listen, slash_command, SlashContext, OptionType, slash_option
 
 from interactions.api.events import Component, MemberUpdate
-from TrainWreck import GroupFilter, get_embeds, Filiere, Group, Timing, FiliereFilter, TimeFilter, get_events, filter_events, ascii
+from TrainWreck import GroupFilter, get_embeds, Filiere, Group, Timing, Filter, FiliereFilter, TimeFilter, get_events, filter_events, ascii, get_user_base, UserBase, user_base
 from dotenv import load_dotenv
 import os
 from datetime import datetime, date, timedelta
@@ -34,7 +34,12 @@ async def on_component(event: Component):
 
 @listen(MemberUpdate)
 async def on_member_update(event: MemberUpdate):
-    print('Ready!')
+    user_base = get_user_base()
+    user = event.after
+    if not user_base.has_user(user.id):
+        user_base.add_user(user.id, get_groupes_as_list(user), get_filiere_as_filiere(user))
+    else :
+        user_base.update_user_groups(user.id, get_groupes_as_list(user))
 
         
 @slash_command(name="get_day", description="Permet d'avoir l'emploi du temps pour une journée", scopes=server)
@@ -112,11 +117,12 @@ async def info(ctx: SlashContext):
     """Fonction qui permet d'afficher le nom, la filière et les groupes de la personne"""
     try:
         str_role = ""
-        for groupe in get_groupes(ctx.author).groups:
+        for groupe in get_groupes_as_list(ctx.author):
             str_role += groupe.value + ", "
         str_role = str_role.removesuffix(", ")
-        await ctx.send(f"Vous êtes {get_name(ctx.author)}!\nVotre filière est {get_filiere(ctx.author).filiere.value} et vos groupes sont {str_role}.")
+        await ctx.send(f"Vous êtes {get_name(ctx.author)}!\nVotre filière est {get_filiere_as_filiere(ctx.author).value} et vos groupes {"sont" if len(get_groupes_as_list(ctx.author)) > 1 else "est"} {str_role}.")
     except BaseException as error:
+        print(error)
         await send_error("info",error, ctx)
 
 
@@ -200,27 +206,45 @@ async def dm(ctx :SlashContext):
 
 def get_name(author) -> str:
     """Permet d'obtenir le nickname si défini sinon le username"""
-    return author.nickname if author.nickname else author.username
+    return author.display_name
 
 
 def get_filiere(author) -> FiliereFilter:
-    """Fonction qui permet d'avoir la filière d'un utilisateur, renvoie None si pas définie"""
+    """Fonction qui permet d'avoir le filtre filière d'un utilisateur, renvoie None si pas définie"""
     for role in author.roles:
         if role.name == Filiere.INGE.value:
             return FiliereFilter(Filiere.INGE)
         if role.name == Filiere.MIAGE.value:
             return FiliereFilter(Filiere.MIAGE)
-    return None
+    return Filter()
+
+def get_filiere_as_filiere(author) -> Filiere:
+    """Fonction qui permet d'avoir la filière d'un utilisateur, renvoie None si pas définie"""
+    for role in author.roles:
+        if role.name == Filiere.INGE.value:
+            return Filiere.INGE
+        if role.name == Filiere.MIAGE.value:
+            return Filiere.MIAGE
+    return Filiere.UKNW
 
 
 def get_groupes(author) -> GroupFilter:
-    """Fonction qui renvoie le tableau des groupe d'un utilisateur"""
+    """Fonction qui renvoie un filtre des groupe d'un utilisateur"""
     out = [Group.CM]
     for role in author.roles:
         for gr in Group:
             if role.name == gr.value:
                 out.append(gr)
     return GroupFilter(out)
+
+def get_groupes_as_list(author) -> list[Group]:
+    """Fonction qui renvoie un filtre des groupe d'un utilisateur"""
+    out = [Group.CM]
+    for role in author.roles:
+        for gr in Group:
+            if role.name == gr.value:
+                out.append(gr)
+    return out
 
 def create_error_embed(message:str) -> Embed:
     return Embed(":warning: Erreur: ", message, 0x992d22)

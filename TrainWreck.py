@@ -63,6 +63,7 @@ class Timing(Enum):
 class Filiere(Enum):
     INGE    = "Ingé"
     MIAGE   = "Miage"
+    UKNW    = "UKNW"
 
 class Group(Enum):
     TPAI    = "TP A Inge"
@@ -165,7 +166,7 @@ class User:
         return self.id
     
     def __str__(self) -> str:
-        return f"{self.id}, {self.groups} : {self.filiere.value}"
+        return f"<{self.id}, {self.groups}, {self.filiere.value}>"
 
 class UserBase:
     def __init__(self, users:dict[int:User], daily_subscribed_users:set[int]=[], weekly_subscribed_users:set[int]=[]) -> None:
@@ -173,9 +174,12 @@ class UserBase:
         self.daily_subscribed_users     = daily_subscribed_users
         self.weekly_subscribed_users    = weekly_subscribed_users
     
+    def __str__(self) -> str:
+        return f"<users:{[str(x) for x in self.users.values()]}, daily:{self.daily_subscribed_users}, weekly:{self.weekly_subscribed_users}>"
+    
     def has_user(self, id:int) -> bool:
         """Verifie si l'utilisateur est déjà enregistré"""
-        return id in self.users.groups.keys()
+        return id in self.users.keys()
     
     def is_user_subscribed(self, id:int, subscription:Subscription) -> bool:
         if self.has_user(id):
@@ -241,6 +245,7 @@ def dump_user_base(user_base:UserBase):
     """Charge la base d'utilisateur dans fichier UserBase.pkl"""
     with open("data/UserBase.pkl", "wb") as f:
         pickle.dump(user_base, f, pickle.HIGHEST_PROTOCOL)
+    print(user_base)
 
 
 
@@ -463,7 +468,8 @@ def get_embeds(events:list[Event]) -> list[Embed]:
 
 
 events :list[Event] = []
-#user_base :UserBase = load_user_base()
+user_base :UserBase = load_user_base()
+# user_base :UserBase = UserBase({}, [], [])
 
 def get_events() -> list[Event]:
     global events
