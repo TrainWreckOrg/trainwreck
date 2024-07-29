@@ -155,15 +155,27 @@ class GroupFilter(Filter):
     def filter(self, e: Event) -> bool:
         return (e.group in self.groups)
 
+class User:
+    def __init__(self, id:int, groups:list[Group], filiere:Filiere) -> None:
+        self.id         = id
+        self.groups     = groups
+        self.filiere    = filiere
+
+    def __hash__(self) -> int:
+        return self.id
+    
+    def __str__(self) -> str:
+        return f"{self.id}, {self.groups} : {self.filiere.value}"
+
 class UserBase:
-    def __init__(self, users:dict[int:list[Group]], daily_subscribed_users:set[int]=[], weekly_subscribed_users:set[int]=[]) -> None:
+    def __init__(self, users:dict[int:User], daily_subscribed_users:set[int]=[], weekly_subscribed_users:set[int]=[]) -> None:
         self.users                      = users
         self.daily_subscribed_users     = daily_subscribed_users
         self.weekly_subscribed_users    = weekly_subscribed_users
     
     def has_user(self, id:int) -> bool:
         """Verifie si l'utilisateur est déjà enregistré"""
-        return id in self.users.keys()
+        return id in self.users.groups.keys()
     
     def is_user_subscribed(self, id:int, subscription:Subscription) -> bool:
         if self.has_user(id):
@@ -179,16 +191,16 @@ class UserBase:
                 case Subscription.NONE:
                     return (not is_daily) and (not is_weekly)
         
-    def add_user(self, id:int, groups:list[Group]) -> None:
+    def add_user(self, id:int, groups:list[Group], filiere:Filiere) -> None:
         """Enrgistre l'utilisateur si il n'est pas déjà enregistré, sinon ne fait rien"""
         if not self.has_user(id):
-            self.users[id] = groups
+            self.users[id] = User(id, groups, filiere)
             dump_user_base(self)
 
     def update_user_groups(self, id:int, new_groups:list[Group]) -> None:
         """Remplace les groupe de l'utilisateur par une ceux de `new_groups`"""
         if self.has_user(id):
-            self.users[id] = new_groups
+            self.users[id].groups = new_groups
             dump_user_base(self)
 
             
@@ -461,4 +473,5 @@ def get_events() -> list[Event]:
 
 def get_user_base() -> UserBase:
     global user_base
+    user_base = load_user_base()
     return user_base
