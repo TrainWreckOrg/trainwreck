@@ -115,6 +115,7 @@ async def tomorrow(ctx: SlashContext):
 async def info(ctx: SlashContext):
     """Fonction qui permet d'afficher le nom, la filière et les groupes de la personne"""
     try:
+        print(ctx.channel)
         str_role = ""
         for groupe in get_groupes_as_list(ctx.author):
             str_role += groupe.value + ", "
@@ -189,6 +190,14 @@ async def about(ctx :SlashContext):
     except BaseException as error:
         await send_error("about",error, ctx)
 
+@slash_command(name="test", description="Test command", scopes=server)
+async def test(ctx :SlashContext):
+    print(ctx.author)
+    print(ctx.channel)
+    print(ctx.context)
+    print(ctx._context_type)
+    print(ctx.permission_map)
+    await ctx.send(str(ctx))
 
 
 @slash_command(name="dm", description="tries to dm the user", scopes=server)
