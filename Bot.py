@@ -6,6 +6,7 @@ import os
 from datetime import datetime, date, timedelta
 import re
 
+
 load_dotenv("cle.env")
 
 token = os.getenv("TOKEN_BOT_DISCORD")
@@ -206,7 +207,7 @@ async def ics(ctx :SlashContext):
     """Génère le ics"""
     try:
         get_ics([get_filiere(ctx.author), get_groupes(ctx.author)])
-        await ctx.send("done :)")
+        await ctx.send("Voici votre fichier ics", files=["output/calendar.ics"])
     except BaseException as error:
        await send_error("ics",error, ctx)
 

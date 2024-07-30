@@ -10,7 +10,7 @@ def convert_timestamp(input: str) -> datetime:
     return datetime.fromisoformat(iso_date).astimezone(timezone("Europe/Paris"))
 
 
-source_convert = convert_timestamp(source)
+source_convert = datetime.now().replace(microsecond=0)
 print("source_convert = ", source_convert)
 source_convert_time = source_convert.astimezone(timezone("UTC"))
 print("source_convert_time = ", source_convert_time)
@@ -22,3 +22,5 @@ print("source_convert_time_iso_parce = ", source_convert_time_iso_parce)
 final = str(source_convert.astimezone(timezone("UTC")).isoformat()).replace("-", "").replace(":", "").replace("+0000","Z")
 
 print("final = ",final)
+
+

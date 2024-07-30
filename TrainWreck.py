@@ -95,7 +95,7 @@ class Subscription(Enum):
 # ----- CLASSES -----
 class Event:
     """Classe utilisée pour gerer les objets evenements"""
-    def __init__(self, start:datetime, end:datetime, subject:str, group:Group, location:str, teacher:str, isINGE:bool, isMIAGE:bool) -> None:
+    def __init__(self, start:datetime, end:datetime, subject:str, group:Group, location:str, teacher:str, isINGE:bool, isMIAGE:bool, uid:str) -> None:
         self.start_timestamp = start
         self.end_timestamp = end
         self.location = location
@@ -105,33 +105,41 @@ class Event:
         # Note : isMIAGE and isINGE are not mutually exclusive
         self.isMIAGE = isMIAGE
         self.isINGE  = isINGE
-    
+        self.uid = uid
+
     def __eq__(self, value: object) -> bool:
-        return (self.start_timestamp == value.start_timestamp) and (self.location == value.location)
+        return self.uid == value.uid
+
+        """if self == value:
+            return True
+        if value is None:
+            return False
+        if isinstance(value, type(self)):
+            return False
+        return self.uid == value.uid"""
 
     def __hash__(self) -> int:
-        return hash(f"{self.start_timestamp.ctime()}{self.end_timestamp.ctime()}{self.location}{self.subject}")
-    
+        return hash(self.uid)
+
     def __str__(self) -> str:
-        return f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"  
+        return f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
 
     def ics(self) -> str:
-        ics = "BEGIN:VEVENT"
-        stamp = str(datetime.now().astimezone(timezone("UTC")).isoformat()).replace("-", "").replace(":", "").replace("+0000","Z")
-        ics += "DTSTAMP:" + stamp
+        ics = "BEGIN:VEVENT\n"
+        stamp = str(datetime.now().replace(microsecond=0).astimezone(timezone("UTC")).isoformat()).replace("-", "").replace(":", "").replace("+0000","Z")
+        ics += "DTSTAMP:" + stamp + "\n"
         start = str(self.start_timestamp.astimezone(timezone("UTC")).isoformat()).replace("-", "").replace(":", "").replace("+0000","Z")
-        ics += "DTSTART:" + start
+        ics += "DTSTART:" + start + "\n"
         end = str(self.end_timestamp.astimezone(timezone("UTC")).isoformat()).replace("-", "").replace(":", "").replace("+0000","Z")
-        ics += "DTEND:" + end
-        ics += "SUMMARY:" + self.subject
-        ics += "LOCATION:" + self.location
-        ics += "DESCRIPTION:\n\n" + self.group.value + "\n" + self.subject + self.subject + "\nL3 INFO - INGENIERIE\nL3 INFORMAT-UPEX MINERVE\n" + self.teacher + "\n(Exporté le:" + str(datetime.now()) + ")\n"
-        ics += "UID:"
-        ics += "CREATED:"
-        ics += "LAST-MODIFIED:"
-        ics += "SEQUENCE:"
-        ics += "END: VEVENT"
-
+        ics += "DTEND:" + end + "\n"
+        ics += "SUMMARY:" + self.subject + "\n"
+        ics += "LOCATION:" + self.location + "\n"
+        ics += "DESCRIPTION:\\n\\n" + self.group.value + "\\n" + self.subject + self.subject + "\\nL3 INFO - INGENIERIE\\nL3 INFORMAT-UPEX MINERVE\\n" + self.teacher + "\\n(Exporté le:" + str(datetime.now()) + ")\\n" + "\n"
+        ics += "UID:" + self.uid + "\n"
+        ics += "CREATED:19700101T000000Z" + "\n"
+        ics += "LAST-MODIFIED:" + stamp + "\n"
+        ics += "SEQUENCE:2141354890" + "\n"
+        ics += "END:VEVENT" + "\n"
         return ics
 
 class Filter:
@@ -161,7 +169,7 @@ class TimeFilter(Filter):
 class FiliereFilter(Filter):
     def __init__(self, filiere:Filiere) -> None:
         self.filiere = filiere
-    
+
     def filter(self, e: Event) -> bool:
         if self.filiere == Filiere.INGE:
             return e.isINGE
@@ -171,7 +179,7 @@ class FiliereFilter(Filter):
 class GroupFilter(Filter):
     def __init__(self, groups:list[Group]) -> None:
         self.groups = groups
-    
+
     def filter(self, e: Event) -> bool:
         return (e.group in self.groups)
 
@@ -183,7 +191,7 @@ class User:
 
     def __hash__(self) -> int:
         return self.id
-    
+
     def __str__(self) -> str:
         return f"<{self.id}, {self.groups}, {self.filiere.value}>"
 
@@ -192,14 +200,14 @@ class UserBase:
         self.users                      = users
         self.daily_subscribed_users     = daily_subscribed_users
         self.weekly_subscribed_users    = weekly_subscribed_users
-    
+
     def __str__(self) -> str:
         return f"<users:{[str(x) for x in self.users.values()]}, daily:{self.daily_subscribed_users}, weekly:{self.weekly_subscribed_users}>"
-    
+
     def has_user(self, id:int) -> bool:
         """Verifie si l'utilisateur est déjà enregistré"""
         return id in self.users.keys()
-    
+
     def is_user_subscribed(self, id:int, subscription:Subscription) -> bool:
         if self.has_user(id):
             is_daily = id in self.daily_subscribed_users
@@ -213,7 +221,7 @@ class UserBase:
                     return is_daily and is_weekly
                 case Subscription.NONE:
                     return (not is_daily) and (not is_weekly)
-        
+
     def add_user(self, id:int, groups:list[Group], filiere:Filiere) -> None:
         """Enrgistre l'utilisateur si il n'est pas déjà enregistré, sinon ne fait rien"""
         if not self.has_user(id):
@@ -226,7 +234,7 @@ class UserBase:
             self.users[id].groups = new_groups
             dump_user_base(self)
 
-            
+
     def user_subscribe(self, id:int, subscription:Subscription):
         """Abonne un utilisateur a une ou plusieurs des listes"""
         if self.has_user(id):
@@ -239,7 +247,7 @@ class UserBase:
                     self.daily_subscribed_users.add(id)
                     self.weekly_subscribed_users.add(id)
             dump_user_base(self)
-            
+
 
     def user_unsubscribe(self, id:int, subscription:Subscription):
         """Désabonne un utilisateur a une ou plusieurs des listes"""
@@ -287,11 +295,11 @@ def update_events() -> list[Event]:
 
     fetch_calendar(url["INGE"], filenameINGE)
     fetch_calendar(url["MIAGE"], filenameMIAGE)
-    
+
     output.extend(parse_calendar(filenameINGE))
     output.extend(parse_calendar(filenameMIAGE))
 
-    return sorted(list(set(output)),key=lambda event: event.start_timestamp) 
+    return sorted(list(set(output)),key=lambda event: event.start_timestamp)
 
 def fetch_calendar(url:str, filename:str):
     """Récupere le fichier .ics correspondant a une filiere donnée"""
@@ -317,20 +325,20 @@ def filter_events(events:list[Event], filters:list[Filter]) -> list[Event]:
     return output
 
 # ----- PARSING -----
-def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str) -> Event:
+def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str) -> Event:
     """Permet d'extraire les informations des données parsées"""
     # Evenements spéciaux
     if sum == "Réunion rentrée - L3 INGENIERIE INFORMATIQUE":
-        return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", True, False)
+        return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", True, False,"ADE60323032342d323032352d31323639382d302d30")
     elif sum == "HAPPY CAMPUS DAY":
-        return Event(start, end, sum, Group.CM, "Campus", "Équipe Enseignante", True, True)
+        return Event(start, end, sum, Group.CM, "Campus", "Équipe Enseignante", True, True,"ADE60323032342d323032352d32323835332d302d30")
     elif sum == "Réunion rentrée - L3 MIAGE":
-        return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", False, True)
+        return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", False, True,"ADE60323032342d323032352d31333132352d302d30")
 
     # Descsplit contient les informations correspondant à la description de l'evenement, séparé par lignes
     # ex : ['', '', 'Gr TPC', 'Con. Ana. Algo', 'Con. Ana. Algo', 'L3 INFO - INGENIERIE', 'L3 INFORMAT-UPEX MINERVE', 'LIEDLOFF', '(Exporté le:27/07/2024 20:20)', '\n\n']
     descsplit = desc.split("\\n")
-    
+
     # Si la Matiere (4eme element) est une abbrev connu dans la subjects_table, remplacer par le nom complet
     subject = subjects_table[descsplit[3]] if descsplit[3] in subjects_table.keys() else descsplit[3]
 
@@ -342,7 +350,7 @@ def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:s
     isMIAGE = False
     isINGE  = False
     group   = Group.CM
-    
+
     if subject == "Anglais":
         if "MIAGE" in sum :
             # ex : Anglais - TD3 MIAGE
@@ -353,9 +361,9 @@ def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:s
                 case "2":
                     group = Group.TDA2M
                 case "3":
-                    group = Group.TDA3M  
+                    group = Group.TDA3M
                 case _:
-                        # This case should NOT happen and should be fixed asap 
+                        # This case should NOT happen and should be fixed asap
                         group = Group.UKNW
                         print("ERROR : NO GROUP FOUND (INGE) :", sum , "---------------------")
 
@@ -370,7 +378,7 @@ def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:s
                 case "3":
                     group = Group.TDA3I
                 case _:
-                        # This case should NOT happen and should be fixed asap 
+                        # This case should NOT happen and should be fixed asap
                         group = Group.UKNW
                         print("ERROR : NO GROUP FOUND (INGE) :", sum , "---------------------")
     else:
@@ -390,9 +398,9 @@ def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:s
                     case "TPA":
                         group = Group.TPAI
                     case "TPB":
-                        group = Group.TPBI                    
+                        group = Group.TPBI
                     case "TPC":
-                        group = Group.TPCI                    
+                        group = Group.TPCI
                     case "TPD":
                         group = Group.TPDI
                     case _:
@@ -408,28 +416,28 @@ def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:s
                     case "TP1":
                         group = Group.TP1M
                     case "TP2":
-                        group = Group.TP2M                    
+                        group = Group.TP2M
                     case "TP3":
                         group = Group.TP3M
                     case _:
                         # This case should NOT happen and should be fixed asap 
                         group = Group.UKNW
                         print("ERROR : NO GROUP FOUND (MIAGE) :", sum , "---------------------")
-                        
+
     # Crée un nouvel Objet Event a partir des infos calculées
-    return Event(start, end, subject, group, location, teacher, isINGE, isMIAGE)
+    return Event(start, end, subject, group, location, teacher, isINGE, isMIAGE, uid)
 
 def parse_calendar(filename:str) -> list[Event]:
     """Extrait les données du fichier .ics passé dans filename"""
     with open(filename, "r", encoding="utf-8") as f:
         lines = f.readlines()
-    
+
     events = []
     event = {}
     for line in lines:
         # Balise Ouvrante, crée un nouveau dictionnaire vide
         if line.startswith("BEGIN:VEVENT"):
-            event = {"DTSTART":"", "DTEND":"", "SUMMARY":"", "LOCATION":"", "DESCRIPTION":""}
+            event = {"DTSTART":"", "DTEND":"", "SUMMARY":"", "LOCATION":"", "DESCRIPTION":"", "UID":""}
         # Balise Fermante, envoie les informations récoltées (Timestamps début et fin, le summary (titre), la salle et la description)
         elif line.startswith("END:VEVENT"):
             e = build_event_from_data(
@@ -437,14 +445,15 @@ def parse_calendar(filename:str) -> list[Event]:
                 convert_timestamp(event["DTEND"]),
                 event["SUMMARY"],
                 event["LOCATION"],
-                event["DESCRIPTION"]
+                event["DESCRIPTION"],
+                event["UID"]
             )
             events.append(e)
 
         elif line.startswith(" "):
             event["DESCRIPTION"] += line.removeprefix(" ")
         else:
-            for prefix in ("DTSTART:", "DTEND:", "SUMMARY:", "LOCATION:", "DESCRIPTION:") :
+            for prefix in ("DTSTART:", "DTEND:", "SUMMARY:", "LOCATION:", "DESCRIPTION:", "UID:") :
                 if line.startswith(prefix):
                     event[prefix.removesuffix(":")] = line.removeprefix(prefix).removesuffix("\n")
                     break
@@ -502,18 +511,19 @@ def get_user_base() -> UserBase:
     return user_base
 
 
-def get_ics(filters:list[Filter]):
-    ics = ("BEGIN:VCALENDAR"
-           "METHOD:REQUEST"
-           "PRODID:-//ADE/version 6.0"
-           "VERSION:2.0"
-           "CALSCALE:GREGORIAN")
+def get_ics(filters: list[Filter]):
+    global events
+    ics = ("BEGIN:VCALENDAR\n"
+           "METHOD:REQUEST\n"
+           "PRODID:-//ADE/version 6.0\n"
+           "VERSION:2.0\n"
+           "CALSCALE:GREGORIAN\n")
     list_event = filter_events(events, filters)
 
     for event in list_event:
         ics += event.ics()
 
     ics += "END:VCALENDAR"
-    with open("output/calendar.ics", "a") as f:
+    with open("output/calendar.ics", "w", encoding="UTF-8") as f:
         f.write(ics)
     return True
