@@ -117,4 +117,34 @@ Les paramètres de la fonction étais :
  - serveur :  Guild(id=1265571990052274207, name='Serveur de test', description=None)
  - message :  None
  - channel :  GuildText(id=1265572459286106183, name='test-bot', type=<ChannelType.GUILD_TEXT: 0>)
+ - role member :  [Role(id=1265572644095393833, name='Admin', position=23, purchasable_or_has_subscribers=False), Role(id=1265572852623605790, name='Modérateur', position=22, purchasable_or_has_subscribers=False), Role(id=1265573289443590164, name='Ingé', position=20, purchasable_or_has_subscribers=False), Role(id=1265995794235003011, name='TD 2 Inge', position=18, purchasable_or_has_subscribers=False), Role(id=1265994595460976690, name='TP C Inge', position=15, purchasable_or_has_subscribers=False), Role(id=1265995941253746738, name='TD 1 Inge Anglais', position=13, purchasable_or_has_subscribers=False), Role(id=1265996730697121964, name='TP C Miage', position=5, purchasable_or_has_subscribers=False)]ERREUR dans : get_day_bt - 2024-07-30 15:40:39.464199
+Erreur de type : <class 'AttributeError'>
+Agrument de l'erreur : ("'dict_values' object has no attribute 'copy'",)
+Description de l'erreur : 'dict_values' object has no attribute 'copy'
+Les paramètres de la fonction étais : 
+ - auteur : @dany_d45
+ - serveur :  Guild(id=1265571990052274207, name='Serveur de test', description=None)
+ - message :  None
+ - channel :  GuildText(id=1265572459286106183, name='test-bot', type=<ChannelType.GUILD_TEXT: 0>)
  - role member :  [Role(id=1265572644095393833, name='Admin', position=23, purchasable_or_has_subscribers=False), Role(id=1265572852623605790, name='Modérateur', position=22, purchasable_or_has_subscribers=False), Role(id=1265573289443590164, name='Ingé', position=20, purchasable_or_has_subscribers=False), Role(id=1265995794235003011, name='TD 2 Inge', position=18, purchasable_or_has_subscribers=False), Role(id=1265994595460976690, name='TP C Inge', position=15, purchasable_or_has_subscribers=False), Role(id=1265995941253746738, name='TD 1 Inge Anglais', position=13, purchasable_or_has_subscribers=False), Role(id=1265996730697121964, name='TP C Miage', position=5, purchasable_or_has_subscribers=False)]
+ - jour : 04-09-2024ERREUR dans : get_day_bt - 2024-07-30 15:41:32.338317
+Erreur de type : <class 'AttributeError'>
+Agrument de l'erreur : ("'dict_values' object has no attribute 'copy'",)
+Description de l'erreur : 'dict_values' object has no attribute 'copy'
+Les paramètres de la fonction étais : 
+ - auteur : @dany_d45
+ - serveur :  Guild(id=1265571990052274207, name='Serveur de test', description=None)
+ - message :  None
+ - channel :  GuildText(id=1265572459286106183, name='test-bot', type=<ChannelType.GUILD_TEXT: 0>)
+ - role member :  [Role(id=1265572644095393833, name='Admin', position=23, purchasable_or_has_subscribers=False), Role(id=1265572852623605790, name='Modérateur', position=22, purchasable_or_has_subscribers=False), Role(id=1265573289443590164, name='Ingé', position=20, purchasable_or_has_subscribers=False), Role(id=1265995794235003011, name='TD 2 Inge', position=18, purchasable_or_has_subscribers=False), Role(id=1265994595460976690, name='TP C Inge', position=15, purchasable_or_has_subscribers=False), Role(id=1265995941253746738, name='TD 1 Inge Anglais', position=13, purchasable_or_has_subscribers=False), Role(id=1265996730697121964, name='TP C Miage', position=5, purchasable_or_has_subscribers=False)]
+ - jour : 04-09-2024ERREUR dans : get_week_bt - 2024-07-30 15:46:26.067230
+Erreur de type : <class 'interactions.client.errors.HTTPException'>
+Agrument de l'erreur : ('400|Bad Request: (50035) Invalid Form Body',)
+Description de l'erreur : HTTPException: 400|Bad Request: data->embeds BASE_TYPE_MAX_LENGTH: Must be 10 or fewer in length.
+Les paramètres de la fonction étais : 
+ - auteur : @dany_d45
+ - serveur :  Guild(id=1265571990052274207, name='Serveur de test', description=None)
+ - message :  None
+ - channel :  GuildText(id=1265572459286106183, name='test-bot', type=<ChannelType.GUILD_TEXT: 0>)
+ - role member :  [Role(id=1265572644095393833, name='Admin', position=23, purchasable_or_has_subscribers=False), Role(id=1265572852623605790, name='Modérateur', position=22, purchasable_or_has_subscribers=False), Role(id=1265573289443590164, name='Ingé', position=20, purchasable_or_has_subscribers=False), Role(id=1265995794235003011, name='TD 2 Inge', position=18, purchasable_or_has_subscribers=False), Role(id=1265994595460976690, name='TP C Inge', position=15, purchasable_or_has_subscribers=False), Role(id=1265995941253746738, name='TD 1 Inge Anglais', position=13, purchasable_or_has_subscribers=False), Role(id=1265996730697121964, name='TP C Miage', position=5, purchasable_or_has_subscribers=False)]
+ - semaine : 10-10-2024

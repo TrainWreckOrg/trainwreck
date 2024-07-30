@@ -65,6 +65,9 @@ class Filiere(Enum):
     MIAGE   = "Miage"
     UKNW    = "UKNW"
 
+    def __str__(self):
+        return self.value
+
 class Group(Enum):
     TPAI    = "TP A Inge"
     TPBI    = "TP B Inge"
@@ -86,11 +89,17 @@ class Group(Enum):
     CM      = "CM"
     UKNW    = "UKNW"
 
+    def __str__(self):
+        return self.value
+
 class Subscription(Enum):
     DAILY   = "Daily"
     WEEKLY  = "Weekly"
     BOTH    = "Both"
     NONE    = "None"
+
+    def __str__(self):
+        return self.value
 
 # ----- CLASSES -----
 class Event:
@@ -107,19 +116,16 @@ class Event:
         self.isINGE  = isINGE
         self.uid = uid
 
-    def __eq__(self, value: object) -> bool:
-        return self.uid == value.uid
-
-        """if self == value:
-            return True
-        if value is None:
-            return False
-        if isinstance(value, type(self)):
-            return False
-        return self.uid == value.uid"""
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Event):
+            return (self.uid == other.uid and self.start_timestamp == other.start_timestamp and
+                    self.end_timestamp == other.end_timestamp and self.location == other.location and
+                    self.teacher == other.teacher and self.subject == other.subject and self.group == other.group and
+                    self.isMIAGE == other.isMIAGE and self.isINGE == other.isINGE)
+        return False
 
     def __hash__(self) -> int:
-        return hash(self.uid)
+        return hash(self.uid + str(self.start_timestamp) + str(self.end_timestamp) + self.location + self.teacher + self.subject + str(self.group) + str(self.isMIAGE) + str(self.isINGE))
 
     def __str__(self) -> str:
         return f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
@@ -278,28 +284,28 @@ def dump_user_base(user_base:UserBase):
 
 
 # ----- HElPER  -----
-def need_updating(events:list[Event]) -> bool:
+def need_updating(events:dict[str:Event]) -> bool:
     """Verifie si la liste d'évenement doit être mise a jour, c'est a dire si elle est trop vieille ou vide"""
     filenameINGE = "input/INGE.ics"
     filenameMIAGE = "input/MIAGE.ics"
     pINGE = Path(filenameINGE)
     pMIAGE = Path(filenameMIAGE)
 
-    return get_file_age(pINGE) > 120 or get_file_age(pMIAGE) > 120 or events == []
+    return get_file_age(pINGE) > 120 or get_file_age(pMIAGE) > 120 or events == {}
 
-def update_events() -> list[Event]:
+def update_events(update: bool) -> dict[str:Event]:
     """Retourne une nouvelle liste d'evenements melant les evenements issus des deux .ics et trié"""
-    output = []
+    output = {}
     filenameINGE = "data/INGE.ics"
     filenameMIAGE = "data/MIAGE.ics"
 
-    fetch_calendar(url["INGE"], filenameINGE)
-    fetch_calendar(url["MIAGE"], filenameMIAGE)
+    if update:
+        fetch_calendar(url["INGE"], filenameINGE)
+        fetch_calendar(url["MIAGE"], filenameMIAGE)
 
-    output.extend(parse_calendar(filenameINGE))
-    output.extend(parse_calendar(filenameMIAGE))
+    output = parse_calendar(filenameINGE) | parse_calendar(filenameMIAGE)
 
-    return sorted(list(set(output)),key=lambda event: event.start_timestamp)
+    return output         #sorted(list(set(output)),key=lambda event: event.start_timestamp)
 
 def fetch_calendar(url:str, filename:str):
     """Récupere le fichier .ics correspondant a une filiere donnée"""
@@ -427,12 +433,12 @@ def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:s
     # Crée un nouvel Objet Event a partir des infos calculées
     return Event(start, end, subject, group, location, teacher, isINGE, isMIAGE, uid)
 
-def parse_calendar(filename:str) -> list[Event]:
+def parse_calendar(filename:str) -> dict[str:Event]:
     """Extrait les données du fichier .ics passé dans filename"""
     with open(filename, "r", encoding="utf-8") as f:
         lines = f.readlines()
 
-    events = []
+    events = {}
     event = {}
     for line in lines:
         # Balise Ouvrante, crée un nouveau dictionnaire vide
@@ -448,7 +454,7 @@ def parse_calendar(filename:str) -> list[Event]:
                 event["DESCRIPTION"],
                 event["UID"]
             )
-            events.append(e)
+            events[e.uid] = e
 
         elif line.startswith(" "):
             event["DESCRIPTION"] += line.removeprefix(" ")
@@ -495,15 +501,25 @@ def get_embeds(events:list[Event]) -> list[Embed]:
     return embeds
 
 
-events :list[Event] = []
+events_dict : dict[str:Event] = {}
 user_base :UserBase = load_user_base()
 # user_base :UserBase = UserBase({}, [], [])
 
 def get_events() -> list[Event]:
-    global events
-    if need_updating(events):
-        events = update_events()
-    return events
+    events_dict = get_events_dict()
+    return sorted(list(events_dict.values())<,key=lambda event: event.start_timestamp)
+
+def get_events_dict() -> dict[str:Event]:
+    global events_dict
+    if need_updating(events_dict):
+        events_old : dict[str:Event] = {}
+        if events_dict == {}:
+            events_old = update_events(False)
+        else:
+            events_old = events_dict
+        events_dict = update_events(True)
+        change(events_old, events_dict)
+    return events_dict
 
 def get_user_base() -> UserBase:
     global user_base
@@ -512,7 +528,7 @@ def get_user_base() -> UserBase:
 
 
 def get_ics(filters: list[Filter]):
-    global events
+    events = get_events()
     ics = ("BEGIN:VCALENDAR\n"
            "METHOD:REQUEST\n"
            "PRODID:-//ADE/version 6.0\n"
@@ -527,3 +543,18 @@ def get_ics(filters: list[Filter]):
     with open("output/calendar.ics", "w", encoding="UTF-8") as f:
         f.write(ics)
     return True
+
+
+def change(old : dict[str:Event], new : dict[str:Event]):
+    changement : list[Embed] = []
+    for new_uid in new:
+        new_event = new.get(new_uid)
+        old_event = old.get(new_uid)
+        if old_event != new_event:
+            embed = Embed(title="Changement sur cette événement", description=f"**Ancien événement :**\n{old_event}\n**Nouvelle événement :**\n{new_event}")
+            changement.append(embed)
+    if len(changement) != 0:
+        print("ya eu du changement")
+        #changement_event(changement)
+
+
