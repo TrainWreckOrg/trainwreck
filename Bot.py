@@ -198,6 +198,11 @@ async def test(ctx :SlashContext):
     print(ctx.context)
     print(ctx._context_type)
     print(ctx.permission_map)
+    try:
+        ctx.author.nickname
+        await ctx.send("chan")
+    except:
+        await ctx.send("mp")
     await ctx.send(str(ctx))
 
 
