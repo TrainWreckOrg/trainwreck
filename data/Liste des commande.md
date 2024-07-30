@@ -36,7 +36,5 @@ TODO :
 - @tasks
     - Auto Update
     - Auto Send DM
-- Commands en DM
-    - DM .ics 
 - abonner / désabonner
 - scan server pour ajouter les gens dans la bd

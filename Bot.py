@@ -1,6 +1,6 @@
-from interactions import ActionRow, Button, ButtonStyle, Client, Embed, Intents, listen, slash_command, SlashContext, OptionType, slash_option
+from interactions import ActionRow, Button, ButtonStyle, Client, Embed, Intents, listen, slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice
 from interactions.api.events import Component, MemberUpdate
-from TrainWreck import GroupFilter, get_embeds, Filiere, Group, Timing, Filter, FiliereFilter, TimeFilter, get_events, filter_events, ascii, get_user_base, UserBase, user_base, get_ics, User
+from TrainWreck import GroupFilter, get_embeds, Filiere, Group, Timing, Filter, FiliereFilter, TimeFilter, get_events, filter_events, ascii, get_user_base, UserBase, user_base, get_ics, User, Subscription
 from dotenv import load_dotenv
 import os
 from datetime import datetime, date, timedelta
@@ -219,6 +219,67 @@ async def ics(ctx :SlashContext):
         await ctx.send("Voici votre fichier ics", files=["output/calendar.ics"])
     except BaseException as error:
        await send_error("ics",error, ctx)
+
+@slash_command(name="subscribe", description="Permet de s'abonner aux mises a jour automatiques", scopes=server)
+@slash_option(
+    name="service",
+    description="mise a jour Quotidienne `DAILY`, Hebdomadaire `WEEKLY`, ou les deux `BOTH`",
+    required=True,
+    opt_type=OptionType.STRING,
+    choices=[
+        SlashCommandChoice(name="Daily", value="DAILY"),
+        SlashCommandChoice(name="Weekly", value="WEEKLY"),
+        SlashCommandChoice(name="Both", value="BOTH")
+    ]
+)
+async def subscribe(ctx :SlashContext, service: str):
+    user_base = get_user_base()
+    id = ctx.author_id
+    if not user_base.has_user(ctx.author_id):
+        user_base.add_user(id, get_groupes_as_list(ctx.author), get_filiere_as_filiere(ctx.author))
+    match service:
+        case "DAILY":
+            user_base.user_subscribe(id, Subscription.DAILY)
+        case "WEEKLY":
+            user_base.user_subscribe(id, Subscription.WEEKLY)
+        case "BOTH":
+            user_base.user_subscribe(id, Subscription.BOTH)
+    await ctx.send(embed=Embed(f"Abonnements de {get_name(ctx.author)}", f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"))
+
+
+@slash_command(name="unsubscribe", description="Permet de se desabonner aux mises a jour automatiques", scopes=server)
+@slash_option(
+    name="service",
+    description="mise a jour Quotidienne `DAILY`, Hebdomadaire `WEEKLY`, ou les deux `BOTH`",
+    required=True,
+    opt_type=OptionType.STRING,
+    choices=[
+        SlashCommandChoice(name="Daily", value="DAILY"),
+        SlashCommandChoice(name="Weekly", value="WEEKLY"),
+        SlashCommandChoice(name="Both", value="BOTH")
+    ]
+    )
+async def unsubscribe(ctx :SlashContext, service: str):
+    user_base = get_user_base()
+    id = ctx.author_id
+    if not user_base.has_user(ctx.author_id):
+        user_base.add_user(id, get_groupes_as_list(ctx.author), get_filiere_as_filiere(ctx.author))
+    match service:
+        case "DAILY":
+            user_base.user_unsubscribe(id, Subscription.DAILY)
+        case "WEEKLY":
+            user_base.user_unsubscribe(id, Subscription.WEEKLY)
+        case "BOTH":
+            user_base.user_unsubscribe(id, Subscription.BOTH)
+    await ctx.send(embed=Embed(f"Abonnements de {get_name(ctx.author)}", f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"))
+    
+@slash_command(name="check_subscription", description="Permet de consulter ses abonnements aux services de Mise à Jour", scopes=server)
+async def check_subscription(ctx :SlashContext) :
+    user_base = get_user_base()
+    id = ctx.author_id
+    await ctx.send(embed=Embed(f"Abonnements de {get_name(ctx.author)}", f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"))
+
+
 
 
 def get_name(author) -> str:

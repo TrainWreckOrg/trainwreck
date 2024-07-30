@@ -87,10 +87,10 @@ class Group(Enum):
     UKNW    = "UKNW"
 
 class Subscription(Enum):
-    DAILY   = "Daily"
-    WEEKLY  = "Weekly"
-    BOTH    = "Both"
-    NONE    = "None"
+    DAILY   = "DAILY"
+    WEEKLY  = "WEEKLY"
+    BOTH    = "BOTH"
+    NONE    = "NONE"
 
 # ----- CLASSES -----
 class Event:
@@ -196,7 +196,7 @@ class User:
         return f"<{self.id}, {self.groups}, {self.filiere.value}>"
 
 class UserBase:
-    def __init__(self, users:dict[int:User], daily_subscribed_users:set[int]=[], weekly_subscribed_users:set[int]=[]) -> None:
+    def __init__(self, users:dict[int:User], daily_subscribed_users:set, weekly_subscribed_users:set) -> None:
         self.users                      = users
         self.daily_subscribed_users     = daily_subscribed_users
         self.weekly_subscribed_users    = weekly_subscribed_users
@@ -269,6 +269,7 @@ class UserBase:
             return self.users[id]
         else:
             return None
+
 
 
 def load_user_base():
@@ -505,7 +506,8 @@ def get_embeds(events:list[Event]) -> list[Embed]:
 
 events :list[Event] = []
 user_base :UserBase = load_user_base()
-# user_base :UserBase = UserBase({}, [], [])
+# user_base :UserBase = UserBase({}, set(), set())
+
 
 def get_events() -> list[Event]:
     global events
