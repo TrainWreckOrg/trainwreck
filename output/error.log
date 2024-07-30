@@ -54,4 +54,67 @@ Les paramètres de la fonction étais :
  - serveur :  Guild(id=1265571990052274207, name='Serveur de test', description=None)
  - message :  None
  - channel :  GuildText(id=1265572459286106183, name='test-bot', type=<ChannelType.GUILD_TEXT: 0>)
- - role member :  [Role(id=1265572644095393833, name='Admin', position=23, purchasable_or_has_subscribers=False)]
+ - role member :  [Role(id=1265572644095393833, name='Admin', position=23, purchasable_or_has_subscribers=False)]ERREUR dans : ics - 2024-07-30 10:41:47.461258
+Erreur de type : <class 'KeyboardInterrupt'>
+Agrument de l'erreur : ()
+Description de l'erreur : 
+Les paramètres de la fonction étais : 
+ - auteur : @dany_d45
+ - serveur :  Guild(id=1265571990052274207, name='Serveur de test', description=None)
+ - message :  None
+ - channel :  GuildText(id=1265572459286106183, name='test-bot', type=<ChannelType.GUILD_TEXT: 0>)
+ - role member :  [Role(id=1265572644095393833, name='Admin', position=23, purchasable_or_has_subscribers=False), Role(id=1265572852623605790, name='Modérateur', position=22, purchasable_or_has_subscribers=False), Role(id=1265573289443590164, name='Ingé', position=20, purchasable_or_has_subscribers=False), Role(id=1265995794235003011, name='TD 2 Inge', position=18, purchasable_or_has_subscribers=False), Role(id=1265994595460976690, name='TP C Inge', position=15, purchasable_or_has_subscribers=False), Role(id=1265995941253746738, name='TD 1 Inge Anglais', position=13, purchasable_or_has_subscribers=False), Role(id=1265996730697121964, name='TP C Miage', position=5, purchasable_or_has_subscribers=False)]ERREUR dans : ics - 2024-07-30 10:43:35.700992
+Erreur de type : <class 'KeyboardInterrupt'>
+Agrument de l'erreur : ()
+Description de l'erreur : 
+Les paramètres de la fonction étais : 
+ - auteur : @kaawan
+ - serveur :  Guild(id=1265571990052274207, name='Serveur de test', description=None)
+ - message :  None
+ - channel :  GuildText(id=1265572459286106183, name='test-bot', type=<ChannelType.GUILD_TEXT: 0>)
+ - role member :  [Role(id=1265572644095393833, name='Admin', position=23, purchasable_or_has_subscribers=False), Role(id=1265572852623605790, name='Modérateur', position=22, purchasable_or_has_subscribers=False), Role(id=1265573289443590164, name='Ingé', position=20, purchasable_or_has_subscribers=False), Role(id=1265995794235003011, name='TD 2 Inge', position=18, purchasable_or_has_subscribers=False), Role(id=1265994595460976690, name='TP C Inge', position=15, purchasable_or_has_subscribers=False), Role(id=1265996035357147136, name='TD 3 Inge Anglais', position=11, purchasable_or_has_subscribers=False)]ERREUR dans : today - 2024-07-30 10:43:50.752192
+Erreur de type : <class 'TypeError'>
+Agrument de l'erreur : ("Event.__init__() missing 1 required positional argument: 'uid'",)
+Description de l'erreur : Event.__init__() missing 1 required positional argument: 'uid'
+Les paramètres de la fonction étais : 
+ - auteur : @dany_d45
+ - serveur :  Guild(id=1265571990052274207, name='Serveur de test', description=None)
+ - message :  None
+ - channel :  GuildText(id=1265572459286106183, name='test-bot', type=<ChannelType.GUILD_TEXT: 0>)
+ - role member :  [Role(id=1265572644095393833, name='Admin', position=23, purchasable_or_has_subscribers=False), Role(id=1265572852623605790, name='Modérateur', position=22, purchasable_or_has_subscribers=False), Role(id=1265573289443590164, name='Ingé', position=20, purchasable_or_has_subscribers=False), Role(id=1265995794235003011, name='TD 2 Inge', position=18, purchasable_or_has_subscribers=False), Role(id=1265994595460976690, name='TP C Inge', position=15, purchasable_or_has_subscribers=False), Role(id=1265995941253746738, name='TD 1 Inge Anglais', position=13, purchasable_or_has_subscribers=False), Role(id=1265996730697121964, name='TP C Miage', position=5, purchasable_or_has_subscribers=False)]ERREUR dans : today - 2024-07-30 10:43:54.777698
+Erreur de type : <class 'TypeError'>
+Agrument de l'erreur : ("Event.__init__() missing 1 required positional argument: 'uid'",)
+Description de l'erreur : Event.__init__() missing 1 required positional argument: 'uid'
+Les paramètres de la fonction étais : 
+ - auteur : @kaawan
+ - serveur :  Guild(id=1265571990052274207, name='Serveur de test', description=None)
+ - message :  None
+ - channel :  GuildText(id=1265572459286106183, name='test-bot', type=<ChannelType.GUILD_TEXT: 0>)
+ - role member :  [Role(id=1265572644095393833, name='Admin', position=23, purchasable_or_has_subscribers=False), Role(id=1265572852623605790, name='Modérateur', position=22, purchasable_or_has_subscribers=False), Role(id=1265573289443590164, name='Ingé', position=20, purchasable_or_has_subscribers=False), Role(id=1265995794235003011, name='TD 2 Inge', position=18, purchasable_or_has_subscribers=False), Role(id=1265994595460976690, name='TP C Inge', position=15, purchasable_or_has_subscribers=False), Role(id=1265996035357147136, name='TD 3 Inge Anglais', position=11, purchasable_or_has_subscribers=False)]ERREUR dans : today - 2024-07-30 10:45:51.406768
+Erreur de type : <class 'RecursionError'>
+Agrument de l'erreur : ('maximum recursion depth exceeded',)
+Description de l'erreur : maximum recursion depth exceeded
+Les paramètres de la fonction étais : 
+ - auteur : @dany_d45
+ - serveur :  Guild(id=1265571990052274207, name='Serveur de test', description=None)
+ - message :  None
+ - channel :  GuildText(id=1265572459286106183, name='test-bot', type=<ChannelType.GUILD_TEXT: 0>)
+ - role member :  [Role(id=1265572644095393833, name='Admin', position=23, purchasable_or_has_subscribers=False), Role(id=1265572852623605790, name='Modérateur', position=22, purchasable_or_has_subscribers=False), Role(id=1265573289443590164, name='Ingé', position=20, purchasable_or_has_subscribers=False), Role(id=1265995794235003011, name='TD 2 Inge', position=18, purchasable_or_has_subscribers=False), Role(id=1265994595460976690, name='TP C Inge', position=15, purchasable_or_has_subscribers=False), Role(id=1265995941253746738, name='TD 1 Inge Anglais', position=13, purchasable_or_has_subscribers=False), Role(id=1265996730697121964, name='TP C Miage', position=5, purchasable_or_has_subscribers=False)]ERREUR dans : ics - 2024-07-30 10:51:21.257279
+Erreur de type : <class 'KeyboardInterrupt'>
+Agrument de l'erreur : ()
+Description de l'erreur : 
+Les paramètres de la fonction étais : 
+ - auteur : @dany_d45
+ - serveur :  Guild(id=1265571990052274207, name='Serveur de test', description=None)
+ - message :  None
+ - channel :  GuildText(id=1265572459286106183, name='test-bot', type=<ChannelType.GUILD_TEXT: 0>)
+ - role member :  [Role(id=1265572644095393833, name='Admin', position=23, purchasable_or_has_subscribers=False), Role(id=1265572852623605790, name='Modérateur', position=22, purchasable_or_has_subscribers=False), Role(id=1265573289443590164, name='Ingé', position=20, purchasable_or_has_subscribers=False), Role(id=1265995794235003011, name='TD 2 Inge', position=18, purchasable_or_has_subscribers=False), Role(id=1265994595460976690, name='TP C Inge', position=15, purchasable_or_has_subscribers=False), Role(id=1265995941253746738, name='TD 1 Inge Anglais', position=13, purchasable_or_has_subscribers=False), Role(id=1265996730697121964, name='TP C Miage', position=5, purchasable_or_has_subscribers=False)]ERREUR dans : ics - 2024-07-30 10:53:08.693804
+Erreur de type : <class 'interactions.client.errors.NotFound'>
+Agrument de l'erreur : ('404|Not Found: (10062) Unknown interaction',)
+Description de l'erreur : HTTPException: 404|Not Found || Unknown interaction
+Les paramètres de la fonction étais : 
+ - auteur : @dany_d45
+ - serveur :  Guild(id=1265571990052274207, name='Serveur de test', description=None)
+ - message :  None
+ - channel :  GuildText(id=1265572459286106183, name='test-bot', type=<ChannelType.GUILD_TEXT: 0>)
+ - role member :  [Role(id=1265572644095393833, name='Admin', position=23, purchasable_or_has_subscribers=False), Role(id=1265572852623605790, name='Modérateur', position=22, purchasable_or_has_subscribers=False), Role(id=1265573289443590164, name='Ingé', position=20, purchasable_or_has_subscribers=False), Role(id=1265995794235003011, name='TD 2 Inge', position=18, purchasable_or_has_subscribers=False), Role(id=1265994595460976690, name='TP C Inge', position=15, purchasable_or_has_subscribers=False), Role(id=1265995941253746738, name='TD 1 Inge Anglais', position=13, purchasable_or_has_subscribers=False), Role(id=1265996730697121964, name='TP C Miage', position=5, purchasable_or_has_subscribers=False)]
