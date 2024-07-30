@@ -261,6 +261,14 @@ class UserBase:
                     self.daily_subscribed_users.remove(id)
                     self.weekly_subscribed_users.remove(id)
             dump_user_base(self)
+    
+
+    def get_user(self, id:int) -> User:
+        """Retourne un Objet utilisateur si il est présent dans la base de donnée, None sinon"""
+        if self.has_user(id):
+            return self.users[id]
+        else:
+            return None
 
 
 def load_user_base():
@@ -491,7 +499,7 @@ def get_embeds(events:list[Event]) -> list[Embed]:
             embed = Embed(f"{weekday[current_weekday]} {event.start_timestamp.day} {month[event.start_timestamp.month -1]}:", "", colors[current_weekday])
             embeds.append(embed)
         embeds[-1].description += "- " + str(event) + "\n"
-    embeds[-1].set_footer("Les emploi du temps sont fournis a titre informatif uniquement,\n -> Veuillez vous referrer à votre page personnelle sur l'ENT")
+    embeds[-1].set_footer("Les emploi du temps sont fournis a titre informatif uniquement,\n -> Veuillez vous référer à votre page personnelle sur l'ENT")
     return embeds
 
 

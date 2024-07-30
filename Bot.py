@@ -1,6 +1,6 @@
 from interactions import ActionRow, Button, ButtonStyle, Client, Embed, Intents, listen, slash_command, SlashContext, OptionType, slash_option
 from interactions.api.events import Component, MemberUpdate
-from TrainWreck import GroupFilter, get_embeds, Filiere, Group, Timing, Filter, FiliereFilter, TimeFilter, get_events, filter_events, ascii, get_user_base, UserBase, user_base, get_ics
+from TrainWreck import GroupFilter, get_embeds, Filiere, Group, Timing, Filter, FiliereFilter, TimeFilter, get_events, filter_events, ascii, get_user_base, UserBase, user_base, get_ics, User
 from dotenv import load_dotenv
 import os
 from datetime import datetime, date, timedelta
@@ -193,17 +193,12 @@ async def about(ctx :SlashContext):
 
 @slash_command(name="test", description="Test command", scopes=server)
 async def test(ctx :SlashContext):
-    print(ctx.author)
-    print(ctx.channel)
-    print(ctx.context)
-    print(ctx._context_type)
-    print(ctx.permission_map)
+    print("User" in str(type(ctx.author)))
     try:
         ctx.author.nickname
         await ctx.send("chan")
     except:
         await ctx.send("mp")
-    await ctx.send(str(ctx))
 
 
 @slash_command(name="dm", description="tries to dm the user", scopes=server)
@@ -225,47 +220,68 @@ async def ics(ctx :SlashContext):
     except BaseException as error:
        await send_error("ics",error, ctx)
 
+
 def get_name(author) -> str:
     """Permet d'obtenir le nickname si défini sinon le username"""
     return author.display_name
 
-
 def get_filiere(author) -> FiliereFilter:
-    """Fonction qui permet d'avoir le filtre filière d'un utilisateur, renvoie None si pas définie"""
-    for role in author.roles:
-        if role.name == Filiere.INGE.value:
-            return FiliereFilter(Filiere.INGE)
-        if role.name == Filiere.MIAGE.value:
-            return FiliereFilter(Filiere.MIAGE)
+    """Fonction qui permet d'avoir le filtre filière d'un utilisateur, renvoie un filtre neutre si pas définie"""
+    if is_Guild_Chan(author):
+        roles = author.roles
+        for role in roles:
+            if role.name == Filiere.INGE.value:
+                return FiliereFilter(Filiere.INGE)
+            if role.name == Filiere.MIAGE.value:
+                return FiliereFilter(Filiere.MIAGE)
+    elif get_user_base().has_user(author.id):
+        return FiliereFilter(get_user_base().get_user(author.id).filiere)
     return Filter()
 
 def get_filiere_as_filiere(author) -> Filiere:
-    """Fonction qui permet d'avoir la filière d'un utilisateur, renvoie None si pas définie"""
-    for role in author.roles:
-        if role.name == Filiere.INGE.value:
-            return Filiere.INGE
-        if role.name == Filiere.MIAGE.value:
-            return Filiere.MIAGE
+    """Fonction qui permet d'avoir la filière d'un utilisateur, renvoie UKNW si pas définie"""
+    if is_Guild_Chan(author):
+        roles = author.roles
+        for role in roles:
+            if role.name == Filiere.INGE.value:
+                return Filiere.INGE
+            if role.name == Filiere.MIAGE.value:
+                return Filiere.MIAGE
+    elif get_user_base().has_user(author.id):
+        return get_user_base().get_user(author.id).filiere
     return Filiere.UKNW
-
 
 def get_groupes(author) -> GroupFilter:
     """Fonction qui renvoie un filtre des groupe d'un utilisateur"""
-    out = [Group.CM]
-    for role in author.roles:
-        for gr in Group:
-            if role.name == gr.value:
-                out.append(gr)
-    return GroupFilter(out)
+    if is_Guild_Chan(author):
+        out = [Group.CM]
+        for role in author.roles:
+            for gr in Group:
+                if role.name == gr.value:
+                    out.append(gr)
+        return GroupFilter(out)
+    elif get_user_base().has_user(author.id):
+        return GroupFilter(get_user_base().get_user(author.id).groups)
+    else :
+        return GroupFilter([Group.CM])
 
 def get_groupes_as_list(author) -> list[Group]:
     """Fonction qui renvoie un filtre des groupe d'un utilisateur"""
-    out = [Group.CM]
-    for role in author.roles:
-        for gr in Group:
-            if role.name == gr.value:
-                out.append(gr)
-    return out
+    if is_Guild_Chan(author):
+        out = [Group.CM]
+        for role in author.roles:
+            for gr in Group:
+                if role.name == gr.value:
+                    out.append(gr)
+        return out
+    elif get_user_base().has_user(author.id):
+        return get_user_base().get_user(author.id).groups
+    else :
+        return [Group.CM]
+
+def is_Guild_Chan(author) -> bool:
+    return "Member" in str(type(author))
+
 
 def create_error_embed(message:str) -> Embed:
     return Embed(":warning: Erreur: ", message, 0x992d22)
