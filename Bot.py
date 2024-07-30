@@ -1,4 +1,4 @@
-from interactions import ActionRow, Button, ButtonStyle, Client, Embed, Intents, listen, slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice
+from interactions import ActionRow, Button, ButtonStyle, Client, Embed, Intents, listen, slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Task, TimeTrigger, OrTrigger, IntervalTrigger
 from interactions.api.events import Component, MemberUpdate
 from TrainWreck import GroupFilter, get_embeds, Filiere, Group, Timing, Filter, FiliereFilter, TimeFilter, get_events, filter_events, ascii, get_user_base, UserBase, user_base, get_ics, User, Subscription
 from dotenv import load_dotenv
@@ -75,7 +75,7 @@ async def get_day_bt(ctx, jour : str):
 async def today(ctx: SlashContext):
     """Fonction qui permet d'obtenir l'edt d'ajourd'hui"""
     #try:
-    events = filter_events(get_events(), [TimeFilter(date.today(), Timing.AFTER), TimeFilter(date.today(), Timing.BEFORE),get_filiere(ctx.author), get_groupes(ctx.author)] )
+    events = filter_events(get_events(), [TimeFilter(date.today(), Timing.DURING), get_filiere(ctx.author), get_groupes(ctx.author)] )
     embeds = get_embeds(events)
     button = Button(
         style=ButtonStyle.PRIMARY,
@@ -191,13 +191,7 @@ async def about(ctx :SlashContext):
 
 @slash_command(name="test", description="Test command", scopes=server)
 async def test(ctx :SlashContext):
-    print("User" in str(type(ctx.author)))
-    try:
-        ctx.author.nickname
-        await ctx.send("chan")
-    except:
-        await ctx.send("mp")
-
+    await ctx.send("yes")
 
 @slash_command(name="dm", description="tries to dm the user", scopes=server)
 async def dm(ctx :SlashContext):
@@ -256,7 +250,7 @@ async def subscribe(ctx :SlashContext, service: str):
         SlashCommandChoice(name="Weekly", value="WEEKLY"),
         SlashCommandChoice(name="Both", value="BOTH")
     ]
-    )
+)
 async def unsubscribe(ctx :SlashContext, service: str):
     user_base = get_user_base()
     id = ctx.author_id
@@ -272,12 +266,35 @@ async def unsubscribe(ctx :SlashContext, service: str):
     await ctx.send(embed=Embed(f"Abonnements de {get_name(ctx.author)}", f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"))
     
 @slash_command(name="check_subscription", description="Permet de consulter ses abonnements aux services de Mise à Jour", scopes=server)
-async def check_subscription(ctx :SlashContext) :
+async def check_subscription(ctx :SlashContext):
     user_base = get_user_base()
     id = ctx.author_id
     await ctx.send(embed=Embed(f"Abonnements de {get_name(ctx.author)}", f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"))
 
 
+async def send_daily_update(user):
+    events = filter_events(get_events(), [TimeFilter(date.today(), Timing.DURING), get_filiere(user), get_groupes(user)] )
+    embeds = get_embeds(events)
+    await user.send(embeds=embeds)
+
+async def send_weekly_update(user):
+    days_since_monday = datetime.today().weekday()
+    monday_date = datetime.today() - timedelta(days=days_since_monday)
+    sunday_date = monday_date + timedelta(days=6)
+    events = filter_events(
+        get_events(),
+        [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), get_filiere(user),
+         get_groupes(user)])
+    await user.send(embeds=get_embeds(events))
+
+@Task.create(TimeTrigger(hour=6, minute=0, utc=False))
+async def daily_morning_update():
+    user_base = get_user_base()
+    if datetime.today().weekday() == 0:
+        for id in user_base.weekly_subscribed_users:
+            await send_daily_update(bot.get_user(id))
+    for id in user_base.daily_subscribed_users:
+        await send_daily_update(bot.get_user(id))
 
 
 def get_name(author) -> str:
@@ -369,6 +386,7 @@ async def on_ready():
     print("Ready")
     print(f"This bot is owned by {bot.owner}")
     await bot.synchronise_interactions()
+    daily_morning_update.start()
     get_events()
 
 

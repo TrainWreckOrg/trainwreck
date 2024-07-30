@@ -516,6 +516,7 @@ user_base :UserBase = load_user_base()
 
 
 def get_events() -> list[Event]:
+    global events_dict
     events_dict = get_events_dict()
     return sorted(list(events_dict.values()),key=lambda event: event.start_timestamp)
 

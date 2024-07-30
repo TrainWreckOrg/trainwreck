@@ -18,23 +18,8 @@ pip install python-dotenv
 
 
 
-- REPO PUBLIC
-
-Commande dm
-
-Fonctionne :
-- tout :)
-
-
-Fonctionne pas : 
-- rien >:)
-
-
+- REPO PUBLIQUE
 
 TODO :
 - Ping when changement
-- @tasks
-    - Auto Update
-    - Auto Send DM
-- abonner / désabonner
 - scan server pour ajouter les gens dans la bd

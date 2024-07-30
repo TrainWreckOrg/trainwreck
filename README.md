@@ -4,4 +4,4 @@ TrainWreck.py est un bot discord Open Source codé en Python par @Dany & @Kaawan
 
 Modules utilisés
 - Pytz
-- Discord.py
+- Interactions.py
