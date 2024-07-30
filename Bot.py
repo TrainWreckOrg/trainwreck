@@ -289,6 +289,7 @@ async def on_ready():
     print("Ready")
     print(f"This bot is owned by {bot.owner}")
     await bot.synchronise_interactions()
+    get_events()
 
 
 bot.start()
