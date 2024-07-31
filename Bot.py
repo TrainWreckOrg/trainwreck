@@ -1,10 +1,11 @@
-from interactions import ActionRow, Button, ButtonStyle, Client, Embed, Intents, listen, slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Task, TimeTrigger, OrTrigger, IntervalTrigger
+from interactions import ActionRow, Button, ButtonStyle, Client, Embed, Intents, listen, slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Task, TimeTrigger, OrTrigger, IntervalTrigger, Guild, Role
 from interactions.api.events import Component, MemberUpdate
 from TrainWreck import GroupFilter, get_embeds, Filiere, Group, Timing, Filter, FiliereFilter, TimeFilter, Calendar, get_calendar, filter_events, ascii, get_user_base, UserBase, user_base, get_ics, User, Subscription, changed_events
 from dotenv import load_dotenv
 import os
 from datetime import datetime, date, timedelta
 import re
+from enum import Enum
 
 
 load_dotenv("cle.env")
@@ -12,6 +13,10 @@ load_dotenv("cle.env")
 token = os.getenv("TOKEN_BOT_DISCORD")
 bot = Client(token=token, intents= Intents.ALL, sync_interactions=True) #
 channel = None
+ping_chan = None
+serveur : Guild = None
+roles : dict[Enum:Role] = {}
+
 
 
 @listen(Component)
@@ -294,6 +299,25 @@ async def daily_morning_update():
     for id in user_base.daily_subscribed_users:
         await send_daily_update(bot.get_user(id))
 
+
+
+
+
+def ping_liste(event):
+    global roles
+    ping = ""
+    if event.group == Group.CM:
+        if event.isINGE and event.isMIAGE:
+            ping += f"<@&{roles[Filiere.INGE].id}> <@&{roles[Filiere.MIAGE].id}>"
+        elif event.isINGE:
+            ping += f"<@&{roles[Filiere.INGE].id}>"
+        else:
+            ping += f"<@&{roles[Filiere.MIAGE].id}>"
+    else:
+        ping += f"<@&{roles[event.group].id}>"
+    return ping
+
+
 @Task.create(OrTrigger(
         TimeTrigger(hour=5,  minute=55, utc=False),
         TimeTrigger(hour=7,  minute=0,  utc=False),
@@ -309,7 +333,6 @@ async def update_calendar():
     # sup :set[Event]         = set()
     # add :set[Event]         = set()
     # mod :set[(Event,Event)] = set()
-
     old_calendar = Calendar(False)
     new_calendar = Calendar(True)
     
@@ -318,22 +341,25 @@ async def update_calendar():
     if len(sup) > 0:
         descstr = ""
         for event in sup:
-            descstr += "- " + str(event) + "\n"
+            descstr += f"- {ping_liste(event)} {str(event)}\n"
         embeds.append(Embed(title="Événements supprimés :", description=descstr, color=0xEd4245))
     if len(add) > 0:
         descstr = ""
         for event in add:
-            descstr += "- " + str(event) + "\n"
+            descstr += f"- {ping_liste(event)} {str(event)}\n"
         embeds.append(Embed(title="Événements ajoutés :", description=descstr, color=0x57f287))
     if len(mod) > 0:
         descstr = ""
         for (old, new) in mod:
-            descstr += f"- {str(old)} → {str(new)}\n"
+            ping = ping_liste(old)
+            if old.group != new.group:
+                ping += f" {ping_liste(new)}"
+            descstr += f"- {ping} {str(old)} → {str(new)}\n"
         embeds.append(Embed(title="Événements modifiés :", description=descstr, color=0x5865f2))
-    # TODO : Changer pour mettre l'ID du nouveau salon
-    await bot.get_channel(1265574263717625867).send(embeds=embeds)
+    if len(embeds):
+        global ping_chan
+        await ping_chan.send(embeds=embeds)
         
-
 
 
 
@@ -417,8 +443,6 @@ def create_error_embed(message:str) -> Embed:
 
 async def send_error(channel_name, error, ctx, semaine=None, jour=None, bouton=None):
     global channel
-    if not channel:
-        channel = bot.get_channel(os.getenv("CHANNEL_ID"))
     message_erreur = f"ERREUR dans : {channel_name} - {datetime.now()}\nErreur de type : {type(error)}\nArgument de l'erreur : {error.args}\nDescription de l'erreur : {error}\nLes paramètres de la fonction étais : \n - auteur : {ctx.author}\n - serveur :  {ctx.guild}\n - message :  {ctx.message}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}"
     if semaine:
         message_erreur += f"\n - semaine : {semaine}"
@@ -437,11 +461,30 @@ async def on_ready():
     """Fonction qui dit quand le bot est opérationnel au démarrage du programme"""
     print("Ready")
     print(f"This bot is owned by {bot.owner}")
+    global channel
+    if not channel:
+        channel = bot.get_channel(os.getenv("CHANNEL_ID"))
+    global ping_chan
+    if not ping_chan:
+        ping_chan = bot.get_channel(os.getenv("PING_CHAN"))
+    global serveur
+    if not serveur:
+        serveur = bot.get_guild(os.getenv("SERVEUR_ID"))
+    global roles
+    for role in serveur.roles:
+        if role.name in Group:
+            for groupe in Group:
+                if groupe.value == role.name:
+                    roles[groupe] = role
+        if role.name in Filiere:
+            for filiere in Filiere:
+                if filiere.value == role.name:
+                    roles[filiere] = role
+
     await bot.synchronise_interactions()
     daily_morning_update.start()
     await update_calendar()
-    # update_calendar.start()
-    # get_calendar().get_events()
+    update_calendar.start()
 
 
 

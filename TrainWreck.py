@@ -69,17 +69,17 @@ class Filiere(Enum):
         return self.value
 
 class Group(Enum):
+    TD1I    = "TD 1 Inge"
+    TD2I    = "TD 2 Inge"
     TPAI    = "TP A Inge"
     TPBI    = "TP B Inge"
     TPCI    = "TP C Inge"
     TPDI    = "TP D Inge"
+    TD1M    = "TD 1 Miage"
+    TD2M    = "TD 2 Miage"
     TP1M    = "TP 1 Miage"
     TP2M    = "TP 2 Miage"
     TP3M    = "TP 3 Miage"
-    TD1I    = "TD 1 Inge"
-    TD2I    = "TD 2 Inge"
-    TD1M    = "TD 1 Miage"
-    TD2M    = "TD 2 Miage"
     TDA1I   = "TD 1 Inge Anglais"
     TDA2I   = "TD 2 Inge Anglais"
     TDA3I   = "TD 3 Inge Anglais"
@@ -181,13 +181,11 @@ class Calendar:
 
         if update:
             print("yes")
-            # self.fetch_calendar(url["INGE"], filenameINGE)
-            self.fetch_calendar("https://pr7gqg.db.files.1drv.com/y4mu4pYv_ziuijdmZnkCcXkD7t_eesaXhWSCTvNzwoF1K-OjwwTkK2DLW4vSY57gavMirdZSpmNQlQNHq54ghgQROz2n_0lJ96KN58KNHPBNMZwbImETb5McUDHgcOA-pXyU9jXB98c9-R9lI5wOqxruXaazsOwK-aP-67Fg4iVfVtFFTwJCAyfem43vCL65ne3QcmTQmIp6nb7XtMJT77SQg", filenameINGE)
-            # self.fetch_calendar(url["MIAGE"], filenameMIAGE)
+            self.fetch_calendar(url["INGE"], filenameINGE)
+            self.fetch_calendar(url["MIAGE"], filenameMIAGE)
 
         # | sert a concaténer deux dictionnaires
-        # output = self.parse_calendar(filenameINGE) | self.parse_calendar(filenameMIAGE)
-        output = self.parse_calendar(filenameINGE)
+        output = self.parse_calendar(filenameINGE) | self.parse_calendar(filenameMIAGE)
 
 
         self.events_dict = output
