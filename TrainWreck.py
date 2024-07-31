@@ -3,7 +3,7 @@ from pytz import timezone
 from urllib.request import urlretrieve
 from pathlib import Path
 from enum import Enum
-from interactions import Embed
+from interactions import Embed, Member
 from dotenv import load_dotenv
 
 import time, os, pickle
@@ -287,7 +287,6 @@ def dump_user_base(user_base:UserBase):
     """Charge la base d'utilisateur dans le fichier UserBase.pkl"""
     with open("data/UserBase.pkl", "wb") as f:
         pickle.dump(user_base, f, pickle.HIGHEST_PROTOCOL)
-    print(user_base)
 
 
 
@@ -564,5 +563,3 @@ def change(old : dict[str:Event], new : dict[str:Event]):
     if len(changement) != 0:
         print("ya eu du changement")
         #changement_event(changement)
-
-
