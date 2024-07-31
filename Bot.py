@@ -10,7 +10,6 @@ import re
 load_dotenv("cle.env")
 
 token = os.getenv("TOKEN_BOT_DISCORD")
-server = os.getenv("SERVER_ID")
 bot = Client(token=token, intents= Intents.ALL, sync_interactions=True) #
 channel = None
 
@@ -42,7 +41,7 @@ async def on_member_update(event: MemberUpdate):
         user_base.update_user_groups(user.id, get_groupes_as_list(user))
 
         
-@slash_command(name="get_day", description="Permet d'avoir l'emploi du temps pour une journée", scopes=server)
+@slash_command(name="get_day", description="Permet d'avoir l'emploi du temps pour une journée")
 @slash_option(
     name="jour",
     description="Quel jour ? (DD-MM-YYYY)",
@@ -71,7 +70,7 @@ async def get_day_bt(ctx, jour : str):
         #await send_error("get_day_bt",error, ctx, jour=jour)
 
 
-@slash_command(name="today", description="Permet d'avoir l'emploie du temps pour aujourd'hui", scopes=server)
+@slash_command(name="today", description="Permet d'avoir l'emploie du temps pour aujourd'hui")
 async def today(ctx: SlashContext):
     """Fonction qui permet d'obtenir l'EDT d'ajourd'hui"""
     #try:
@@ -90,7 +89,7 @@ async def today(ctx: SlashContext):
 
 
 
-@slash_command(name="tomorrow", description="Permet d'avoir l'emploie du temps pour demain", scopes=server)
+@slash_command(name="tomorrow", description="Permet d'avoir l'emploie du temps pour demain")
 async def tomorrow(ctx: SlashContext):
     """Fonction qui permet d'obtenir l'EDT de demain"""
     #try:
@@ -112,7 +111,7 @@ async def tomorrow(ctx: SlashContext):
 
 
 
-@slash_command(name="info", description="Donne les infos sur l'utilisateur.", scopes=server)
+@slash_command(name="info", description="Donne les infos sur l'utilisateur.")
 async def info(ctx: SlashContext):
     """Fonction qui permet d'afficher le nom, la filière et les groupes de la personne"""
     #try:
@@ -126,7 +125,7 @@ async def info(ctx: SlashContext):
 
 
 
-@slash_command(name="get_week", description="Permet d'avoir l'emploi du temps pour une semaine", scopes=server)
+@slash_command(name="get_week", description="Permet d'avoir l'emploi du temps pour une semaine")
 @slash_option(
     name="semaine",
     description="Quel semaine ? (DD-MM-YYYY)",
@@ -151,7 +150,7 @@ async def get_week_bt(ctx: SlashContext, semaine : str):
         #await send_error("get_week_bt",error, ctx, semaine=semaine)
 
 
-@slash_command(name="week", description="Permet d'avoir l'emploie du temps pour la semaine", scopes=server)
+@slash_command(name="week", description="Permet d'avoir l'emploie du temps pour la semaine")
 async def week(ctx: SlashContext):
     """Fonction qui permet d'obtenir l'EDT de cette semaine"""
     #try:
@@ -179,7 +178,7 @@ def get_week_embeds(date_formater, ctx):
     return get_embeds(events), monday_date
 
 
-@slash_command(name="about", description="Affiche la page 'About'", scopes=server)
+@slash_command(name="about", description="Affiche la page 'About'")
 async def about(ctx :SlashContext):
     """Affiche le Contenu de README.md"""
     #try:
@@ -189,11 +188,11 @@ async def about(ctx :SlashContext):
     #except BaseException as error:
         #await send_error("about",error, ctx)
 
-@slash_command(name="test", description="Test command", scopes=server)
+@slash_command(name="test", description="Test command")
 async def test(ctx :SlashContext):
     await ctx.send("yes")
 
-@slash_command(name="dm", description="tries to dm the user", scopes=server)
+@slash_command(name="dm", description="tries to dm the user")
 async def dm(ctx :SlashContext):
     """tries to dm the user"""
     #try:
@@ -203,7 +202,7 @@ async def dm(ctx :SlashContext):
     #except BaseException as error:
        #await send_error("dm",error, ctx)
 
-@slash_command(name="ics", description="Génère le ics", scopes=server)
+@slash_command(name="ics", description="Génère le ics")
 async def ics(ctx :SlashContext):
     """Génère l'ics"""
     #try:
@@ -212,7 +211,7 @@ async def ics(ctx :SlashContext):
     #except BaseException as error:
        #await send_error("ics",error, ctx)
 
-@slash_command(name="subscribe", description="Permet de s'abonner aux mises a jour automatiques", scopes=server)
+@slash_command(name="subscribe", description="Permet de s'abonner aux mises a jour automatiques")
 @slash_option(
     name="service",
     description="mise a jour Quotidienne `DAILY`, Hebdomadaire `WEEKLY`, ou les deux `BOTH`",
@@ -239,7 +238,7 @@ async def subscribe(ctx :SlashContext, service: str):
     await ctx.send(embed=Embed(f"Abonnements de {get_name(ctx.author)}", f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"))
 
 
-@slash_command(name="unsubscribe", description="Permet de se désabonner aux mises a jour automatiques", scopes=server)
+@slash_command(name="unsubscribe", description="Permet de se désabonner aux mises a jour automatiques")
 @slash_option(
     name="service",
     description="mise a jour Quotidienne `DAILY`, Hebdomadaire `WEEKLY`, ou les deux `BOTH`",
@@ -265,7 +264,7 @@ async def unsubscribe(ctx :SlashContext, service: str):
             user_base.user_unsubscribe(id, Subscription.BOTH)
     await ctx.send(embed=Embed(f"Abonnements de {get_name(ctx.author)}", f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"))
     
-@slash_command(name="check_subscription", description="Permet de consulter ses abonnements aux services de Mise à Jour", scopes=server)
+@slash_command(name="check_subscription", description="Permet de consulter ses abonnements aux services de Mise à Jour")
 async def check_subscription(ctx :SlashContext):
     user_base = get_user_base()
     id = ctx.author_id
@@ -298,7 +297,7 @@ async def daily_morning_update():
 
 
 
-@slash_command(name="userscan", description="Permet d'ajouter tout les membres dans la BD", scopes=server)
+@slash_command(name="userscan", description="Permet d'ajouter tout les membres dans la BD")
 async def userscan(ctx :SlashContext):
     guild = ctx.guild
     user_base = get_user_base()
