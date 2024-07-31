@@ -1,6 +1,17 @@
-from interactions import ActionRow, Button, ButtonStyle, Client, Intents, listen, slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Task, TimeTrigger, OrTrigger, Guild, Role, Permissions
+from interactions import ActionRow, Button, ButtonStyle, Client, Intents, listen, slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Task, TimeTrigger, OrTrigger, Guild, Role, Permissions, Embed, EmbedFooter, User
 from interactions.api.events import Component, MemberUpdate
-from TrainWreck import *
+
+
+from Enums import Filiere, Group, Timing, Subscription, ascii_logo
+from Calendar import get_calendar, Calendar, changed_events
+from TrainWreck import get_embeds, get_ics
+from UserBase import get_user_base
+from Filter import *
+
+from datetime import datetime, date, timedelta
+from dotenv import load_dotenv
+from enum import Enum
+import os
 import re
 
 
@@ -33,9 +44,12 @@ async def get_day_bt(ctx, jour : str, modifier: bool, personne: User = None):
         author = ctx.author if (personne is None) else personne
 
         date_formater = datetime.strptime(jour, "%d-%m-%Y").date()
-        events = filter_events(get_calendar().get_events(),
-                               [TimeFilter(date_formater, Timing.DURING), get_filiere(author),
-                                get_groupes(author)])
+
+        events :list[Event] = []
+        if author.id == os.getenv("BOT_ID"):
+            events = filter_events(get_calendar().get_events(), [TimeFilter(date_formater, Timing.DURING)])
+        else :
+            events = filter_events(get_calendar().get_events(), [TimeFilter(date_formater, Timing.DURING), get_filiere(author), get_groupes(author)])
         embeds = get_embeds(events, author, date_formater)
 
         precedent = Button(
@@ -68,7 +82,7 @@ async def get_day_bt(ctx, jour : str, modifier: bool, personne: User = None):
     # await send_error("get_day_bt",error, ctx, jour=jour)
 
 
-@slash_command(name="get_day", description="Permet d'avoir l'emploi du temps pour une journée")
+@slash_command(name="get_day", description="Envoie votre EDT pour un jour donné. Si une personne est donnée, donne l'EDT de cette personne")
 @slash_option(
     name="jour",
     description="Quel jour ? (DD-MM-YYYY)",
@@ -89,7 +103,7 @@ async def get_day(ctx: SlashContext, jour : str, personne: User = None):
     #    await send_error("get_day",error, ctx, jour=jour)
 
 
-@slash_command(name="today", description="Permet d'avoir l'emploie du temps pour aujourd'hui")
+@slash_command(name="today", description="Envoie votre EDT du jour")
 async def today(ctx: SlashContext):
     """Fonction qui permet d'obtenir l'EDT d'ajourd'hui"""
     #try:
@@ -99,7 +113,7 @@ async def today(ctx: SlashContext):
         #await send_error("today", error, ctx)
 
 
-@slash_command(name="tomorrow", description="Permet d'avoir l'emploie du temps pour demain")
+@slash_command(name="tomorrow", description="Envoie votre EDT du lendemain")
 async def tomorrow(ctx: SlashContext):
     """Fonction qui permet d'obtenir l'EDT de demain"""
     #try:
@@ -109,15 +123,23 @@ async def tomorrow(ctx: SlashContext):
 
 
 
-@slash_command(name="info", description="Donne les infos sur l'utilisateur.")
-async def info(ctx: SlashContext):
+@slash_command(name="info", description="Envoie des infos sur vos groupes, et filière. Si une personne est donnée, donne ses informations")
+@slash_option(
+    name="personne",
+    description="Quel utilisateur ?",
+    required=False,
+    opt_type=OptionType.USER
+)
+async def info(ctx: SlashContext, personne:User = None):
     """Fonction qui permet d'afficher le nom, la filière et les groupes de la personne"""
     #try:
+    author = ctx.author if (personne is None) else personne
+    you_are = personne is None
     str_role = ""
-    for groupe in get_groupes_as_list(ctx.author):
+    for groupe in get_groupes_as_list(author):
         str_role += groupe.value + ", "
     str_role = str_role.removesuffix(", ")
-    await ctx.send(f"Vous êtes {ctx.author.display_name}!\nVotre filière est {get_filiere_as_filiere(ctx.author).value} et vos groupes {"sont" if len(get_groupes_as_list(ctx.author)) > 1 else "est"} {str_role}.")
+    await ctx.send(f"{"Vous êtes" if you_are else "Informations sur"} {author.display_name}!\n{"Votre" if you_are else "Sa"} filière est {get_filiere_as_filiere(ctx.author).value} et {"vos" if you_are else "ses"} groupes {"sont" if len(get_groupes_as_list(ctx.author)) > 1 else "est"} {str_role}.")
     #except BaseException as error:
         #await send_error("info",error, ctx)
 
@@ -131,13 +153,13 @@ async def get_week_bt(ctx: SlashContext, semaine : str, modifier: bool, personne
         days_since_monday = date_formater.weekday()
         monday_date = date_formater - timedelta(days=days_since_monday)
         sunday_date = monday_date + timedelta(days=6)
+        events :list[Event] = []
+        if author.id == os.getenv("BOT_ID"):
+            events = filter_events(get_calendar().get_events(),[TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE)])
+        else :
+            events = filter_events(get_calendar().get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), get_filiere(author), get_groupes(author)])
 
-        events = filter_events(
-            get_calendar().get_events(),
-            [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), get_filiere(author),
-             get_groupes(author)])
-
-        embeds = get_embeds(events, ctx.author, monday_date, sunday_date)
+        embeds = get_embeds(events, author, monday_date, sunday_date)
 
         precedent = Button(
             style=ButtonStyle.PRIMARY,
@@ -168,7 +190,7 @@ async def get_week_bt(ctx: SlashContext, semaine : str, modifier: bool, personne
         #await send_error("get_week_bt",error, ctx, semaine=semaine)
 
 
-@slash_command(name="get_week", description="Permet d'avoir l'emploi du temps pour une semaine")
+@slash_command(name="get_week", description="Envoie votre EDT pour la semaine de la date, si une personne est donnée, donne le sien")
 @slash_option(
     name="semaine",
     description="Quel semaine ? (DD-MM-YYYY)",
@@ -189,7 +211,7 @@ async def get_week(ctx: SlashContext, semaine : str, personne:User = None):
         #await send_error("get_week",error, ctx, semaine=semaine)
 
 
-@slash_command(name="week", description="Permet d'avoir l'emploie du temps pour la semaine")
+@slash_command(name="week", description="Envoie votre EDT de la semaine")
 async def week(ctx: SlashContext):
     """Fonction qui permet d'obtenir l'EDT de cette semaine"""
     #try:
@@ -198,18 +220,17 @@ async def week(ctx: SlashContext):
         #await send_error("week",error, ctx)
 
 
-@slash_command(name="about", description="Affiche la page 'About'")
-async def about(ctx :SlashContext):
-    """Affiche le Contenu de README.md"""
+@slash_command(name="help", description="Affiche la page d'Aide")
+async def help(ctx :SlashContext):
+    """Affiche le Contenu de HELP.md"""
     #try:
-    with open("README.md", "r", encoding="utf-8") as f:
-        l = f.read()
-    await ctx.send(ascii + l )
+    with open("HELP.md", "r", encoding="utf-8") as f:
+        help = f.read()
+    await ctx.send(embed = Embed(description=help, footer=EmbedFooter("Les EDT sont fournis a titre informatif uniquement -> Veuillez vous référer à votre page personnelle sur l'ENT", bot.user.avatar_url), color=0xd8a74c))
     #except BaseException as error:
         #await send_error("about",error, ctx)
 
-
-@slash_command(name="ics", description="Génère le ics")
+@slash_command(name="ics", description="Envoie un fichier ICS importable dans la plupart des applications de calendrier")
 @slash_option(
     name="debut",
     description="Quelle est la date de début ? (DD-MM-YYYY)",
@@ -218,7 +239,7 @@ async def about(ctx :SlashContext):
 )
 @slash_option(
     name="fin",
-    description="Quelle est la date de début ? (DD-MM-YYYY)",
+    description="Quelle est la date de fin ? (DD-MM-YYYY)",
     required=True,
     opt_type=OptionType.STRING
 )
@@ -234,7 +255,7 @@ async def ics(ctx :SlashContext, debut : str, fin : str):
     #except BaseException as error:
        #await send_error("ics",error, ctx)
 
-@slash_command(name="subscribe", description="Permet de s'abonner aux mises a jour automatiques")
+@slash_command(name="subscribe", description="Vous permet de vous abonner à l'envoi de l'EDT dans vos DM, de manière quotidienne ou hebdomadaire")
 @slash_option(
     name="service",
     description="mise a jour Quotidienne `DAILY`, Hebdomadaire `WEEKLY`, ou les deux `BOTH`",
@@ -261,7 +282,7 @@ async def subscribe(ctx :SlashContext, service: str):
     await ctx.send(embed=Embed(f"Abonnements de {ctx.author.display_name}", f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"))
 
 
-@slash_command(name="unsubscribe", description="Permet de se désabonner aux mises a jour automatiques")
+@slash_command(name="unsubscribe", description="Vous permet de vous desabonner à l'envoi de l'EDT dans vos DM")
 @slash_option(
     name="service",
     description="mise a jour Quotidienne `DAILY`, Hebdomadaire `WEEKLY`, ou les deux `BOTH`",
@@ -287,7 +308,7 @@ async def unsubscribe(ctx :SlashContext, service: str):
             user_base.user_unsubscribe(id, Subscription.BOTH)
     await ctx.send(embed=Embed(f"Abonnements de {ctx.author.display_name}", f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"))
     
-@slash_command(name="check_subscription", description="Permet de consulter ses abonnements aux services de Mise à Jour")
+@slash_command(name="check_subscription", description="Vous permet de consulter à quels service d'envoi d'EDT vous êtes inscrit")
 async def check_subscription(ctx :SlashContext):
     user_base = get_user_base()
     id = ctx.author_id
@@ -383,6 +404,9 @@ async def update_calendar():
 
 @slash_command(name="userscan", description="Permet d'ajouter tout les membres dans la BD", default_member_permissions= Permissions.ADMINISTRATOR)
 async def userscan(ctx :SlashContext):
+    if not is_guild_chan(ctx.author):
+        await ctx.send("nuh uh\nC'est une commande Administrator-only qui sert a rafraichir la base de donnée, t'es pas vraiment sensé voir ça mais discord refuse de te la cacher, si tu envoie un screenshot à @Kaawan ou @Dany, tu gagne un rôle spécial :)\nhttps://tenor.com/view/nuh-uh-nuh-uh-scout-tf2-gif-12750436057634665505")
+        return
     guild = ctx.guild
     user_base = get_user_base()
     for user in guild.members:
@@ -395,7 +419,7 @@ async def userscan(ctx :SlashContext):
 
 def get_filiere(author) -> FiliereFilter:
     """Fonction qui permet d'avoir le filtre filière d'un utilisateur, renvoie un filtre neutre si pas défini"""
-    if is_Guild_Chan(author):
+    if is_guild_chan(author):
         roles = author.roles
         for role in roles:
             if role.name == Filiere.INGE.value:
@@ -408,7 +432,7 @@ def get_filiere(author) -> FiliereFilter:
 
 def get_filiere_as_filiere(author) -> Filiere:
     """Fonction qui permet d'avoir la filière d'un utilisateur, renvoie UKNW si pas définie"""
-    if is_Guild_Chan(author):
+    if is_guild_chan(author):
         roles = author.roles
         for role in roles:
             if role.name == Filiere.INGE.value:
@@ -421,7 +445,7 @@ def get_filiere_as_filiere(author) -> Filiere:
 
 def get_groupes(author) -> GroupFilter:
     """Fonction qui renvoie un filtre des groupes d'un utilisateur"""
-    if is_Guild_Chan(author):
+    if is_guild_chan(author):
         out = [Group.CM]
         for role in author.roles:
             for gr in Group:
@@ -435,7 +459,7 @@ def get_groupes(author) -> GroupFilter:
 
 def get_groupes_as_list(author) -> list[Group]:
     """Fonction qui renvoie un filtre des groupes d'un utilisateur"""
-    if is_Guild_Chan(author):
+    if is_guild_chan(author):
         out = [Group.CM]
         for role in author.roles:
             for gr in Group:
@@ -447,7 +471,7 @@ def get_groupes_as_list(author) -> list[Group]:
     else :
         return [Group.CM]
 
-def is_Guild_Chan(author) -> bool:
+def is_guild_chan(author) -> bool:
     return "Member" in str(type(author))
 
 
