@@ -207,7 +207,7 @@ async def dm(ctx :SlashContext):
 async def ics(ctx :SlashContext):
     """Génère l'ics"""
     #try:
-    get_ics([get_filiere(ctx.author), get_groupes(ctx.author)])
+    get_ics(filter_events(get_events(), [get_filiere(ctx.author), get_groupes(ctx.author)]))
     await ctx.send("Voici votre fichier ics", files=["output/calendar.ics"])
     #except BaseException as error:
        #await send_error("ics",error, ctx)
@@ -281,11 +281,10 @@ async def send_weekly_update(user):
     days_since_monday = datetime.today().weekday()
     monday_date = datetime.today() - timedelta(days=days_since_monday)
     sunday_date = monday_date + timedelta(days=6)
-    events = filter_events(
-        get_events(),
-        [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), get_filiere(user),
-         get_groupes(user)])
-    await user.send(embeds=get_embeds(events))
+
+    events = filter_events (get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), get_filiere(user), get_groupes(user)])
+    ics_file = get_ics(events)
+    await user.send(embeds=get_embeds(events), files=["output/calendar.ics"])
 
 @Task.create(TimeTrigger(hour=6, minute=0, utc=False))
 async def daily_morning_update():
@@ -398,4 +397,3 @@ async def changement_event(embeds : list[Embed]):
     await channel.send(embeds=embeds)
 
 bot.start()
-

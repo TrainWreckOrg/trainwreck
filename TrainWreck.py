@@ -538,23 +538,20 @@ def get_user_base() -> UserBase:
     return user_base
 
 
-def get_ics(filters: list[Filter]):
-    events = get_events()
+def get_ics(events:list[Event]):
     ics = ("BEGIN:VCALENDAR\n"
            "METHOD:REQUEST\n"
            "PRODID:-//ADE/version 6.0\n"
            "VERSION:2.0\n"
            "CALSCALE:GREGORIAN\n")
-    list_event = filter_events(events, filters)
 
-    for event in list_event:
+    for event in events:
         ics += event.ics()
 
     ics += "END:VCALENDAR"
     with open("output/calendar.ics", "w", encoding="UTF-8") as f:
         f.write(ics)
     return True
-
 
 def change(old : dict[str:Event], new : dict[str:Event]):
     changement : list[Embed] = []
