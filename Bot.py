@@ -11,7 +11,7 @@ load_dotenv("cle.env")
 
 token = os.getenv("TOKEN_BOT_DISCORD")
 server = os.getenv("SERVER_ID")
-bot = Client(token=token, intents=Intents.DEFAULT | Intents.GUILD_MEMBERS, sync_interactions=True)
+bot = Client(token=token, intents= Intents.ALL, sync_interactions=True) #
 channel = None
 
 
@@ -23,7 +23,7 @@ async def on_component(event: Component):
     pattern_day = re.compile("day-")
     pattern_week = re.compile("week-")
     if pattern_day.search(ctx.custom_id):
-         await get_day_bt(ctx,ctx.custom_id[4:])
+        await get_day_bt(ctx,ctx.custom_id[4:])
     elif pattern_week.search(ctx.custom_id):
         await get_week_bt(ctx,ctx.custom_id[5:])
     else:
@@ -295,6 +295,19 @@ async def daily_morning_update():
             await send_daily_update(bot.get_user(id))
     for id in user_base.daily_subscribed_users:
         await send_daily_update(bot.get_user(id))
+
+
+
+@slash_command(name="userscan", description="Permet d'ajouter tout les membres dans la BD", scopes=server)
+async def userscan(ctx :SlashContext):
+    guild = ctx.guild
+    user_base = get_user_base()
+    for user in guild.humans:
+        if not user_base.has_user(user.id):
+            user_base.add_user(user.id, get_groupes_as_list(user), get_filiere_as_filiere(user))
+        else:
+            user_base.update_user_groups(user.id, get_groupes_as_list(user))
+    await ctx.send("Les membres du serveur ont été ajoutée et mit à jour")
 
 
 def get_name(author) -> str:

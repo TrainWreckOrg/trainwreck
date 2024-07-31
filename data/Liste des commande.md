@@ -1,4 +1,4 @@
-**Liste des commande pour l'envronnement virtuel** 
+**Liste des commandes pour l'environnement virtuel** 
 
 python -m venv env
 
@@ -6,7 +6,7 @@ Set-ExecutionPolicy Unrestricted -Scope Process
 
 env\Scripts\activate
 
-**pour les lib**
+**Pour les lib**
 
 pip install discord-py-interactions --upgrade
 
