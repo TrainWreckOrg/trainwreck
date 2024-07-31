@@ -50,7 +50,7 @@ async def on_member_update(event: MemberUpdate):
     opt_type=OptionType.STRING
 )
 async def get_day(ctx: SlashContext, jour : str):
-    """Fonction qui permet d'obtenir l'edt d'une journée spécifique"""
+    """Fonction qui permet d'obtenir l'EDT d'une journée spécifique"""
     #try:
     await get_day_bt(ctx, jour)
     #except BaseException as error:
@@ -59,7 +59,7 @@ async def get_day(ctx: SlashContext, jour : str):
 
 
 async def get_day_bt(ctx, jour : str):
-    """Fonction qui permet d'obtenir l'edt d'une journée spécifique"""
+    """Fonction qui permet d'obtenir l'EDT d'une journée spécifique"""
     try :
         date_formater = datetime.strptime(jour, "%d-%m-%Y").date()
         events = filter_events(get_events(), [TimeFilter(date_formater, Timing.DURING), get_filiere(ctx.author), get_groupes(ctx.author)] )
@@ -73,7 +73,7 @@ async def get_day_bt(ctx, jour : str):
 
 @slash_command(name="today", description="Permet d'avoir l'emploie du temps pour aujourd'hui", scopes=server)
 async def today(ctx: SlashContext):
-    """Fonction qui permet d'obtenir l'edt d'ajourd'hui"""
+    """Fonction qui permet d'obtenir l'EDT d'ajourd'hui"""
     #try:
     events = filter_events(get_events(), [TimeFilter(date.today(), Timing.DURING), get_filiere(ctx.author), get_groupes(ctx.author)] )
     embeds = get_embeds(events)
@@ -92,7 +92,7 @@ async def today(ctx: SlashContext):
 
 @slash_command(name="tomorrow", description="Permet d'avoir l'emploie du temps pour demain", scopes=server)
 async def tomorrow(ctx: SlashContext):
-    """Fonction qui permet d'obtenir l'edt de demain"""
+    """Fonction qui permet d'obtenir l'EDT de demain"""
     #try:
     events = filter_events(
         get_events(),
@@ -102,7 +102,7 @@ async def tomorrow(ctx: SlashContext):
     button = Button(
         style=ButtonStyle.PRIMARY,
         custom_id = "day-" + date.today().strftime("%d-%m-%Y"),
-        label = "Ajourd'hui"
+        label = "Aujourd'hui"
     )
 
     action_row = ActionRow(button)
@@ -134,7 +134,7 @@ async def info(ctx: SlashContext):
     opt_type=OptionType.STRING
 )
 async def get_week(ctx: SlashContext, semaine : str):
-    """Fonction qui permet d'obtenir l'edt d'une semaine spécifique"""
+    """Fonction qui permet d'obtenir l'EDT d'une semaine spécifique"""
     #try:
     await get_week_bt(ctx, semaine)
     #except BaseException as error:
@@ -142,7 +142,7 @@ async def get_week(ctx: SlashContext, semaine : str):
 
 
 async def get_week_bt(ctx: SlashContext, semaine : str):
-    """Fonction qui permet d'obtenir l'edt d'une semaine spécifique"""
+    """Fonction qui permet d'obtenir l'EDT d'une semaine spécifique"""
     #try:
     date_formater = datetime.strptime(semaine, "%d-%m-%Y").date()
     embeds, monday_date = get_week_embeds(date_formater, ctx)
@@ -153,7 +153,7 @@ async def get_week_bt(ctx: SlashContext, semaine : str):
 
 @slash_command(name="week", description="Permet d'avoir l'emploie du temps pour la semaine", scopes=server)
 async def week(ctx: SlashContext):
-    """Fonction qui permet d'obtenir l'edt de cette semaine"""
+    """Fonction qui permet d'obtenir l'EDT de cette semaine"""
     #try:
     date_formater = date.today()
     embeds, monday_date = get_week_embeds(date_formater, ctx)
@@ -205,7 +205,7 @@ async def dm(ctx :SlashContext):
 
 @slash_command(name="ics", description="Génère le ics", scopes=server)
 async def ics(ctx :SlashContext):
-    """Génère le ics"""
+    """Génère l'ics"""
     #try:
     get_ics([get_filiere(ctx.author), get_groupes(ctx.author)])
     await ctx.send("Voici votre fichier ics", files=["output/calendar.ics"])
@@ -239,7 +239,7 @@ async def subscribe(ctx :SlashContext, service: str):
     await ctx.send(embed=Embed(f"Abonnements de {get_name(ctx.author)}", f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"))
 
 
-@slash_command(name="unsubscribe", description="Permet de se desabonner aux mises a jour automatiques", scopes=server)
+@slash_command(name="unsubscribe", description="Permet de se désabonner aux mises a jour automatiques", scopes=server)
 @slash_option(
     name="service",
     description="mise a jour Quotidienne `DAILY`, Hebdomadaire `WEEKLY`, ou les deux `BOTH`",
@@ -302,7 +302,7 @@ def get_name(author) -> str:
     return author.display_name
 
 def get_filiere(author) -> FiliereFilter:
-    """Fonction qui permet d'avoir le filtre filière d'un utilisateur, renvoie un filtre neutre si pas définie"""
+    """Fonction qui permet d'avoir le filtre filière d'un utilisateur, renvoie un filtre neutre si pas défini"""
     if is_Guild_Chan(author):
         roles = author.roles
         for role in roles:
@@ -328,7 +328,7 @@ def get_filiere_as_filiere(author) -> Filiere:
     return Filiere.UKNW
 
 def get_groupes(author) -> GroupFilter:
-    """Fonction qui renvoie un filtre des groupe d'un utilisateur"""
+    """Fonction qui renvoie un filtre des groupes d'un utilisateur"""
     if is_Guild_Chan(author):
         out = [Group.CM]
         for role in author.roles:
@@ -342,7 +342,7 @@ def get_groupes(author) -> GroupFilter:
         return GroupFilter([Group.CM])
 
 def get_groupes_as_list(author) -> list[Group]:
-    """Fonction qui renvoie un filtre des groupe d'un utilisateur"""
+    """Fonction qui renvoie un filtre des groupes d'un utilisateur"""
     if is_Guild_Chan(author):
         out = [Group.CM]
         for role in author.roles:
@@ -367,7 +367,7 @@ async def send_error(channel_name, error, ctx, semaine=None, jour=None, bouton=N
     global channel
     if not channel:
         channel = bot.get_channel(os.getenv("CHANNEL_ID"))
-    message_erreur = f"ERREUR dans : {channel_name} - {datetime.now()}\nErreur de type : {type(error)}\nAgrument de l'erreur : {error.args}\nDescription de l'erreur : {error}\nLes paramètres de la fonction étais : \n - auteur : {ctx.author}\n - serveur :  {ctx.guild}\n - message :  {ctx.message}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}"
+    message_erreur = f"ERREUR dans : {channel_name} - {datetime.now()}\nErreur de type : {type(error)}\nArgument de l'erreur : {error.args}\nDescription de l'erreur : {error}\nLes paramètres de la fonction étais : \n - auteur : {ctx.author}\n - serveur :  {ctx.guild}\n - message :  {ctx.message}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}"
     if semaine:
         message_erreur += f"\n - semaine : {semaine}"
     if jour:
@@ -382,7 +382,7 @@ async def send_error(channel_name, error, ctx, semaine=None, jour=None, bouton=N
 
 @listen()
 async def on_ready():
-    """Fonction qui dit quand le bot est opérationel au démarage du programme"""
+    """Fonction qui dit quand le bot est opérationnel au démarrage du programme"""
     print("Ready")
     print(f"This bot is owned by {bot.owner}")
     await bot.synchronise_interactions()

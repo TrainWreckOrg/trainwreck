@@ -1,3 +1,23 @@
 <component name="ProjectDictionaryState">
-  <dictionary name="danyd" />
+  <dictionary name="danyd">
+    <words>
+      <w>CALSCALE</w>
+      <w>DTSTAMP</w>
+      <w>DTSTART</w>
+      <w>INGEICS</w>
+      <w>INGENIERIE</w>
+      <w>LIEDLOFF</w>
+      <w>MIAGEICS</w>
+      <w>PRODID</w>
+      <w>TPAI</w>
+      <w>TPBI</w>
+      <w>TPCI</w>
+      <w>TPDI</w>
+      <w>UKNW</w>
+      <w>UPEX</w>
+      <w>VCALENDAR</w>
+      <w>VEVENT</w>
+      <w>descsplit</w>
+    </words>
+  </dictionary>
 </component>

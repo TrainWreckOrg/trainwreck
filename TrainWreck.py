@@ -30,7 +30,7 @@ ascii = """
 
 load_dotenv("cle.env")
 
-# URL utilisée pour fetch les EDT de chaque filiere
+# URL utilisée pour fetch les EDT de chaque filière
 url = {
     "INGE" : os.getenv("INGEICS"),
     "MIAGE" : os.getenv("MIAGEICS"),
@@ -103,7 +103,7 @@ class Subscription(Enum):
 
 # ----- CLASSES -----
 class Event:
-    """Classe utilisée pour gerer les objets evenements"""
+    """Classe utilisée pour gérer les objets événements"""
     def __init__(self, start:datetime, end:datetime, subject:str, group:Group, location:str, teacher:str, isINGE:bool, isMIAGE:bool, uid:str) -> None:
         self.start_timestamp = start
         self.end_timestamp = end
@@ -151,7 +151,7 @@ class Event:
 class Filter:
     """Classe de Base pour les filtres"""
     def filter(self, e:Event) -> bool:
-        """Prend en argument un evenement `e` et retourne `True` si `e` passe le filtre défini par la sous classe"""
+        """Prend en argument un événement `e` et retourne `True` si `e` passe le filtre défini par la sous classe"""
         return True
 
 class TimeFilter(Filter):
@@ -211,7 +211,7 @@ class UserBase:
         return f"<users:{[str(x) for x in self.users.values()]}, daily:{self.daily_subscribed_users}, weekly:{self.weekly_subscribed_users}>"
 
     def has_user(self, id:int) -> bool:
-        """Verifie si l'utilisateur est déjà enregistré"""
+        """Vérifie si l'utilisateur est déjà enregistré"""
         return id in self.users.keys()
 
     def is_user_subscribed(self, id:int, subscription:Subscription) -> bool:
@@ -229,20 +229,20 @@ class UserBase:
                     return (not is_daily) and (not is_weekly)
 
     def add_user(self, id:int, groups:list[Group], filiere:Filiere) -> None:
-        """Enrgistre l'utilisateur si il n'est pas déjà enregistré, sinon ne fait rien"""
+        """Enregistre l'utilisateur s'il n'est pas déjà enregistré, sinon ne fait rien"""
         if not self.has_user(id):
             self.users[id] = User(id, groups, filiere)
             dump_user_base(self)
 
     def update_user_groups(self, id:int, new_groups:list[Group]) -> None:
-        """Remplace les groupe de l'utilisateur par une ceux de `new_groups`"""
+        """Remplace les groupes de l'utilisateur par une ceux de `new_groups`"""
         if self.has_user(id):
             self.users[id].groups = new_groups
             dump_user_base(self)
 
 
     def user_subscribe(self, id:int, subscription:Subscription):
-        """Abonne un utilisateur a une ou plusieurs des listes"""
+        """Abonne un utilisateur à une ou plusieurs des listes"""
         if self.has_user(id):
             match subscription:
                 case Subscription.DAILY:
@@ -256,7 +256,7 @@ class UserBase:
 
 
     def user_unsubscribe(self, id:int, subscription:Subscription):
-        """Désabonne un utilisateur a une ou plusieurs des listes"""
+        """Désabonne un utilisateur à une ou plusieurs des listes"""
         if self.has_user(id):
             match subscription:
                 case Subscription.DAILY if self.is_user_subscribed(id, subscription):
@@ -270,7 +270,7 @@ class UserBase:
     
 
     def get_user(self, id:int) -> User:
-        """Retourne un Objet utilisateur si il est présent dans la base de donnée, None sinon"""
+        """Retourne un Objet utilisateur s'il est présent dans la base de donnée, None sinon"""
         if self.has_user(id):
             return self.users[id]
         else:
@@ -279,12 +279,12 @@ class UserBase:
 
 
 def load_user_base():
-    """Récupere la base d'utilisateur depuis le fichier UserBase.pkl"""
+    """Récupère la base d'utilisateur depuis le fichier UserBase.pkl"""
     with open("data/UserBase.pkl", "rb") as f:
         return pickle.load(f)
 
 def dump_user_base(user_base:UserBase):
-    """Charge la base d'utilisateur dans fichier UserBase.pkl"""
+    """Charge la base d'utilisateur dans le fichier UserBase.pkl"""
     with open("data/UserBase.pkl", "wb") as f:
         pickle.dump(user_base, f, pickle.HIGHEST_PROTOCOL)
     print(user_base)
@@ -294,7 +294,7 @@ def dump_user_base(user_base:UserBase):
 
 # ----- HElPER  -----
 def need_updating(events:dict[str:Event]) -> bool:
-    """Verifie si la liste d'évenement doit être mise a jour, c'est a dire si elle est trop vieille ou vide"""
+    """Vérifie si la liste d'événement doit être mise à jour, c'est-à-dire si elle est trop vieille ou vide"""
     filenameINGE = "input/INGE.ics"
     filenameMIAGE = "input/MIAGE.ics"
     pINGE = Path(filenameINGE)
@@ -303,7 +303,7 @@ def need_updating(events:dict[str:Event]) -> bool:
     return get_file_age(pINGE) > 120 or get_file_age(pMIAGE) > 120 or events == {}
 
 def update_events(update: bool) -> dict[str:Event]:
-    """Retourne une nouvelle liste d'evenements melant les evenements issus des deux .ics et trié"""
+    """Retourne une nouvelle liste d'événements mêlant les événements issus des deux .ics et trié"""
     output = {}
     filenameINGE = "data/INGE.ics"
     filenameMIAGE = "data/MIAGE.ics"
@@ -317,7 +317,7 @@ def update_events(update: bool) -> dict[str:Event]:
     return output         #sorted(list(set(output)),key=lambda event: event.start_timestamp)
 
 def fetch_calendar(url:str, filename:str):
-    """Récupere le fichier .ics correspondant a une filiere donnée"""
+    """Récupère le fichier .ics correspondant à une filière donnée"""
     urlretrieve(url, filename)
 
 def get_file_age(p:Path) -> int:
@@ -330,7 +330,7 @@ def convert_timestamp(input : str) -> datetime :
     return datetime.fromisoformat(iso_date).astimezone(timezone("Europe/Paris"))
 
 def filter_events(events:list[Event], filters:list[Filter]) -> list[Event]:
-    """Applique une liste de filtres à la liste d'evenenements passé en parametre et retourne une nouvelle liste"""
+    """Applique une liste de filtres à la liste d'événements passée en paramètre et retourne une nouvelle liste"""
     output = events.copy()
     for e in events:
         for f in filters:
@@ -342,7 +342,7 @@ def filter_events(events:list[Event], filters:list[Filter]) -> list[Event]:
 # ----- PARSING -----
 def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str) -> Event:
     """Permet d'extraire les informations des données parsées"""
-    # Evenements spéciaux
+    # Événements spéciaux
     if sum == "Réunion rentrée - L3 INGENIERIE INFORMATIQUE":
         return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", True, False,"ADE60323032342d323032352d31323639382d302d30")
     elif sum == "HAPPY CAMPUS DAY":
@@ -350,14 +350,14 @@ def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:s
     elif sum == "Réunion rentrée - L3 MIAGE":
         return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", False, True,"ADE60323032342d323032352d31333132352d302d30")
 
-    # Descsplit contient les informations correspondant à la description de l'evenement, séparé par lignes
-    # ex : ['', '', 'Gr TPC', 'Con. Ana. Algo', 'Con. Ana. Algo', 'L3 INFO - INGENIERIE', 'L3 INFORMAT-UPEX MINERVE', 'LIEDLOFF', '(Exporté le:27/07/2024 20:20)', '\n\n']
+    # Descsplit contient les informations correspondant à la description de l'événement, séparé par lignes
+    # ex : ['', '', 'Gr TPC', 'Con. Ana. Algo', 'Con. Ana. Algo', 'L3 INFO - INGENIERIE', 'L3 INFORMAT-UPEX MINERVE', 'LIEDLOFF', '(Exporté le : 27/07/2024 20:20)', '\n\n']
     descsplit = desc.split("\\n")
 
-    # Si la Matiere (4eme element) est une abbrev connu dans la subjects_table, remplacer par le nom complet
+    # Si la Matière (4eme element) est une abbrev connu dans la subjects_table, remplacer par le nom complet
     subject = subjects_table[descsplit[3]] if descsplit[3] in subjects_table.keys() else descsplit[3]
 
-    # Nettoie le nom du professeur (antépénultième élément), et inclu un fallback si le nom n'est pas renseigné
+    # Nettoie le nom du professeur (antépénultième élément), et inclus un fallback si le nom n'est pas renseigné
     teacher = descsplit[-3].replace("\n", "").removeprefix(" ") if descsplit[-3] != "L3 INFORMAT-UPEX MINERVE" else "Enseignant ?"
     location = loc if not loc == "" else "Salle ?"
 
@@ -439,7 +439,7 @@ def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:s
                         group = Group.UKNW
                         print("ERROR : NO GROUP FOUND (MIAGE) :", sum , "---------------------")
 
-    # Crée un nouvel Objet Event a partir des infos calculées
+    # Crée un nouvel Objet Event à partir des infos calculées
     return Event(start, end, subject, group, location, teacher, isINGE, isMIAGE, uid)
 
 def parse_calendar(filename:str) -> dict[str:Event]:
@@ -476,7 +476,7 @@ def parse_calendar(filename:str) -> dict[str:Event]:
 
 # ----- DISPLAYING -----
 def display(events:list[Event]) -> None:
-    """affiche une liste d'évenements"""
+    """Affiche une liste d'événements"""
     current_weekday = 7
 
     for event in events:
@@ -486,7 +486,7 @@ def display(events:list[Event]) -> None:
         print(event)
 
 def export(events:list[Event], filename:str="output/log.txt") -> None:
-    """Exporte une liste d'évenements dans un fichier spécifié"""
+    """Exporte une liste d'événements dans un fichier spécifié"""
     current_weekday = 7
     with open(filename, "w") as f:
         for event in events:
