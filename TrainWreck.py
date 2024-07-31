@@ -517,15 +517,16 @@ def export(events:list[Event], filename:str="output/log.txt") -> None:
                 print(f"**{weekday[current_weekday]} {event.start_timestamp.day} {month[event.start_timestamp.month -1]}:**", file=f)
             print(event, file=f)
 
-def get_embeds(events:list[Event]) -> list[Embed]:
+
+def get_embeds(events:list[Event], jour : date = date(year=2077, month=7, day=7)) -> list[Embed]:
     if len(events) == 0:
-        return [Embed(title="Aucun Cours")]
+        return [Embed(title=f"{weekday[jour.weekday()]} {jour.day} {month[jour.month - 1]} {jour.year}:", description="Aucun Cours")]
     current_weekday = 7
     embeds : list[Embed] = []
     for event in events:
         if event.start_timestamp.weekday() != current_weekday:
             current_weekday = event.start_timestamp.weekday()
-            embed = Embed(f"{weekday[current_weekday]} {event.start_timestamp.day} {month[event.start_timestamp.month -1]}:", "", colors[current_weekday])
+            embed = Embed(f"{weekday[current_weekday]} {event.start_timestamp.day} {month[event.start_timestamp.month - 1]} {event.start_timestamp.year}:", "", colors[current_weekday])
             embeds.append(embed)
         embeds[-1].description += "- " + str(event) + "\n"
     embeds[-1].set_footer("Les emploi du temps sont fournis a titre informatif uniquement,\n -> Veuillez vous référer à votre page personnelle sur l'ENT")
@@ -562,8 +563,8 @@ def get_ics(events:list[Event]):
         f.write(ics)
     return True
 
-# = [TimeFilter(date.today(), Timing.AFTER), TimeFilter((date.today() + timedelta(days=14)), Timing.BEFORE)]
-def changed_events(old : Calendar, new : Calendar, filters :list[Filter]):
+
+def changed_events(old : Calendar, new : Calendar, filters :list[Filter] = [TimeFilter(date.today(), Timing.AFTER), TimeFilter((date.today() + timedelta(days=14)), Timing.BEFORE)]):
     old_events : list[Event] = filter_events(old.get_events(), filters)
     new_events : list[Event] = filter_events(new.get_events(), filters)
 

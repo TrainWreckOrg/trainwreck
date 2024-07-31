@@ -1,22 +1,12 @@
-from interactions import ActionRow, Button, ButtonStyle, Client, Embed, Intents, listen, slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Task, TimeTrigger, OrTrigger, IntervalTrigger, Guild, Role
+from interactions import ActionRow, Button, ButtonStyle, Client, Intents, listen, slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Task, TimeTrigger, OrTrigger, Guild, Role
 from interactions.api.events import Component, MemberUpdate
-from TrainWreck import GroupFilter, get_embeds, Filiere, Group, Timing, Filter, FiliereFilter, TimeFilter, Calendar, get_calendar, filter_events, ascii, get_user_base, UserBase, user_base, get_ics, User, Subscription, changed_events
-from dotenv import load_dotenv
-import os
-from datetime import datetime, date, timedelta
+from TrainWreck import *
 import re
-from enum import Enum
 
 
 load_dotenv("cle.env")
-
 token = os.getenv("TOKEN_BOT_DISCORD")
-bot = Client(token=token, intents= Intents.ALL, sync_interactions=True) #
-channel = None
-ping_chan = None
-serveur : Guild = None
-roles : dict[Enum:Role] = {}
-
+bot = Client(token=token, intents= Intents.ALL, sync_interactions=True) #TODO : enleve ALL
 
 
 @listen(Component)
@@ -27,25 +17,57 @@ async def on_component(event: Component):
     pattern_day = re.compile("day-")
     pattern_week = re.compile("week-")
     if pattern_day.search(ctx.custom_id):
-        await get_day_bt(ctx,ctx.custom_id[4:])
+        await get_day_bt(ctx,ctx.custom_id[4:], True)
     elif pattern_week.search(ctx.custom_id):
         await get_week_bt(ctx,ctx.custom_id[5:])
     else:
         await ctx.send("Bouton cliqué mais aucune action définie")
+        raise ValueError("Bouton cliqué mais aucune action définie")
     #except BaseException as error:
         #await send_error("on_component",error, event.ctx, bouton = event.ctx.custom_id)
 
 
-@listen(MemberUpdate)
-async def on_member_update(event: MemberUpdate):
-    user_base = get_user_base()
-    user = event.after
-    if not user_base.has_user(user.id):
-        user_base.add_user(user.id, get_groupes_as_list(user), get_filiere_as_filiere(user))
-    else :
-        user_base.update_user_groups(user.id, get_groupes_as_list(user))
+async def get_day_bt(ctx, jour : str, modifier: bool, personne: User = None):
+    """Fonction qui permet d'obtenir l'EDT d'une journée spécifique"""
+    try:
+        author = ctx.author if (personne is None) else personne
 
-        
+        date_formater = datetime.strptime(jour, "%d-%m-%Y").date()
+        events = filter_events(get_calendar().get_events(),
+                               [TimeFilter(date_formater, Timing.DURING), get_filiere(author),
+                                get_groupes(author)])
+        embeds = get_embeds(events, date_formater)
+
+        precedent = Button(
+            style=ButtonStyle.PRIMARY,
+            custom_id="day-" + (date_formater - timedelta(days=1)).strftime("%d-%m-%Y"),
+            label="Jour précédent"
+        )
+
+        suivant = Button(
+            style=ButtonStyle.PRIMARY,
+            custom_id="day-" + (date_formater + timedelta(days=1)).strftime("%d-%m-%Y"),
+            label="Jour suivant"
+        )
+
+        if personne is None:
+            action_row = ActionRow(precedent, suivant)
+            if modifier:
+                await ctx.edit_origin(embeds=embeds, components=[action_row])
+            else:
+                await ctx.send(embeds=embeds, components=[action_row])
+        else:
+            if modifier:
+                await ctx.edit_origin(embeds=embeds)
+            else:
+                await ctx.send(embeds=embeds)
+
+    except ValueError:
+        await ctx.send(embeds=[create_error_embed(f"La valeur `{jour}` ne correspond pas à une date")], )
+    # except BaseException as error:
+    # await send_error("get_day_bt",error, ctx, jour=jour)
+
+
 @slash_command(name="get_day", description="Permet d'avoir l'emploi du temps pour une journée")
 @slash_option(
     name="jour",
@@ -53,64 +75,35 @@ async def on_member_update(event: MemberUpdate):
     required=True,
     opt_type=OptionType.STRING
 )
-async def get_day(ctx: SlashContext, jour : str):
+@slash_option(
+    name="personne",
+    description="Quel utilisateur ?",
+    required=False,
+    opt_type=OptionType.USER
+)
+async def get_day(ctx: SlashContext, jour : str, personne: User = None):
     """Fonction qui permet d'obtenir l'EDT d'une journée spécifique"""
     #try:
-    await get_day_bt(ctx, jour)
+    await get_day_bt(ctx, jour, False, personne)
     #except BaseException as error:
     #    await send_error("get_day",error, ctx, jour=jour)
-
-
-
-async def get_day_bt(ctx, jour : str):
-    """Fonction qui permet d'obtenir l'EDT d'une journée spécifique"""
-    try :
-        date_formater = datetime.strptime(jour, "%d-%m-%Y").date()
-        events = filter_events(get_calendar().get_events(), [TimeFilter(date_formater, Timing.DURING), get_filiere(ctx.author), get_groupes(ctx.author)] )
-        embeds = get_embeds(events)
-        await ctx.send(embeds=embeds)
-    except ValueError:
-        await ctx.send(embeds=[create_error_embed(f"La valeur `{jour}` ne correspond pas à une date")])
-    #except BaseException as error:
-        #await send_error("get_day_bt",error, ctx, jour=jour)
 
 
 @slash_command(name="today", description="Permet d'avoir l'emploie du temps pour aujourd'hui")
 async def today(ctx: SlashContext):
     """Fonction qui permet d'obtenir l'EDT d'ajourd'hui"""
     #try:
-    events = filter_events(get_calendar().get_events(), [TimeFilter(date.today(), Timing.DURING), get_filiere(ctx.author), get_groupes(ctx.author)] )
-    embeds = get_embeds(events)
-    button = Button(
-        style=ButtonStyle.PRIMARY,
-        custom_id = "day-" + (date.today() + timedelta(days=1)).strftime("%d-%m-%Y"),
-        label = "Demain"
-    )
+    await get_day_bt(ctx, date.today().strftime("%d-%m-%Y"), False)
 
-    action_row = ActionRow(button)
-    await ctx.send(embeds=embeds, components=[action_row])
     #except BaseException as error:
         #await send_error("today", error, ctx)
-
 
 
 @slash_command(name="tomorrow", description="Permet d'avoir l'emploie du temps pour demain")
 async def tomorrow(ctx: SlashContext):
     """Fonction qui permet d'obtenir l'EDT de demain"""
     #try:
-    events = filter_events(
-        get_calendar().get_events(),
-        [TimeFilter(date.today() + timedelta(days=1), Timing.AFTER), TimeFilter(date.today() + timedelta(days=1), Timing.BEFORE), get_filiere(ctx.author),
-         get_groupes(ctx.author)])
-    embeds = get_embeds(events)
-    button = Button(
-        style=ButtonStyle.PRIMARY,
-        custom_id = "day-" + date.today().strftime("%d-%m-%Y"),
-        label = "Aujourd'hui"
-    )
-
-    action_row = ActionRow(button)
-    await ctx.send(embeds=embeds, components=[action_row])
+    await get_day_bt(ctx, (date.today() + timedelta(days=1)).strftime("%d-%m-%Y"), False)
     #except BaseException as error:
         #await send_error("tomorrow", error, ctx)
 
@@ -336,7 +329,7 @@ async def update_calendar():
     old_calendar = Calendar(False)
     new_calendar = Calendar(True)
     
-    sup, add, mod = changed_events(old_calendar, new_calendar, filters=[TimeFilter(date(2024,9,1), Timing.AFTER), TimeFilter((date(2024,12,31)), Timing.BEFORE)])
+    sup, add, mod = changed_events(old_calendar, new_calendar)
     embeds : list[Embed] = []
     if len(sup) > 0:
         descstr = ""
@@ -367,7 +360,7 @@ async def update_calendar():
 async def userscan(ctx :SlashContext):
     guild = ctx.guild
     user_base = get_user_base()
-    for user in guild.humans:
+    for user in guild.members:
         if not user_base.has_user(user.id):
             user_base.add_user(user.id, get_groupes_as_list(user), get_filiere_as_filiere(user))
         else:
@@ -461,32 +454,21 @@ async def on_ready():
     """Fonction qui dit quand le bot est opérationnel au démarrage du programme"""
     print("Ready")
     print(f"This bot is owned by {bot.owner}")
-    global channel
-    if not channel:
-        channel = bot.get_channel(os.getenv("CHANNEL_ID"))
-    global ping_chan
-    if not ping_chan:
-        ping_chan = bot.get_channel(os.getenv("PING_CHAN"))
-    global serveur
-    if not serveur:
-        serveur = bot.get_guild(os.getenv("SERVEUR_ID"))
-    global roles
-    for role in serveur.roles:
-        if role.name in Group:
-            for groupe in Group:
-                if groupe.value == role.name:
-                    roles[groupe] = role
-        if role.name in Filiere:
-            for filiere in Filiere:
-                if filiere.value == role.name:
-                    roles[filiere] = role
-
     await bot.synchronise_interactions()
     daily_morning_update.start()
     await update_calendar()
     update_calendar.start()
 
 
+
+@listen(MemberUpdate)
+async def on_member_update(event: MemberUpdate):
+    user_base = get_user_base()
+    user = event.after
+    if not user_base.has_user(user.id):
+        user_base.add_user(user.id, get_groupes_as_list(user), get_filiere_as_filiere(user))
+    else :
+        user_base.update_user_groups(user.id, get_groupes_as_list(user))
 
 async def changement_event(embeds : list[Embed]):
     global channel
@@ -495,3 +477,18 @@ async def changement_event(embeds : list[Embed]):
     await channel.send(embeds=embeds)
 
 bot.start()
+
+channel = bot.get_channel(os.getenv("CHANNEL_ID"))
+ping_chan = bot.get_channel(os.getenv("PING_CHAN"))
+serveur : Guild = bot.get_guild(os.getenv("SERVEUR_ID"))
+roles : dict[Enum:Role] = {}
+
+for role in serveur.roles:
+    if role.name in Group:
+        for groupe in Group:
+            if groupe.value == role.name:
+                roles[groupe] = role
+    if role.name in Filiere:
+        for filiere in Filiere:
+            if filiere.value == role.name:
+                roles[filiere] = role
