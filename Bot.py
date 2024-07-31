@@ -36,7 +36,7 @@ async def get_day_bt(ctx, jour : str, modifier: bool, personne: User = None):
         events = filter_events(get_calendar().get_events(),
                                [TimeFilter(date_formater, Timing.DURING), get_filiere(author),
                                 get_groupes(author)])
-        embeds = get_embeds(events, date_formater)
+        embeds = get_embeds(events, author ,date_formater)
 
         precedent = Button(
             style=ButtonStyle.PRIMARY,
@@ -130,10 +130,16 @@ async def info(ctx: SlashContext):
     required=True,
     opt_type=OptionType.STRING
 )
-async def get_week(ctx: SlashContext, semaine : str):
+@slash_option(
+    name="personne",
+    description="Quel utilisateur ?",
+    required=False,
+    opt_type=OptionType.USER
+)
+async def get_week(ctx: SlashContext, semaine : str, personne:User):
     """Fonction qui permet d'obtenir l'EDT d'une semaine spécifique"""
     #try:
-    await get_week_bt(ctx, semaine)
+    await get_week_bt(ctx, semaine, personne)
     #except BaseException as error:
         #await send_error("get_week",error, ctx, semaine=semaine)
 
@@ -165,7 +171,7 @@ async def week(ctx: SlashContext):
         #await send_error("week",error, ctx)
 
 
-def get_week_embeds(date_formater, ctx):
+def get_week_embeds(date_formater, ctx :SlashContext):
     days_since_monday = date_formater.weekday()
     monday_date = date_formater - timedelta(days=days_since_monday)
     sunday_date = monday_date + timedelta(days=6)
@@ -173,7 +179,7 @@ def get_week_embeds(date_formater, ctx):
         get_calendar().get_events(),
         [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), get_filiere(ctx.author),
          get_groupes(ctx.author)])
-    return get_embeds(events), monday_date
+    return get_embeds(events, ctx.author), monday_date
 
 
 @slash_command(name="about", description="Affiche la page 'About'")
@@ -188,7 +194,7 @@ async def about(ctx :SlashContext):
 
 @slash_command(name="test", description="Test command")
 async def test(ctx :SlashContext):
-    await ctx.send("yes")
+    await ctx.send(ctx.author.avatar_url)
 
 @slash_command(name="dm", description="tries to dm the user")
 async def dm(ctx :SlashContext):
@@ -271,7 +277,7 @@ async def check_subscription(ctx :SlashContext):
 
 async def send_daily_update(user):
     events = filter_events(get_calendar().get_events(), [TimeFilter(date.today(), Timing.DURING), get_filiere(user), get_groupes(user)] )
-    embeds = get_embeds(events)
+    embeds = get_embeds(events, user)
     await user.send(embeds=embeds)
 
 async def send_weekly_update(user):
@@ -281,7 +287,7 @@ async def send_weekly_update(user):
 
     events = filter_events (get_calendar().get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), get_filiere(user), get_groupes(user)])
     ics_file = get_ics(events)
-    await user.send(embeds=get_embeds(events), files=["output/calendar.ics"])
+    await user.send(embeds=get_embeds(events, user), files=["output/calendar.ics"])
 
 @Task.create(TimeTrigger(hour=6, minute=0, utc=False))
 async def daily_morning_update():

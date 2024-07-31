@@ -3,7 +3,7 @@ from pytz import timezone
 from urllib.request import urlretrieve
 from pathlib import Path
 from enum import Enum
-from interactions import Embed, Member
+from interactions import Embed, EmbedFooter, Member
 from dotenv import load_dotenv
 
 import time, os, pickle
@@ -518,9 +518,10 @@ def export(events:list[Event], filename:str="output/log.txt") -> None:
             print(event, file=f)
 
 
-def get_embeds(events:list[Event], jour : date = date(year=2077, month=7, day=7)) -> list[Embed]:
+def get_embeds(events:list[Event], user:Member, jour : date = date(year=2077, month=7, day=7), ) -> list[Embed]:
+    icon = user.avatar_url
     if len(events) == 0:
-        return [Embed(title=f"{weekday[jour.weekday()]} {jour.day} {month[jour.month - 1]} {jour.year}:", description="Aucun Cours")]
+        return [Embed(title=f"{weekday[jour.weekday()]} {jour.day} {month[jour.month - 1]} {jour.year}:", description="Aucun Cours", footer=EmbedFooter(f"Emploi du Temps de @{user.display_name}\nLes emploi du temps sont fournis a titre informatif uniquement,\n -> Veuillez vous référer à votre page personnelle sur l'ENT", icon))]
     current_weekday = 7
     embeds : list[Embed] = []
     for event in events:
@@ -529,7 +530,8 @@ def get_embeds(events:list[Event], jour : date = date(year=2077, month=7, day=7)
             embed = Embed(f"{weekday[current_weekday]} {event.start_timestamp.day} {month[event.start_timestamp.month - 1]} {event.start_timestamp.year}:", "", colors[current_weekday])
             embeds.append(embed)
         embeds[-1].description += "- " + str(event) + "\n"
-    embeds[-1].set_footer("Les emploi du temps sont fournis a titre informatif uniquement,\n -> Veuillez vous référer à votre page personnelle sur l'ENT")
+    
+    embeds[-1].set_footer(f"Emploi du Temps de @{user.display_name}\nLes emploi du temps sont fournis a titre informatif uniquement,\n -> Veuillez vous référer à votre page personnelle sur l'ENT", icon)
     return embeds
 
 
