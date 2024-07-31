@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from pytz import timezone
 from urllib.request import urlretrieve
 from pathlib import Path
@@ -22,9 +22,9 @@ ascii = """
 ```ansi
 [2;35m  ______           _       _       __               __   
 [0m[2;31m /_  __/________ _(_)___  | |     / /_______  _____/ /__ 
-[0m[2;33m  / / / ___/ __ `/ / __ \ | | /| / / ___/ _ \/ ___/ //_/ 
+[0m[2;33m  / / / ___/ __ `/ / __ \\ | | /| / / ___/ _ \\/ ___/ //_/ 
 [0m[2;36m / / / /  / /_/ / / / / / | |/ |/ / /  /  __/ /__/ ,<    
-[0m[2;34m/_/ /_/   \__,_/_/_/ /_/  |__/|__/_/   \___/\___/_/|_|(_)[0m
+[0m[2;34m/_/ /_/   \\__,_/_/_/ /_/  |__/|__/_/   \\___/\\___/_/|_|(_)[0m
 ```
 """
 
@@ -153,6 +153,92 @@ class Filter:
     def filter(self, e:Event) -> bool:
         """Prend en argument un événement `e` et retourne `True` si `e` passe le filtre défini par la sous classe"""
         return True
+
+class Calendar:
+    """Classe utilisée pour stocker une liste d'objet evenements"""
+    def __init__(self, events_dict : dict[str:Event] = {}) -> None:
+        self.events_dict = events_dict
+        self.events_list = sorted(list(self.events_dict.values()),key=lambda event: event.start_timestamp)
+
+
+    def fetch_calendar(self, url:str, filename:str) -> None:
+        """Récupère le fichier .ics correspondant à une filière donnée"""
+        urlretrieve(url, filename)
+
+    def convert_timestamp(self, input : str) -> datetime :
+        """Permet de convertir les timestamp en ISO-8601, et les passer en UTC+2"""
+        # 20241105T143000Z -> 2024-11-05T14:30:00Z
+        iso_date = f"{input[0:4]}-{input[4:6]}-{input[6:11]}:{input[11:13]}:{input[13:]}"
+        return datetime.fromisoformat(iso_date).astimezone(timezone("Europe/Paris"))
+
+    def update_events(self, update: bool):
+        """met a jour la liste d'événements en mêlant les événements issus des deux .ics"""
+        output = {}
+        filenameINGE = "data/INGE.ics"
+        filenameMIAGE = "data/MIAGE.ics"
+
+        if update:
+            self.fetch_calendar(url["INGE"], filenameINGE)
+            self.fetch_calendar(url["MIAGE"], filenameMIAGE)
+
+        # | sert a concaténer deux dictionnaires
+        output = self.parse_calendar(filenameINGE) | self.parse_calendar(filenameMIAGE)
+
+        self.events_dict = output
+        self.events_list = sorted(list(self.events_dict.values()),key=lambda event: event.start_timestamp)
+   
+    
+    def parse_calendar(self, filename:str) -> dict[str:Event]:
+        """Extrait les données du fichier .ics passé dans filename"""
+        with open(filename, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+
+        events = {}
+        event = {}
+        for line in lines:
+            # Balise Ouvrante, crée un nouveau dictionnaire vide
+            if line.startswith("BEGIN:VEVENT"):
+                event = {"DTSTART":"", "DTEND":"", "SUMMARY":"", "LOCATION":"", "DESCRIPTION":"", "UID":""}
+            # Balise Fermante, envoie les informations récoltées (Timestamps début et fin, le summary (titre), la salle et la description)
+            elif line.startswith("END:VEVENT"):
+                e = get_event_from_data(
+                    self.convert_timestamp(event["DTSTART"]),
+                    self.convert_timestamp(event["DTEND"]),
+                    event["SUMMARY"],
+                    event["LOCATION"],
+                    event["DESCRIPTION"],
+                    event["UID"]
+                )
+                events[e.uid] = e
+
+            elif line.startswith(" "):
+                event["DESCRIPTION"] += line.removeprefix(" ")
+            else:
+                for prefix in ("DTSTART:", "DTEND:", "SUMMARY:", "LOCATION:", "DESCRIPTION:", "UID:") :
+                    if line.startswith(prefix):
+                        event[prefix.removesuffix(":")] = line.removeprefix(prefix).removesuffix("\n")
+                        break
+        return events
+
+    def get_events(self) -> list[Event]:
+        return self.events_list
+
+    def get_events_dict(self) -> dict[str:Event]:
+        return self.events_dict
+
+    # def get_events_dict() -> dict[str:Event]:
+    #     global events_dict
+    #     if need_updating(events_dict):
+    #         events_old : dict[str:Event] = {}
+    #         if events_dict == {}:
+    #             events_old = update_events(False)
+    #         else:
+    #             events_old = events_dict
+    #         events_dict = update_events(True)
+    #         change(events_old, events_dict)
+    #     return events_dict
+
+
 
 class TimeFilter(Filter):
     def __init__(self, date:date, timing:Timing) -> None:
@@ -292,42 +378,6 @@ def dump_user_base(user_base:UserBase):
 
 
 # ----- HElPER  -----
-def need_updating(events:dict[str:Event]) -> bool:
-    """Vérifie si la liste d'événement doit être mise à jour, c'est-à-dire si elle est trop vieille ou vide"""
-    filenameINGE = "input/INGE.ics"
-    filenameMIAGE = "input/MIAGE.ics"
-    pINGE = Path(filenameINGE)
-    pMIAGE = Path(filenameMIAGE)
-
-    return get_file_age(pINGE) > 120 or get_file_age(pMIAGE) > 120 or events == {}
-
-def update_events(update: bool) -> dict[str:Event]:
-    """Retourne une nouvelle liste d'événements mêlant les événements issus des deux .ics et trié"""
-    output = {}
-    filenameINGE = "data/INGE.ics"
-    filenameMIAGE = "data/MIAGE.ics"
-
-    if update:
-        fetch_calendar(url["INGE"], filenameINGE)
-        fetch_calendar(url["MIAGE"], filenameMIAGE)
-
-    output = parse_calendar(filenameINGE) | parse_calendar(filenameMIAGE)
-
-    return output         #sorted(list(set(output)),key=lambda event: event.start_timestamp)
-
-def fetch_calendar(url:str, filename:str):
-    """Récupère le fichier .ics correspondant à une filière donnée"""
-    urlretrieve(url, filename)
-
-def get_file_age(p:Path) -> int:
-    """Retourne l'age d'un fichier en minutes"""
-    return int(time.time() - p.stat().st_mtime) // 60 if p.exists() else 666 # file does not exist
-
-def convert_timestamp(input : str) -> datetime :
-    """Permet de convertir les timestamp en ISO-8601, et les passer en UTC+2"""
-    iso_date = f"{input[0:4]}-{input[4:6]}-{input[6:11]}:{input[11:13]}:{input[13:]}"
-    return datetime.fromisoformat(iso_date).astimezone(timezone("Europe/Paris"))
-
 def filter_events(events:list[Event], filters:list[Filter]) -> list[Event]:
     """Applique une liste de filtres à la liste d'événements passée en paramètre et retourne une nouvelle liste"""
     output = events.copy()
@@ -339,7 +389,7 @@ def filter_events(events:list[Event], filters:list[Filter]) -> list[Event]:
     return output
 
 # ----- PARSING -----
-def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str) -> Event:
+def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str) -> Event:
     """Permet d'extraire les informations des données parsées"""
     # Événements spéciaux
     if sum == "Réunion rentrée - L3 INGENIERIE INFORMATIQUE":
@@ -441,37 +491,6 @@ def build_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:s
     # Crée un nouvel Objet Event à partir des infos calculées
     return Event(start, end, subject, group, location, teacher, isINGE, isMIAGE, uid)
 
-def parse_calendar(filename:str) -> dict[str:Event]:
-    """Extrait les données du fichier .ics passé dans filename"""
-    with open(filename, "r", encoding="utf-8") as f:
-        lines = f.readlines()
-
-    events = {}
-    event = {}
-    for line in lines:
-        # Balise Ouvrante, crée un nouveau dictionnaire vide
-        if line.startswith("BEGIN:VEVENT"):
-            event = {"DTSTART":"", "DTEND":"", "SUMMARY":"", "LOCATION":"", "DESCRIPTION":"", "UID":""}
-        # Balise Fermante, envoie les informations récoltées (Timestamps début et fin, le summary (titre), la salle et la description)
-        elif line.startswith("END:VEVENT"):
-            e = build_event_from_data(
-                convert_timestamp(event["DTSTART"]),
-                convert_timestamp(event["DTEND"]),
-                event["SUMMARY"],
-                event["LOCATION"],
-                event["DESCRIPTION"],
-                event["UID"]
-            )
-            events[e.uid] = e
-
-        elif line.startswith(" "):
-            event["DESCRIPTION"] += line.removeprefix(" ")
-        else:
-            for prefix in ("DTSTART:", "DTEND:", "SUMMARY:", "LOCATION:", "DESCRIPTION:", "UID:") :
-                if line.startswith(prefix):
-                    event[prefix.removesuffix(":")] = line.removeprefix(prefix).removesuffix("\n")
-                    break
-    return events
 
 # ----- DISPLAYING -----
 def display(events:list[Event]) -> None:
@@ -509,32 +528,22 @@ def get_embeds(events:list[Event]) -> list[Embed]:
     return embeds
 
 
-events_dict : dict[str:Event] = {}
+calendar  :Calendar = Calendar({})
 user_base :UserBase = load_user_base()
-# user_base :UserBase = UserBase({}, set(), set())
+calendar.update_events(False)
 
+new_calendar = Calendar({})
+new_calendar.update_events(True)
 
-def get_events() -> list[Event]:
-    global events_dict
-    events_dict = get_events_dict()
-    return sorted(list(events_dict.values()),key=lambda event: event.start_timestamp)
-
-def get_events_dict() -> dict[str:Event]:
-    global events_dict
-    if need_updating(events_dict):
-        events_old : dict[str:Event] = {}
-        if events_dict == {}:
-            events_old = update_events(False)
-        else:
-            events_old = events_dict
-        events_dict = update_events(True)
-        change(events_old, events_dict)
-    return events_dict
 
 def get_user_base() -> UserBase:
     global user_base
     user_base = load_user_base()
     return user_base
+
+def get_calendar() -> Calendar:
+    global calendar
+    return calendar
 
 
 def get_ics(events:list[Event]):
@@ -552,14 +561,25 @@ def get_ics(events:list[Event]):
         f.write(ics)
     return True
 
-def change(old : dict[str:Event], new : dict[str:Event]):
-    changement : list[Embed] = []
-    for new_uid in new:
-        new_event = new.get(new_uid)
-        old_event = old.get(new_uid)
-        if old_event != new_event:
-            embed = Embed(title="Changement sur cette événement", description=f"**Ancien événement :**\n{old_event}\n**Nouvelle événement :**\n{new_event}")
-            changement.append(embed)
-    if len(changement) != 0:
-        print("ya eu du changement")
-        #changement_event(changement)
+def changed_events(old : Calendar, new : Calendar, filters :list[Filter]= [TimeFilter(date.today(), Timing.AFTER), TimeFilter((date.today() + timedelta(days=14)), Timing.BEFORE)]):
+    old_events = filter_events(old.get_events(), filters)
+    new_events = filter_events(new.get_events(), filters)
+
+    
+
+
+    # changement : list[Embed] = []
+    # changement_events : list[Event] = []
+    # for new_uid in new.get_events_dict():
+    #     new_event = new.get_events_dict().get(new_uid)
+    #     old_event = old.get_events_dict().get(new_uid)
+    #     if old_event != new_event:
+    #         embed = Embed(title="Changement sur cette événement", description=f"**Ancien événement :**\n{old_event}\n**Nouvelle événement :**\n{new_event}")
+    #         changement.append(embed)
+    #         changement_events.append(new_event)
+    # if len(changement) != 0:
+    #     return embed, (len(filter_events(changement_events, )) > 0)
+    #     #changement_event(changement)
+
+
+changed_events(calendar, new_calendar, [TimeFilter(date.today(), Timing.AFTER), TimeFilter((date.today() + timedelta(days=14)), Timing.BEFORE)])

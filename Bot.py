@@ -1,6 +1,6 @@
 from interactions import ActionRow, Button, ButtonStyle, Client, Embed, Intents, listen, slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Task, TimeTrigger, OrTrigger, IntervalTrigger
 from interactions.api.events import Component, MemberUpdate
-from TrainWreck import GroupFilter, get_embeds, Filiere, Group, Timing, Filter, FiliereFilter, TimeFilter, get_events, filter_events, ascii, get_user_base, UserBase, user_base, get_ics, User, Subscription
+from TrainWreck import GroupFilter, get_embeds, Filiere, Group, Timing, Filter, FiliereFilter, TimeFilter, Calendar, get_calendar, filter_events, ascii, get_user_base, UserBase, user_base, get_ics, User, Subscription
 from dotenv import load_dotenv
 import os
 from datetime import datetime, date, timedelta
@@ -61,7 +61,7 @@ async def get_day_bt(ctx, jour : str):
     """Fonction qui permet d'obtenir l'EDT d'une journée spécifique"""
     try :
         date_formater = datetime.strptime(jour, "%d-%m-%Y").date()
-        events = filter_events(get_events(), [TimeFilter(date_formater, Timing.DURING), get_filiere(ctx.author), get_groupes(ctx.author)] )
+        events = filter_events(get_calendar().get_events(), [TimeFilter(date_formater, Timing.DURING), get_filiere(ctx.author), get_groupes(ctx.author)] )
         embeds = get_embeds(events)
         await ctx.send(embeds=embeds)
     except ValueError:
@@ -74,7 +74,7 @@ async def get_day_bt(ctx, jour : str):
 async def today(ctx: SlashContext):
     """Fonction qui permet d'obtenir l'EDT d'ajourd'hui"""
     #try:
-    events = filter_events(get_events(), [TimeFilter(date.today(), Timing.DURING), get_filiere(ctx.author), get_groupes(ctx.author)] )
+    events = filter_events(get_calendar().get_events(), [TimeFilter(date.today(), Timing.DURING), get_filiere(ctx.author), get_groupes(ctx.author)] )
     embeds = get_embeds(events)
     button = Button(
         style=ButtonStyle.PRIMARY,
@@ -94,7 +94,7 @@ async def tomorrow(ctx: SlashContext):
     """Fonction qui permet d'obtenir l'EDT de demain"""
     #try:
     events = filter_events(
-        get_events(),
+        get_calendar().get_events(),
         [TimeFilter(date.today() + timedelta(days=1), Timing.AFTER), TimeFilter(date.today() + timedelta(days=1), Timing.BEFORE), get_filiere(ctx.author),
          get_groupes(ctx.author)])
     embeds = get_embeds(events)
@@ -172,7 +172,7 @@ def get_week_embeds(date_formater, ctx):
     monday_date = date_formater - timedelta(days=days_since_monday)
     sunday_date = monday_date + timedelta(days=6)
     events = filter_events(
-        get_events(),
+        get_calendar().get_events(),
         [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), get_filiere(ctx.author),
          get_groupes(ctx.author)])
     return get_embeds(events), monday_date
@@ -206,7 +206,7 @@ async def dm(ctx :SlashContext):
 async def ics(ctx :SlashContext):
     """Génère l'ics"""
     #try:
-    get_ics(filter_events(get_events(), [get_filiere(ctx.author), get_groupes(ctx.author)]))
+    get_ics(filter_events(get_calendar().get_events(), [get_filiere(ctx.author), get_groupes(ctx.author)]))
     await ctx.send("Voici votre fichier ics", files=["output/calendar.ics"])
     #except BaseException as error:
        #await send_error("ics",error, ctx)
@@ -272,7 +272,7 @@ async def check_subscription(ctx :SlashContext):
 
 
 async def send_daily_update(user):
-    events = filter_events(get_events(), [TimeFilter(date.today(), Timing.DURING), get_filiere(user), get_groupes(user)] )
+    events = filter_events(get_calendar().get_events(), [TimeFilter(date.today(), Timing.DURING), get_filiere(user), get_groupes(user)] )
     embeds = get_embeds(events)
     await user.send(embeds=embeds)
 
@@ -281,7 +281,7 @@ async def send_weekly_update(user):
     monday_date = datetime.today() - timedelta(days=days_since_monday)
     sunday_date = monday_date + timedelta(days=6)
 
-    events = filter_events (get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), get_filiere(user), get_groupes(user)])
+    events = filter_events (get_calendar().get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), get_filiere(user), get_groupes(user)])
     ics_file = get_ics(events)
     await user.send(embeds=get_embeds(events), files=["output/calendar.ics"])
 
@@ -293,6 +293,20 @@ async def daily_morning_update():
             await send_daily_update(bot.get_user(id))
     for id in user_base.daily_subscribed_users:
         await send_daily_update(bot.get_user(id))
+
+@Task.create(OrTrigger(
+        TimeTrigger(hour=5,  minute=55, utc=False),
+        TimeTrigger(hour=7,  minute=0,  utc=False),
+        TimeTrigger(hour=8,  minute=0,  utc=False),
+        TimeTrigger(hour=10, minute=0,  utc=False), 
+        TimeTrigger(hour=12, minute=0,  utc=False), 
+        TimeTrigger(hour=14, minute=0,  utc=False), 
+        TimeTrigger(hour=16, minute=0,  utc=False), 
+        TimeTrigger(hour=18, minute=0,  utc=False), 
+        TimeTrigger(hour=20, minute=0,  utc=False)
+    ))
+async def update_calendar():
+    get_calendar().update_events(True)
 
 
 
@@ -398,7 +412,8 @@ async def on_ready():
     print(f"This bot is owned by {bot.owner}")
     await bot.synchronise_interactions()
     daily_morning_update.start()
-    get_events()
+    update_calendar.start()
+    get_calendar().get_events()
 
 
 
