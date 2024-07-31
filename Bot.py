@@ -1,6 +1,6 @@
 from interactions import ActionRow, Button, ButtonStyle, Client, Embed, Intents, listen, slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Task, TimeTrigger, OrTrigger, IntervalTrigger
 from interactions.api.events import Component, MemberUpdate
-from TrainWreck import GroupFilter, get_embeds, Filiere, Group, Timing, Filter, FiliereFilter, TimeFilter, Calendar, get_calendar, filter_events, ascii, get_user_base, UserBase, user_base, get_ics, User, Subscription
+from TrainWreck import GroupFilter, get_embeds, Filiere, Group, Timing, Filter, FiliereFilter, TimeFilter, Calendar, get_calendar, filter_events, ascii, get_user_base, UserBase, user_base, get_ics, User, Subscription, changed_events
 from dotenv import load_dotenv
 import os
 from datetime import datetime, date, timedelta
@@ -306,7 +306,34 @@ async def daily_morning_update():
         TimeTrigger(hour=20, minute=0,  utc=False)
     ))
 async def update_calendar():
-    get_calendar().update_events(True)
+    # sup :set[Event]         = set()
+    # add :set[Event]         = set()
+    # mod :set[(Event,Event)] = set()
+
+    old_calendar = Calendar(False)
+    new_calendar = Calendar(True)
+    
+    sup, add, mod = changed_events(old_calendar, new_calendar, filters=[TimeFilter(date(2024,9,1), Timing.AFTER), TimeFilter((date(2024,12,31)), Timing.BEFORE)])
+    embeds : list[Embed] = []
+    if len(sup) > 0:
+        descstr = ""
+        for event in sup:
+            descstr += "- " + str(event) + "\n"
+        embeds.append(Embed(title="Événements supprimés :", description=descstr, color=0xEd4245))
+    if len(add) > 0:
+        descstr = ""
+        for event in add:
+            descstr += "- " + str(event) + "\n"
+        embeds.append(Embed(title="Événements ajoutés :", description=descstr, color=0x57f287))
+    if len(mod) > 0:
+        descstr = ""
+        for (old, new) in mod:
+            descstr += f"- {str(old)} → {str(new)}\n"
+        embeds.append(Embed(title="Événements modifiés :", description=descstr, color=0x5865f2))
+    # TODO : Changer pour mettre l'ID du nouveau salon
+    await bot.get_channel(1265574263717625867).send(embeds=embeds)
+        
+
 
 
 
@@ -412,8 +439,9 @@ async def on_ready():
     print(f"This bot is owned by {bot.owner}")
     await bot.synchronise_interactions()
     daily_morning_update.start()
-    update_calendar.start()
-    get_calendar().get_events()
+    await update_calendar()
+    # update_calendar.start()
+    # get_calendar().get_events()
 
 
 

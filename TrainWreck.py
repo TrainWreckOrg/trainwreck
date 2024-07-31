@@ -156,9 +156,11 @@ class Filter:
 
 class Calendar:
     """Classe utilisée pour stocker une liste d'objet evenements"""
-    def __init__(self, events_dict : dict[str:Event] = {}) -> None:
-        self.events_dict = events_dict
-        self.events_list = sorted(list(self.events_dict.values()),key=lambda event: event.start_timestamp)
+    def __init__(self, update : bool) -> None:
+        self.events_dict : dict[str:Event]
+        self.events_list : list[Event]
+
+        self.update_events(update)
 
 
     def fetch_calendar(self, url:str, filename:str) -> None:
@@ -178,11 +180,15 @@ class Calendar:
         filenameMIAGE = "data/MIAGE.ics"
 
         if update:
-            self.fetch_calendar(url["INGE"], filenameINGE)
-            self.fetch_calendar(url["MIAGE"], filenameMIAGE)
+            print("yes")
+            # self.fetch_calendar(url["INGE"], filenameINGE)
+            self.fetch_calendar("https://pr7gqg.db.files.1drv.com/y4mu4pYv_ziuijdmZnkCcXkD7t_eesaXhWSCTvNzwoF1K-OjwwTkK2DLW4vSY57gavMirdZSpmNQlQNHq54ghgQROz2n_0lJ96KN58KNHPBNMZwbImETb5McUDHgcOA-pXyU9jXB98c9-R9lI5wOqxruXaazsOwK-aP-67Fg4iVfVtFFTwJCAyfem43vCL65ne3QcmTQmIp6nb7XtMJT77SQg", filenameINGE)
+            # self.fetch_calendar(url["MIAGE"], filenameMIAGE)
 
         # | sert a concaténer deux dictionnaires
-        output = self.parse_calendar(filenameINGE) | self.parse_calendar(filenameMIAGE)
+        # output = self.parse_calendar(filenameINGE) | self.parse_calendar(filenameMIAGE)
+        output = self.parse_calendar(filenameINGE)
+
 
         self.events_dict = output
         self.events_list = sorted(list(self.events_dict.values()),key=lambda event: event.start_timestamp)
@@ -528,12 +534,9 @@ def get_embeds(events:list[Event]) -> list[Embed]:
     return embeds
 
 
-calendar  :Calendar = Calendar({})
 user_base :UserBase = load_user_base()
-calendar.update_events(False)
+calendar = Calendar(False)
 
-new_calendar = Calendar({})
-new_calendar.update_events(True)
 
 
 def get_user_base() -> UserBase:
@@ -561,25 +564,28 @@ def get_ics(events:list[Event]):
         f.write(ics)
     return True
 
-def changed_events(old : Calendar, new : Calendar, filters :list[Filter]= [TimeFilter(date.today(), Timing.AFTER), TimeFilter((date.today() + timedelta(days=14)), Timing.BEFORE)]):
-    old_events = filter_events(old.get_events(), filters)
-    new_events = filter_events(new.get_events(), filters)
+# = [TimeFilter(date.today(), Timing.AFTER), TimeFilter((date.today() + timedelta(days=14)), Timing.BEFORE)]
+def changed_events(old : Calendar, new : Calendar, filters :list[Filter]):
+    old_events : list[Event] = filter_events(old.get_events(), filters)
+    new_events : list[Event] = filter_events(new.get_events(), filters)
 
+    old_events_dict = {e.uid:e for e in old_events}
+    new_events_dict = {e.uid:e for e in new_events}
+
+    sup :set[Event]         = set()
+    add :set[Event]         = set()
+    mod :set[(Event,Event)] = set()
+
+    for e in old_events:
+        if e.uid not in new_events_dict.keys():
+            sup.add(e)
     
-
-
-    # changement : list[Embed] = []
-    # changement_events : list[Event] = []
-    # for new_uid in new.get_events_dict():
-    #     new_event = new.get_events_dict().get(new_uid)
-    #     old_event = old.get_events_dict().get(new_uid)
-    #     if old_event != new_event:
-    #         embed = Embed(title="Changement sur cette événement", description=f"**Ancien événement :**\n{old_event}\n**Nouvelle événement :**\n{new_event}")
-    #         changement.append(embed)
-    #         changement_events.append(new_event)
-    # if len(changement) != 0:
-    #     return embed, (len(filter_events(changement_events, )) > 0)
-    #     #changement_event(changement)
-
-
-changed_events(calendar, new_calendar, [TimeFilter(date.today(), Timing.AFTER), TimeFilter((date.today() + timedelta(days=14)), Timing.BEFORE)])
+    for e in new_events:
+        if e.uid not in old_events_dict.keys():
+            add.add(e)
+    
+    for e in old_events:
+        if e.uid in new_events_dict.keys() and e != new_events_dict[e.uid]:
+            mod.add((e, new_events_dict[e.uid]))
+    
+    return sup, add, mod
