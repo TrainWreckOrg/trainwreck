@@ -1,4 +1,4 @@
-from interactions import ActionRow, Button, ButtonStyle, Client, Intents, listen, slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Task, TimeTrigger, OrTrigger, Guild, Role
+from interactions import ActionRow, Button, ButtonStyle, Client, Intents, listen, slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Task, TimeTrigger, OrTrigger, Guild, Role, Permissions
 from interactions.api.events import Component, MemberUpdate
 from TrainWreck import *
 import re
@@ -19,7 +19,7 @@ async def on_component(event: Component):
     if pattern_day.search(ctx.custom_id):
         await get_day_bt(ctx,ctx.custom_id[4:], True)
     elif pattern_week.search(ctx.custom_id):
-        await get_week_bt(ctx,ctx.custom_id[5:])
+        await get_week_bt(ctx,ctx.custom_id[5:], True)
     else:
         await ctx.send("Bouton cliqué mais aucune action définie")
         raise ValueError("Bouton cliqué mais aucune action définie")
@@ -36,7 +36,7 @@ async def get_day_bt(ctx, jour : str, modifier: bool, personne: User = None):
         events = filter_events(get_calendar().get_events(),
                                [TimeFilter(date_formater, Timing.DURING), get_filiere(author),
                                 get_groupes(author)])
-        embeds = get_embeds(events, author ,date_formater)
+        embeds = get_embeds(events, author, date_formater)
 
         precedent = Button(
             style=ButtonStyle.PRIMARY,
@@ -117,10 +117,55 @@ async def info(ctx: SlashContext):
     for groupe in get_groupes_as_list(ctx.author):
         str_role += groupe.value + ", "
     str_role = str_role.removesuffix(", ")
-    await ctx.send(f"Vous êtes {get_name(ctx.author)}!\nVotre filière est {get_filiere_as_filiere(ctx.author).value} et vos groupes {"sont" if len(get_groupes_as_list(ctx.author)) > 1 else "est"} {str_role}.")
+    await ctx.send(f"Vous êtes {ctx.author.display_name}!\nVotre filière est {get_filiere_as_filiere(ctx.author).value} et vos groupes {"sont" if len(get_groupes_as_list(ctx.author)) > 1 else "est"} {str_role}.")
     #except BaseException as error:
         #await send_error("info",error, ctx)
 
+
+async def get_week_bt(ctx: SlashContext, semaine : str, modifier: bool, personne: User = None):
+    """Fonction qui permet d'obtenir l'EDT d'une semaine spécifique"""
+    try:
+        author = ctx.author if (personne is None) else personne
+
+        date_formater = datetime.strptime(semaine, "%d-%m-%Y").date()
+        days_since_monday = date_formater.weekday()
+        monday_date = date_formater - timedelta(days=days_since_monday)
+        sunday_date = monday_date + timedelta(days=6)
+
+        events = filter_events(
+            get_calendar().get_events(),
+            [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), get_filiere(author),
+             get_groupes(author)])
+
+        embeds = get_embeds(events, ctx.author, monday_date, sunday_date)
+
+        precedent = Button(
+            style=ButtonStyle.PRIMARY,
+            custom_id="week-" + (monday_date - timedelta(days=1)).strftime("%d-%m-%Y"),
+            label="Semaine précédente"
+        )
+
+        suivant = Button(
+            style=ButtonStyle.PRIMARY,
+            custom_id="week-" + (sunday_date + timedelta(days=1)).strftime("%d-%m-%Y"),
+            label="Semaine suivante"
+        )
+
+        if personne is None:
+            action_row = ActionRow(precedent, suivant)
+            if modifier:
+                await ctx.edit_origin(embeds=embeds, components=[action_row])
+            else:
+                await ctx.send(embeds=embeds, components=[action_row])
+        else:
+            if modifier:
+                await ctx.edit_origin(embeds=embeds)
+            else:
+                await ctx.send(embeds=embeds)
+    except ValueError:
+        await ctx.send(embeds=[create_error_embed(f"La valeur `{semaine}` ne correspond pas à une date")], )
+    #except BaseException as error:
+        #await send_error("get_week_bt",error, ctx, semaine=semaine)
 
 
 @slash_command(name="get_week", description="Permet d'avoir l'emploi du temps pour une semaine")
@@ -136,50 +181,21 @@ async def info(ctx: SlashContext):
     required=False,
     opt_type=OptionType.USER
 )
-async def get_week(ctx: SlashContext, semaine : str, personne:User):
+async def get_week(ctx: SlashContext, semaine : str, personne:User = None):
     """Fonction qui permet d'obtenir l'EDT d'une semaine spécifique"""
     #try:
-    await get_week_bt(ctx, semaine, personne)
+    await get_week_bt(ctx, semaine, False, personne)
     #except BaseException as error:
         #await send_error("get_week",error, ctx, semaine=semaine)
-
-
-async def get_week_bt(ctx: SlashContext, semaine : str):
-    """Fonction qui permet d'obtenir l'EDT d'une semaine spécifique"""
-    #try:
-    date_formater = datetime.strptime(semaine, "%d-%m-%Y").date()
-    embeds, monday_date = get_week_embeds(date_formater, ctx)
-    await ctx.send(embeds=embeds)
-    #except BaseException as error:
-        #await send_error("get_week_bt",error, ctx, semaine=semaine)
 
 
 @slash_command(name="week", description="Permet d'avoir l'emploie du temps pour la semaine")
 async def week(ctx: SlashContext):
     """Fonction qui permet d'obtenir l'EDT de cette semaine"""
     #try:
-    date_formater = date.today()
-    embeds, monday_date = get_week_embeds(date_formater, ctx)
-    button = Button(
-        style=ButtonStyle.PRIMARY,
-        custom_id = "week-" + (monday_date + timedelta(days=7)).strftime("%d-%m-%Y"),
-        label = "Semaine prochaine"
-    )
-    action_row = ActionRow(button)
-    await ctx.send(embeds=embeds, components=[action_row])
+    await get_week_bt(ctx, date.today().strftime("%d-%m-%Y"), False)
     #except BaseException as error:
         #await send_error("week",error, ctx)
-
-
-def get_week_embeds(date_formater, ctx :SlashContext):
-    days_since_monday = date_formater.weekday()
-    monday_date = date_formater - timedelta(days=days_since_monday)
-    sunday_date = monday_date + timedelta(days=6)
-    events = filter_events(
-        get_calendar().get_events(),
-        [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), get_filiere(ctx.author),
-         get_groupes(ctx.author)])
-    return get_embeds(events, ctx.author), monday_date
 
 
 @slash_command(name="about", description="Affiche la page 'About'")
@@ -192,26 +208,29 @@ async def about(ctx :SlashContext):
     #except BaseException as error:
         #await send_error("about",error, ctx)
 
-@slash_command(name="test", description="Test command")
-async def test(ctx :SlashContext):
-    await ctx.send(ctx.author.avatar_url)
-
-@slash_command(name="dm", description="tries to dm the user")
-async def dm(ctx :SlashContext):
-    """tries to dm the user"""
-    #try:
-    user = bot.get_user(ctx.author.id)
-    await user.send("👀 est ce que ça a marché ?")
-    await ctx.send("done :)")
-    #except BaseException as error:
-       #await send_error("dm",error, ctx)
 
 @slash_command(name="ics", description="Génère le ics")
-async def ics(ctx :SlashContext):
+@slash_option(
+    name="debut",
+    description="Quelle est la date de début ? (DD-MM-YYYY)",
+    required=True,
+    opt_type=OptionType.STRING
+)
+@slash_option(
+    name="fin",
+    description="Quelle est la date de début ? (DD-MM-YYYY)",
+    required=True,
+    opt_type=OptionType.STRING
+)
+async def ics(ctx :SlashContext, debut : str, fin : str):
     """Génère l'ics"""
-    #try:
-    get_ics(filter_events(get_calendar().get_events(), [get_filiere(ctx.author), get_groupes(ctx.author)]))
-    await ctx.send("Voici votre fichier ics", files=["output/calendar.ics"])
+    try:
+        date_debut = datetime.strptime(debut, "%d-%m-%Y").date()
+        date_fin = datetime.strptime(fin, "%d-%m-%Y").date()
+        get_ics(filter_events(get_calendar().get_events(), [TimeFilter(date_debut, Timing.AFTER), TimeFilter(date_fin, Timing.BEFORE), get_filiere(ctx.author), get_groupes(ctx.author)]))
+        await ctx.send("Voici votre fichier ics", files=["output/calendar.ics"])
+    except ValueError:
+        await ctx.send(embeds=[create_error_embed(f"La valeur `{debut}` ou `{fin}` ne correspond pas à une date")])
     #except BaseException as error:
        #await send_error("ics",error, ctx)
 
@@ -239,7 +258,7 @@ async def subscribe(ctx :SlashContext, service: str):
             user_base.user_subscribe(id, Subscription.WEEKLY)
         case "BOTH":
             user_base.user_subscribe(id, Subscription.BOTH)
-    await ctx.send(embed=Embed(f"Abonnements de {get_name(ctx.author)}", f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"))
+    await ctx.send(embed=Embed(f"Abonnements de {ctx.author.display_name}", f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"))
 
 
 @slash_command(name="unsubscribe", description="Permet de se désabonner aux mises a jour automatiques")
@@ -266,18 +285,18 @@ async def unsubscribe(ctx :SlashContext, service: str):
             user_base.user_unsubscribe(id, Subscription.WEEKLY)
         case "BOTH":
             user_base.user_unsubscribe(id, Subscription.BOTH)
-    await ctx.send(embed=Embed(f"Abonnements de {get_name(ctx.author)}", f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"))
+    await ctx.send(embed=Embed(f"Abonnements de {ctx.author.display_name}", f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"))
     
 @slash_command(name="check_subscription", description="Permet de consulter ses abonnements aux services de Mise à Jour")
 async def check_subscription(ctx :SlashContext):
     user_base = get_user_base()
     id = ctx.author_id
-    await ctx.send(embed=Embed(f"Abonnements de {get_name(ctx.author)}", f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"))
+    await ctx.send(embed=Embed(f"Abonnements de {ctx.author.display_name}", f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"))
 
 
 async def send_daily_update(user):
     events = filter_events(get_calendar().get_events(), [TimeFilter(date.today(), Timing.DURING), get_filiere(user), get_groupes(user)] )
-    embeds = get_embeds(events, user)
+    embeds = get_embeds(events, user, date.today())
     await user.send(embeds=embeds)
 
 async def send_weekly_update(user):
@@ -287,7 +306,7 @@ async def send_weekly_update(user):
 
     events = filter_events (get_calendar().get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), get_filiere(user), get_groupes(user)])
     ics_file = get_ics(events)
-    await user.send(embeds=get_embeds(events, user), files=["output/calendar.ics"])
+    await user.send(embeds=get_embeds(events, user, monday_date, sunday_date), files=["output/calendar.ics"])
 
 @Task.create(TimeTrigger(hour=6, minute=0, utc=False))
 async def daily_morning_update():
@@ -295,11 +314,9 @@ async def daily_morning_update():
     if datetime.today().weekday() == 0:
         for id in user_base.weekly_subscribed_users:
             await send_daily_update(bot.get_user(id))
-    for id in user_base.daily_subscribed_users:
-        await send_daily_update(bot.get_user(id))
-
-
-
+    if datetime.today().weekday() > 4:  # Si on est le week end
+        for id in user_base.daily_subscribed_users:
+            await send_daily_update(bot.get_user(id))
 
 
 def ping_liste(event):
@@ -337,16 +354,19 @@ async def update_calendar():
     
     sup, add, mod = changed_events(old_calendar, new_calendar)
     embeds : list[Embed] = []
+
     if len(sup) > 0:
         descstr = ""
         for event in sup:
             descstr += f"- {ping_liste(event)} {str(event)}\n"
         embeds.append(Embed(title="Événements supprimés :", description=descstr, color=0xEd4245))
+
     if len(add) > 0:
         descstr = ""
         for event in add:
             descstr += f"- {ping_liste(event)} {str(event)}\n"
         embeds.append(Embed(title="Événements ajoutés :", description=descstr, color=0x57f287))
+
     if len(mod) > 0:
         descstr = ""
         for (old, new) in mod:
@@ -355,14 +375,13 @@ async def update_calendar():
                 ping += f" {ping_liste(new)}"
             descstr += f"- {ping} {str(old)} → {str(new)}\n"
         embeds.append(Embed(title="Événements modifiés :", description=descstr, color=0x5865f2))
+
     if len(embeds):
         global ping_chan
         await ping_chan.send(embeds=embeds)
         
 
-
-
-@slash_command(name="userscan", description="Permet d'ajouter tout les membres dans la BD")
+@slash_command(name="userscan", description="Permet d'ajouter tout les membres dans la BD", default_member_permissions= Permissions.ADMINISTRATOR)
 async def userscan(ctx :SlashContext):
     guild = ctx.guild
     user_base = get_user_base()
@@ -373,10 +392,6 @@ async def userscan(ctx :SlashContext):
             user_base.update_user_groups(user.id, get_groupes_as_list(user))
     await ctx.send("Les membres du serveur ont été ajoutée et mit à jour")
 
-
-def get_name(author) -> str:
-    """Permet d'obtenir le nickname si défini sinon le username"""
-    return author.display_name
 
 def get_filiere(author) -> FiliereFilter:
     """Fonction qui permet d'avoir le filtre filière d'un utilisateur, renvoie un filtre neutre si pas défini"""
@@ -476,11 +491,6 @@ async def on_member_update(event: MemberUpdate):
     else :
         user_base.update_user_groups(user.id, get_groupes_as_list(user))
 
-async def changement_event(embeds : list[Embed]):
-    global channel
-    if not channel:
-        channel = bot.get_channel(os.getenv("CHANNEL_ID"))
-    await channel.send(embeds=embeds)
 
 bot.start()
 

@@ -83,3 +83,26 @@ async def get_day(ctx: SlashContext, jour : int = None, mois : int = None, annee
     await get_day_bt(ctx, False, jour, mois, annee, personne)
     #except BaseException as error:
     #    await send_error("get_day",error, ctx, jour=jour)
+
+
+@slash_command(name="test", description="Test command")
+async def test(ctx :SlashContext):
+    await ctx.send(ctx.author.avatar_url)
+
+
+@slash_command(name="dm", description="tries to dm the user")
+async def dm(ctx :SlashContext):
+    """tries to dm the user"""
+    #try:
+    user = bot.get_user(ctx.author.id)
+    await user.send("👀 est ce que ça a marché ?")
+    await ctx.send("done :)")
+    #except BaseException as error:
+       #await send_error("dm",error, ctx)
+
+
+async def changement_event(embeds : list[Embed]):
+    global channel
+    if not channel:
+        channel = bot.get_channel(os.getenv("CHANNEL_ID"))
+    await channel.send(embeds=embeds)
