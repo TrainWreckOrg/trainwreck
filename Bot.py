@@ -1,4 +1,4 @@
-from interactions import ActionRow, Button, ButtonStyle, Client, Intents, listen, slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Task, TimeTrigger, OrTrigger, Guild, Role, Permissions, Embed, EmbedFooter, User
+from interactions import ActionRow, Button, ButtonStyle, Client, Intents, listen, slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Task, TimeTrigger, OrTrigger, Guild, Role, Permissions, Embed, EmbedFooter, User, contexts
 from interactions.api.events import Component, MemberUpdate
 
 
@@ -403,10 +403,8 @@ async def update_calendar():
         
 
 @slash_command(name="userscan", description="Permet d'ajouter tout les membres dans la BD", default_member_permissions= Permissions.ADMINISTRATOR)
+@contexts(guild=True, bot_dm=False)
 async def userscan(ctx :SlashContext):
-    if not is_guild_chan(ctx.author):
-        await ctx.send("nuh uh\nC'est une commande Administrator-only qui sert a rafraichir la base de donnée, t'es pas vraiment sensé voir ça mais discord refuse de te la cacher, si tu envoie un screenshot à @Kaawan ou @Dany, tu gagne un rôle spécial :)\nhttps://tenor.com/view/nuh-uh-nuh-uh-scout-tf2-gif-12750436057634665505")
-        return
     guild = ctx.guild
     user_base = get_user_base()
     for user in guild.members:
