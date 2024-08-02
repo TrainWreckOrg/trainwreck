@@ -13,8 +13,6 @@ from dotenv import load_dotenv
 from enum import Enum
 import os
 import re
-print("import : ", os.getcwd())
-
 
 load_dotenv("cle.env")
 token = os.getenv("TOKEN_BOT_DISCORD")

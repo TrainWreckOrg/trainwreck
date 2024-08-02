@@ -1,7 +1,5 @@
 from interactions import listen, Extension
 from interactions.api.events import Component, MemberUpdate
-import os
-print("import : ", os.getcwd())
 
 from UserBase import get_user_base
 
