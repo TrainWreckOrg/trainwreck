@@ -14,7 +14,6 @@ from enum import Enum
 import os
 import re
 
-
 load_dotenv("cle.env")
 token = os.getenv("TOKEN_BOT_DISCORD")
 bot = Client(token=token, intents= Intents.ALL, sync_interactions=True) #TODO : enleve ALL

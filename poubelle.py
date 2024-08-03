@@ -111,3 +111,16 @@ async def changement_event(embeds : list[Embed]):
     if not is_guild_chan(ctx.author):
         await ctx.send("nuh uh\nC'est une commande Administrator-only qui sert a rafraichir la base de donnée, t'es pas vraiment sensé voir ça mais discord refuse de te la cacher, si tu envoie un screenshot à @Kaawan ou @Dany, tu gagne un rôle spécial :)\nhttps://tenor.com/view/nuh-uh-nuh-uh-scout-tf2-gif-12750436057634665505")
         return
+    
+
+
+""" print("avant : ", os.getcwd())
+
+pattern = r"^(.*\\trainwreck)\\.*$"
+match = re.match(pattern, os.getcwd())
+if match:
+    path = match.group(1)
+    os.chdir(path)
+
+print("après : ", os.getcwd())
+"""
