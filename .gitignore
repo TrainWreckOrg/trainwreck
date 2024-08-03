@@ -1,0 +1,6 @@
+__pycache__/
+.idea/
+.vscode/
+src/__pycache__
+data/INGE.ics
+data/MIAGE.ics
