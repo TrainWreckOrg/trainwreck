@@ -10,11 +10,16 @@ from Filter import *
 from datetime import datetime, date, timedelta
 
 
-
 class MySlashCommand(Extension):
     def __init__(self, bot):
         self.bot = bot
         self.tool = get_tool(bot)
+
+    @slash_command(name="test", description="Test command")
+    async def test(self, ctx: SlashContext):
+        await ctx.send(
+            f"{self.tool.ping_liste(Event(datetime.now(), datetime.now(), "Cours", Group.TD1I, "Ta mère", "Ton père", True, False, "007"))}, you got poked by {ctx.author.mention}!")
+
 
     @slash_command(name="info", description="Envoie des infos sur vos groupes, et filière. Si une personne est donnée, donne ses informations")
     @slash_option(
@@ -249,4 +254,37 @@ class MySlashCommand(Extension):
         id = ctx.author_id
         await ctx.send(embed=Embed(f"Abonnements de {ctx.author.display_name}",
                                    f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

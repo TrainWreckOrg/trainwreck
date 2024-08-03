@@ -10,6 +10,7 @@ token_bot=os.getenv("TOKEN_BOT_DISCORD")
 
 bot = Client(token=token_bot, intents=Intents.ALL, sync_interactions=True)   # TODO : enlevé ALL
 
-bot.load_extension("MyListen", package="Bot")
+bot.load_extension("MyListen")
+bot.load_extension("MySlashCommand")
 
 bot.start()

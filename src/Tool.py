@@ -17,9 +17,9 @@ class Tool():
         self.roles: dict[Enum:Role] = {}
 
     def get_roles(self):
-        if self.roles is {}:
+        if self.roles == {}:
             serveur: Guild = self.bot.get_guild(os.getenv("SERVEUR_ID"))
-            for role in self.serveur.roles:
+            for role in serveur.roles:
                 if role.name in Group:
                     for groupe in Group:
                         if groupe.value == role.name:
@@ -107,19 +107,17 @@ class Tool():
             "Une erreur est survenue, veuillez réessayer ultérieurement, l'équipe de modération est avertie du problème")])
 
 
-    def ping_liste(self, event):
+    def ping_liste(self, event : Event) -> str:
         roles = self.get_roles()
-        ping = ""
         if event.group == Group.CM:
             if event.isINGE and event.isMIAGE:
-                ping += f"<@&{roles[Filiere.INGE].id}> <@&{roles[Filiere.MIAGE].id}>"
+                return f"{roles[Filiere.INGE].mention} {roles[Filiere.MIAGE].mention}"
             elif event.isINGE:
-                ping += f"<@&{roles[Filiere.INGE].id}>"
+                return f"{roles[Filiere.INGE].mention}>"
             else:
-                ping += f"<@&{roles[Filiere.MIAGE].id}>"
+                return f"{roles[Filiere.MIAGE].mention}"
         else:
-            ping += f"<@&{roles[event.group].id}>"
-        return ping
+            return f"{roles.get(event.group).mention}"
 
 
 
