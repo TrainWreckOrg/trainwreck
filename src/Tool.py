@@ -1,4 +1,4 @@
-from interactions import ActionRow, Button, ButtonStyle, SlashContext, Guild, Role, Embed, User
+from interactions import ActionRow, Button, ButtonStyle, SlashContext, Guild, Role, Embed, User, Member
 
 
 from Calendar import get_calendar
@@ -121,7 +121,7 @@ class Tool():
 
 
 
-    async def get_day_bt(self, ctx, jour: str, modifier: bool, personne: User = None):
+    async def get_day_bt(self, ctx, jour: str, modifier: bool, personne: User = None, ephemeral: bool= False):
         """Fonction qui permet d'obtenir l'EDT d'une journée spécifique"""
         try:
             author = ctx.author if (personne is None) else personne
@@ -159,7 +159,7 @@ class Tool():
                 if modifier:
                     await ctx.edit_origin(embeds=embeds)
                 else:
-                    await ctx.send(embeds=embeds)
+                    await ctx.send(embeds=embeds, ephemeral=ephemeral)
 
         except ValueError:
             await ctx.send(embeds=[self.create_error_embed(f"La valeur `{jour}` ne correspond pas à une date")], )
@@ -168,7 +168,7 @@ class Tool():
 
 
 
-    async def get_week_bt(self, ctx: SlashContext, semaine : str, modifier: bool, personne: User = None):
+    async def get_week_bt(self, ctx: SlashContext, semaine : str, modifier: bool, personne: User = None, ephemeral: bool= False):
         """Fonction qui permet d'obtenir l'EDT d'une semaine spécifique"""
         try:
             author = ctx.author if (personne is None) else personne
@@ -207,7 +207,7 @@ class Tool():
                 if modifier:
                     await ctx.edit_origin(embeds=embeds)
                 else:
-                    await ctx.send(embeds=embeds)
+                    await ctx.send(embeds=embeds, ephemeral=ephemeral)
         except ValueError:
             await ctx.send(embeds=[self.create_error_embed(f"La valeur `{semaine}` ne correspond pas à une date")], )
         #except BaseException as error:
