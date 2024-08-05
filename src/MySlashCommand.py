@@ -1,4 +1,4 @@
-from interactions import slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Permissions, Embed, EmbedFooter, User, contexts, Extension
+from interactions import slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Permissions, Embed, EmbedFooter, User, contexts, Extension, AutocompleteContext
 from Tool import get_tool
 
 from Enums import Subscription
@@ -64,6 +64,39 @@ class MySlashCommand(Extension):
         await self.tool.get_day_bt(ctx, jour, False, personne)
         # except BaseException as error:
         #    await send_error("get_day",error, ctx, jour=jour)
+
+    """
+    @get_day.autocomplete("jour")
+    async def autocomplete(self, ctx: AutocompleteContext):
+        choices=[]
+        string_option_input = ctx.input_text  # can be empty/None
+        # you can use ctx.kwargs.get("name") to get the current state of other options - note they can be empty too
+
+        
+        # Faire le process
+
+
+        # make sure you respond within three seconds
+        await ctx.send(
+            choices=[
+                {
+                    "name": f"{string_option_input}a",
+                    "value": f"{string_option_input}a",
+                },
+                {
+                    "name": f"{string_option_input}b",
+                    "value": f"{string_option_input}b",
+                },
+                {
+                    "name": f"{string_option_input}c",
+                    "value": f"{string_option_input}c",
+                },
+            ]
+        )
+
+    """
+
+
 
     @slash_command(name="today", description="Envoie votre EDT du jour")
     async def today(self, ctx: SlashContext):
