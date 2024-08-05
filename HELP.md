@@ -9,7 +9,7 @@ TrainWreck.py est un bot discord Open Source codé en Python par @Dany & @Nathan
 ## Commandes :
 - Clé de lecture :
     - `<>` : arguments obligatoires.
-        - `<date>` : sont a donner au format `DD-MM-YYYY` (ou `D-M-YYYY`).
+        - `<date>` : sont a donner au format `JJ-MM-AAAA` (ou `J-M-AAAA`).
     - `[]` : arguments facultatifs.
 
 - `/get_day <date> [personne]` : Envoie votre EDT pour un jour donné. Si une personne est donnée, donne l'EDT de cette personne
