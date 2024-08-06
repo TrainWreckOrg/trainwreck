@@ -129,7 +129,7 @@ class Tool():
             date_formater = datetime.strptime(jour, "%d-%m-%Y").date()
 
             events: list[Event] = []
-            if author.id == os.getenv("BOT_ID"):
+            if int(author.id) == int(os.getenv("BOT_ID")):
                 events = filter_events(get_calendar().get_events(), [TimeFilter(date_formater, Timing.DURING)])
             else:
                 events = filter_events(get_calendar().get_events(),
@@ -178,7 +178,7 @@ class Tool():
             monday_date = date_formater - timedelta(days=days_since_monday)
             sunday_date = monday_date + timedelta(days=6)
             events :list[Event] = []
-            if author.id == os.getenv("BOT_ID"):
+            if int(author.id) == int(os.getenv("BOT_ID")):
                 events = filter_events(get_calendar().get_events(),[TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE)])
             else :
                 events = filter_events(get_calendar().get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), self.get_filiere(author), self.get_groupes(author)])
