@@ -44,7 +44,7 @@ class Event:
         ics += "UID:" + self.uid + "\n"
         ics += "CREATED:19700101T000000Z" + "\n"
         ics += "LAST-MODIFIED:" + stamp + "\n"
-        ics += "SEQUENCE:2141354890" + "\n"
+        ics += "SEQUENCE:" + str(datetime.now(tz=timezone("UTC")).timestamp())[:10] + "\n"
         ics += "END:VEVENT" + "\n"
         return ics
 

@@ -1,4 +1,5 @@
-from interactions import slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Permissions, Embed, EmbedFooter, User, contexts, Extension, AutocompleteContext
+from interactions import slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Permissions, Embed, \
+    EmbedFooter, User, contexts, Extension, AutocompleteContext, Button, ButtonStyle, ActionRow
 from Tool import get_tool
 
 from Enums import Subscription
@@ -178,9 +179,23 @@ class MySlashCommand(Extension):
         # try:
         with open("HELP.md", "r", encoding="utf-8") as f:
             help = f.read()
-        await ctx.send(embed=Embed(description=help, footer=EmbedFooter(
+        embed = Embed(description=help, footer=EmbedFooter(
             "Les EDT sont fournis a titre informatif uniquement -> Veuillez vous référer à votre page personnelle sur l'ENT",
-            self.bot.user.avatar_url), color=0xd8a74c))
+            self.bot.user.avatar_url), color=0xd8a74c)
+        repo = Button(
+            style=ButtonStyle.URL,
+            label="Repo bot",
+            url="https://github.com/Kaawan-d20/trainwreck"
+        )
+
+        vincent = Button(
+            style=ButtonStyle.URL,
+            label="Github Vincent",
+            url="https://github.com/VincentGonnet"
+        )
+
+        action_row = ActionRow(repo, vincent)
+        await ctx.send(embed=embed, components=action_row)
         # except BaseException as error:
         # await send_error("about",error, ctx)
 
