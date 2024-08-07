@@ -4,7 +4,7 @@ from pytz import timezone
 
 class Event:
     """Classe utilisée pour gérer les objets événements"""
-    def __init__(self, start:datetime, end:datetime, subject:str, group:Group, location:str, teacher:str, isINGE:bool, isMIAGE:bool, uid:str) -> None:
+    def __init__(self, start:datetime, end:datetime, subject:str, group:Group, location:str, teacher:str, isINGE:bool, isMIAGE:bool, uid:str, isEXAM:bool=False) -> None:
         self.start_timestamp = start
         self.end_timestamp = end
         self.location = location
@@ -15,6 +15,7 @@ class Event:
         self.isMIAGE = isMIAGE
         self.isINGE  = isINGE
         self.uid = uid
+        self.isEXAM = isEXAM
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Event):
@@ -28,7 +29,10 @@ class Event:
         return hash(self.uid + str(self.start_timestamp) + str(self.end_timestamp) + self.location + self.teacher + self.subject + str(self.group) + str(self.isMIAGE) + str(self.isINGE))
 
     def __str__(self) -> str:
-        return f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
+        if self.isEXAM:
+            return ":warning: " + (f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : Exam {f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}".upper()) + " :warning:"
+        else:
+            return f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
 
     def ics(self) -> str:
         ics = "BEGIN:VEVENT\n"

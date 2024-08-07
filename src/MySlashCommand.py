@@ -4,7 +4,7 @@ from Tool import get_tool
 
 from Enums import Subscription
 from Calendar import get_calendar
-from TrainWreck import get_ics
+from TrainWreck import get_ics, get_embeds
 from UserBase import get_user_base
 from Filter import *
 
@@ -304,12 +304,21 @@ class MySlashCommand(Extension):
                                    f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"))
 
 
+    @slash_command(name="exam", description="Vous permet de consulter la liste des exams")
+    async def exam(self, ctx: SlashContext):
+        exams = get_calendar().get_exams()
+        embeds = get_embeds(exams, ctx.author)
+        if not exams:
+            embeds[0].description = "Aucun examens"
+        embeds.insert(0, Embed(title="EXAMENS", description="ATTENTION CETTE LISTE D'EXAMS N'EST PEUT ETRE PAS A JOUR MERCI DE VERIFIER SUR LE SITE DE L'UNIVERSITE", color=0xc62139))
 
+        universite = Button(
+            style=ButtonStyle.URL,
+            label="Site de l'université",
+            url="https://www.univ-orleans.fr/fr/sciences-techniques/etudiant/examens-reglementationrse/examens-20232024"
+        )
 
-
-
-
-
+        await ctx.send(embeds=embeds, components=universite)
 
 
 

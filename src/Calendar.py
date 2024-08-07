@@ -10,6 +10,7 @@ class Calendar:
     def __init__(self, update : bool) -> None:
         self.events_dict : dict[str:Event]
         self.events_list : list[Event]
+        self.exams_list : list[Event]
 
         self.update_events(update)
 
@@ -34,14 +35,15 @@ class Calendar:
             self.fetch_calendar(url["INGE"], filenameINGE)
             self.fetch_calendar(url["MIAGE"], filenameMIAGE)
 
+        self.exam_list = []
         # | sert a concaténer deux dictionnaires
         output = self.parse_calendar(filenameINGE) | self.parse_calendar(filenameMIAGE)
 
 
         self.events_dict = output
         self.events_list = sorted(list(self.events_dict.values()),key=lambda event: event.start_timestamp)
-   
-    
+
+
     def parse_calendar(self, filename:str) -> dict[str:Event]:
         """Extrait les données du fichier .ics passé dans filename"""
         with open(filename, "r", encoding="utf-8") as f:
@@ -72,6 +74,22 @@ class Calendar:
                     if line.startswith(prefix):
                         event[prefix.removesuffix(":")] = line.removeprefix(prefix).removesuffix("\n")
                         break
+
+        # Exam list
+
+        exams = [
+            Event(
+            start=datetime(day=3, month=6, year=2024, hour=13, minute=30, second=0, microsecond=0, tzinfo=timezone("Europe/Paris")),
+            end=datetime(day=3, month=6, year=2024, hour=13, minute=30, second=0, microsecond=0, tzinfo=timezone("Europe/Paris")),
+            subject="Exam Anglais", group=Group.CM, location="S103", teacher="Anne-Cécile Alzy", isINGE=True, isMIAGE=True, uid="EXAM01",
+            isEXAM=True)
+        ]
+
+        self.exams_list = exams
+
+        for exam in exams:
+            events[exam.uid] = exam
+
         return events
 
     def get_events(self) -> list[Event]:
@@ -79,6 +97,10 @@ class Calendar:
 
     def get_events_dict(self) -> dict[str:Event]:
         return self.events_dict
+
+    def get_exams(self) -> list[Event]:
+        return self.exams_list
+
 
 calendar :Calendar = None
 
