@@ -67,7 +67,7 @@ class MyTask(Extension):
         user_base = get_user_base()
         if datetime.today().weekday() == 0:
             for id in user_base.weekly_subscribed_users:
-                await self.tool.send_daily_update(self.bot.get_user(id))
-        if datetime.today().weekday() > 4:  # Si on est le week end
+                await self.tool.send_weekly_update(self.bot.get_user(id))
+        if datetime.today().weekday() <= 4:  # Si on est le week end
             for id in user_base.daily_subscribed_users:
                 await self.tool.send_daily_update(self.bot.get_user(id))

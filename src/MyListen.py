@@ -21,8 +21,8 @@ class MyListen(Extension):
         print(f"This bot is owned by {self.bot.owner}")
         await self.bot.synchronise_interactions()
         MyTask.daily_morning_update.start()
-        await MyTask.update_calendar()
         MyTask.update_calendar.start()
+        await MyTask.update_calendar()
 
     @listen(Component)
     async def on_component(self, event: Component):

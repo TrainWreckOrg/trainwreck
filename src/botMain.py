@@ -8,7 +8,7 @@ token_bot = os.getenv("TOKEN_BOT_DISCORD")
 # Si une commande ne veut pas partir / est dupliqué dans la liste des commandes sur discord ajouter
 # `delete_unused_application_cmds=True` pour supprimer les commandes en cache
 
-bot = Client(token=token_bot, intents=Intents.DEFAULT)
+bot = Client(token=token_bot, intents=Intents.DEFAULT | Intents.GUILD_MEMBERS)
 
 bot.load_extension("MyListen")
 bot.load_extension("MyContextMenus")

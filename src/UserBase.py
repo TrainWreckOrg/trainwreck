@@ -76,9 +76,11 @@ class UserBase:
                     self.daily_subscribed_users.remove(id)
                 case Subscription.WEEKLY if self.is_user_subscribed(id, subscription):
                     self.weekly_subscribed_users.remove(id)
-                case Subscription.BOTH if self.is_user_subscribed(id, subscription):
-                    self.daily_subscribed_users.remove(id)
-                    self.weekly_subscribed_users.remove(id)
+                case Subscription.BOTH:
+                    if self.is_user_subscribed(id, Subscription.DAILY):
+                        self.daily_subscribed_users.remove(id)
+                    if self.is_user_subscribed(id, Subscription.WEEKLY):
+                        self.weekly_subscribed_users.remove(id)
             dump_user_base(self)
     
 

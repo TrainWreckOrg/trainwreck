@@ -10,6 +10,8 @@ from datetime import datetime, date, timedelta
 from enum import Enum
 import os
 
+from src.TimeCalculator import TimeCalculator
+
 
 class Tool():
     def __init__(self, bot):
@@ -221,8 +223,8 @@ class Tool():
         await user.send(embeds=embeds)
 
     async def send_weekly_update(self, user):
-        days_since_monday = datetime.today().weekday()
-        monday_date = datetime.today() - timedelta(days=days_since_monday)
+        days_since_monday = date.today().weekday()
+        monday_date = date.today() - timedelta(days=days_since_monday)
         sunday_date = monday_date + timedelta(days=6)
 
         events = filter_events (get_calendar().get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), self.get_filiere(user), self.get_groupes(user)])
