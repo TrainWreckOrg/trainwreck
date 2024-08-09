@@ -1,4 +1,4 @@
-from interactions import listen, Extension
+from interactions import listen, Extension, component_callback
 from interactions.api.events import Component, MemberUpdate
 
 from UserBase import get_user_base
@@ -24,7 +24,7 @@ class MyListen(Extension):
         MyTask.update_calendar.start()
         await MyTask.update_calendar()
 
-    @listen(Component)
+    @component_callback(re.compile("day|week"))
     async def on_component(self, event: Component):
         """Fonction permettant d'écouter les cliques des boutons"""
         # try:

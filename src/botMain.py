@@ -13,5 +13,6 @@ bot = Client(token=token_bot, intents=Intents.DEFAULT | Intents.GUILD_MEMBERS)
 bot.load_extension("MyListen")
 bot.load_extension("MyContextMenus")
 bot.load_extension("MySlashCommand")
+bot.load_extension("Onboard")
 
 bot.start()

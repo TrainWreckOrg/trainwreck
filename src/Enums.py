@@ -63,6 +63,7 @@ class Group(Enum):
     TDA3M   = "TD 3 Miage Anglais"
     CM      = "CM"
     UKNW    = "UKNW"
+    ONBOARDED = "onboarded"
 
     def __str__(self):
         return self.value
