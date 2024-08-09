@@ -1,11 +1,14 @@
-from interactions import listen, Extension, component_callback
-from interactions.api.events import Component, MemberUpdate
+import os
+
+from interactions import listen, Extension, component_callback, Embed
+from interactions.api.events import Component, MemberUpdate, Error
 
 from UserBase import get_user_base
 
 import re
 from MyTask import MyTask
 from Tool import get_tool
+from datetime import datetime
 
 
 
@@ -17,7 +20,6 @@ class MyListen(Extension):
     @listen()
     async def on_ready(self):
         """Fonction qui dit quand le bot est opérationnel au démarrage du programme"""
-        division_by_zero = 1 / 0
         print("Ready")
         print(f"This bot is owned by {self.bot.owner}")
         await self.bot.synchronise_interactions()
@@ -50,3 +52,9 @@ class MyListen(Extension):
             user_base.add_user(user.id, self.tool.get_groupes_as_list(user), self.tool.get_filiere_as_filiere(user))
         else:
             user_base.update_user_groups(user.id, self.tool.get_groupes_as_list(user))
+
+
+    @listen(Error)
+    async def on_error(self, error: Error):
+        await self.bot.get_channel(os.getenv("CHANNEL_ID")).send(f"<@&{os.getenv("ADMIN_ID")}>```ERREUR dans : {error.source} - {datetime.now()}\nErreur de type : {type(error.error)}\nArgument de l'erreur : {error.error.args}\nDescription de l'erreur : {error.error}\nLes paramètres de la fonction étais : \n - auteur : {error.ctx.author}\n - serveur :  {error.ctx.guild}\n - message :  {error.ctx.message}\n - channel :  {error.ctx.channel}\n - role member :  {error.ctx.member.roles}```")
+        await error.ctx.send(embed = Embed("Une erreur est survenu, les admins sont prévenu."))
