@@ -16,34 +16,6 @@ class MySlashCommand(Extension):
         self.bot = bot
         self.tool = get_tool(bot)
 
-    @slash_command(name="test", description="Test command")
-    async def test(self, ctx: SlashContext):
-        await ctx.send(
-            f"{self.tool.ping_liste(Event(datetime.now(), datetime.now(), "Cours", Group.TD1I, "Ta mère", "Ton père", True, False, "007"))}, you got poked by {ctx.author.mention}!")
-
-
-    @slash_command(name="info", description="Envoie des infos sur vos groupes, et filière. Si une personne est donnée, donne ses informations")
-    @slash_option(
-        name="personne",
-        description="Quel utilisateur ?",
-        required=False,
-        opt_type=OptionType.USER
-    )
-    async def info(self, ctx: SlashContext, personne: User = None):
-        """Fonction qui permet d'afficher le nom, la filière et les groupes de la personne"""
-        author = ctx.author if (personne is None) else personne
-        you_are = personne is None
-        str_role = ""
-        for groupe in self.tool.get_groupes_as_list(author):
-            str_role += groupe.value + ", "
-        str_role = str_role.removesuffix(", ")
-        await ctx.send(
-            f"{"Vous êtes" if you_are else "Informations sur"} {author.display_name}!\n{"Votre" if you_are else "Sa"} filière est {self.tool.get_filiere_as_filiere(ctx.author).value} et {"vos" if you_are else "ses"} groupes {"sont" if len(self.tool.get_groupes_as_list(ctx.author)) > 1 else "est"} {str_role}.")
-
-
-
-
-
 
     @slash_command(name="get_day",
                    description="Envoie votre EDT pour un jour donné. Si une personne est donnée, donne l'EDT de cette personne")
@@ -61,71 +33,19 @@ class MySlashCommand(Extension):
     )
     async def get_day(self, ctx: SlashContext, jour: str, personne: User = None):
         """Fonction qui permet d'obtenir l'EDT d'une journée spécifique"""
-        # try:
         await self.tool.get_day_bt(ctx, jour, False, personne)
-        # except BaseException as error:
-        #    await send_error("get_day",error, ctx, jour=jour)
-
-    """
-    @get_day.autocomplete("jour")
-    async def autocomplete(self, ctx: AutocompleteContext):
-        choices=[]
-        string_option_input = ctx.input_text  # can be empty/None
-        # you can use ctx.kwargs.get("name") to get the current state of other options - note they can be empty too
-
-        
-        # Faire le process
-
-
-        # make sure you respond within three seconds
-        await ctx.send(
-            choices=[
-                {
-                    "name": f"{string_option_input}a",
-                    "value": f"{string_option_input}a",
-                },
-                {
-                    "name": f"{string_option_input}b",
-                    "value": f"{string_option_input}b",
-                },
-                {
-                    "name": f"{string_option_input}c",
-                    "value": f"{string_option_input}c",
-                },
-            ]
-        )
-
-    """
-
 
 
     @slash_command(name="today", description="Envoie votre EDT du jour")
     async def today(self, ctx: SlashContext):
         """Fonction qui permet d'obtenir l'EDT d'ajourd'hui"""
-        # try:
         await self.tool.get_day_bt(ctx, date.today().strftime("%d-%m-%Y"), False)
 
-        # except BaseException as error:
-        # await send_error("today", error, ctx)
 
     @slash_command(name="tomorrow", description="Envoie votre EDT du lendemain")
     async def tomorrow(self, ctx: SlashContext):
         """Fonction qui permet d'obtenir l'EDT de demain"""
-        # try:
         await self.tool.get_day_bt(ctx, (date.today() + timedelta(days=1)).strftime("%d-%m-%Y"), False)
-        # except BaseException as error:
-        # await send_error("tomorrow", error, ctx)
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -146,18 +66,14 @@ class MySlashCommand(Extension):
     )
     async def get_week(self, ctx: SlashContext, semaine: str, personne: User = None):
         """Fonction qui permet d'obtenir l'EDT d'une semaine spécifique"""
-        # try:
         await self.tool.get_week_bt(ctx, semaine, False, personne)
-        # except BaseException as error:
-        # await send_error("get_week",error, ctx, semaine=semaine)
+
 
     @slash_command(name="week", description="Envoie votre EDT de la semaine")
     async def week(self, ctx: SlashContext):
         """Fonction qui permet d'obtenir l'EDT de cette semaine"""
-        # try:
         await self.tool.get_week_bt(ctx, date.today().strftime("%d-%m-%Y"), False)
-        # except BaseException as error:
-        # await send_error("week",error, ctx)
+
 
     @slash_command(name="userscan", description="Permet d'ajouter tout les membres dans la BD",
                    default_member_permissions=Permissions.ADMINISTRATOR)
@@ -176,7 +92,6 @@ class MySlashCommand(Extension):
     @slash_command(name="help", description="Affiche la page d'Aide")
     async def help(self, ctx: SlashContext):
         """Affiche le Contenu de HELP.md"""
-        # try:
         with open("HELP.md", "r", encoding="utf-8") as f:
             help = f.read()
         embed = Embed(description=help, footer=EmbedFooter(
@@ -196,8 +111,7 @@ class MySlashCommand(Extension):
 
         action_row = ActionRow(repo, vincent)
         await ctx.send(embed=embed, components=action_row)
-        # except BaseException as error:
-        # await send_error("about",error, ctx)
+
 
     @slash_command(name="ics",
                    description="Envoie un fichier ICS importable dans la plupart des applications de calendrier")
@@ -224,8 +138,7 @@ class MySlashCommand(Extension):
             await ctx.send("Voici votre fichier ics", files=["output/calendar.ics"])
         except ValueError:
             await ctx.send(embeds=[self.tool.create_error_embed(f"La valeur `{debut}` ou `{fin}` ne correspond pas à une date")])
-        # except BaseException as error:
-        # await send_error("ics",error, ctx)
+
 
 
 

@@ -6,8 +6,10 @@ from Enums import url, Timing
 from Filter import Filter, TimeFilter, filter_events
 
 class Calendar:
-    """Classe utilisée pour stocker une liste d'objet evenements"""
+    """Classe utilisée pour stocker une liste d'objet Event."""
     def __init__(self, update : bool) -> None:
+        """ Update : Si l'on doit télécharger les fichiers ics."""
+        # Dictionnaire qui stock les Event associé à l'UID.
         self.events_dict : dict[str:Event]
         self.events_list : list[Event]
         self.exams_list : list[Event]
@@ -16,17 +18,23 @@ class Calendar:
 
 
     def fetch_calendar(self, url:str, filename:str) -> None:
-        """Récupère le fichier .ics correspondant à une filière donnée"""
+        """Télécharge le fichier .ics.
+        Url : L'URL du fichier à télécharger.
+        Filename : Chemin de la destination du fichier.
+        """
         urlretrieve(url, filename)
 
     def convert_timestamp(self, input : str) -> datetime :
-        """Permet de convertir les timestamp en ISO-8601, et les passer en UTC+2"""
+        """Permet de convertir les timestamp en ISO-8601, et les passer en UTC+2
+        Input : Une str contenant une date"""
         # 20241105T143000Z -> 2024-11-05T14:30:00Z
         iso_date = f"{input[0:4]}-{input[4:6]}-{input[6:11]}:{input[11:13]}:{input[13:]}"
         return datetime.fromisoformat(iso_date).astimezone(timezone("Europe/Paris"))
 
     def update_events(self, update: bool):
-        """met a jour la liste d'événements en mêlant les événements issus des deux .ics"""
+        """Met à jour la liste d'événements en mêlant les événements issus des deux .ics
+        Update : Si l'on doit télécharger les fichiers ics.
+        """
         output = {}
         filenameINGE = "data/INGE.ics"
         filenameMIAGE = "data/MIAGE.ics"
@@ -36,11 +44,12 @@ class Calendar:
             self.fetch_calendar(url["MIAGE"], filenameMIAGE)
 
         self.exam_list = []
-        # | sert a concaténer deux dictionnaires
+        # | sert à concaténer deux dictionnaires
         output = self.parse_calendar(filenameINGE) | self.parse_calendar(filenameMIAGE)
 
 
         self.events_dict = output
+        # Tri les événements par ordre croissant en fonction de leur date
         self.events_list = sorted(list(self.events_dict.values()),key=lambda event: event.start_timestamp)
 
 

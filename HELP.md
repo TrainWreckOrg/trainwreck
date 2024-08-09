@@ -17,11 +17,8 @@ TrainWreck.py est un bot discord Open Source codé en Python par @Dany & @Nathan
 - `/today` : Envoie votre EDT du jour
 - `/tomorrow` : Envoie votre EDT du lendemain
 - `/week` : Envoie votre EDT de la semaine
-
 - `/ics <date début> <date fin>` : Envoie un fichier ICS (iCalendar) des événements entre les deux dates, importable dans la plupart des applications de calendrier (⚠ : Le calendrier n'est pas mis a jour dynamiquement)
-
-- `/info [personne]` : Envoie des infos sur vos groupes, et filière. Si une personne est donnée, donne les informations de cette personne
-
 - `/subscribe <service>` : Vous permet de vous abonner à l'envoi de l'EDT dans vos DM de maniere Quotidienne (`DAILY`) ou Hebdomadaire (`WEEKLY`). (⚠ : Les envoi se font à 6h du matin, mais uniquement en semaine)
 - `/unsubscribe <service>` : Vous permet de vous desabonner à l'envoi de l'EDT dans vos DM (voir `/subscribe` pour plus de détails)
 - `/check_subscription` : Vous permet de consulter à quels service d'envoi d'EDT vous êtes inscrit (voir `/subscribe` pour plus de détails)
+- `/exam` : Envoie la liste des Examens (Cette commande sera améliorée quand les dates d'examens seront rendues publiques)
