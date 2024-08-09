@@ -49,4 +49,6 @@ envoie automatique :
 daily_morning_update : 0:00:01.038891 dont 0:00:00.664610 d'envoie pour week et 0:00:00.372282 d'envoie pour day
 
 send_daily_update : 0:00:00.453641 sur 0:00:00.454641
+
+
 send_weekly_update : 0:00:00.736888 sur 0:00:00.737887

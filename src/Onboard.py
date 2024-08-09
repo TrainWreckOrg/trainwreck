@@ -31,19 +31,26 @@ class Onboard(Extension):
 
     @component_callback(re.compile("onboard"))
     async def onboard_bt(self, ctx):
-        await self.onboard(ctx)
+        await self.onboard(ctx, edit=False)
 
     @component_callback(re.compile("inge|miage"))
     async def return_filiere(self, ctx):
+        if self.tool.get_filiere_as_filiere(ctx.author) != Filiere.UKNW:
+            await ctx.edit_origin(embed=Embed(title="Vous ne pouvez pas avoir plusieurs rôles de la même catégorie."), components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
+            return
         if ctx.custom_id == "inge":
             await ctx.author.add_role(self.tool.get_roles()[Filiere.INGE])
 
         elif ctx.custom_id == "miage":
             await ctx.author.add_role(self.tool.get_roles()[Filiere.MIAGE])
-        await self.onboard(ctx)
+        await self.onboard(ctx, edit=True)
 
     @component_callback(re.compile("^td[1|2][I|M]$"))
     async def return_td(self, ctx):
+        for group in self.tool.get_groupes_as_list(ctx.author):
+            if group in [Group.TD1I, Group.TD2I, Group.TD1M, Group.TD2M]:
+                await ctx.edit_origin(embed=Embed(title="Vous ne pouvez pas avoir plusieurs rôles de la même catégorie."), components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
+                return
         if ctx.custom_id == "td1I":
             await ctx.author.add_role(self.tool.get_roles()[Group.TD1I])
         elif ctx.custom_id == "td2I":
@@ -53,10 +60,14 @@ class Onboard(Extension):
             await ctx.author.add_role(self.tool.get_roles()[Group.TD1M])
         elif ctx.custom_id == "td2M":
             await ctx.author.add_role(self.tool.get_roles()[Group.TD2M])
-        await self.onboard(ctx)
+        await self.onboard(ctx, edit=True)
 
     @component_callback(re.compile("tp"))
     async def return_tp(self, ctx):
+        for group in self.tool.get_groupes_as_list(ctx.author):
+            if group in [Group.TPAI, Group.TPBI, Group.TPCI, Group.TPDI, Group.TP1M, Group.TP2M, Group.TP3M]:
+                await ctx.edit_origin(embed=Embed(title="Vous ne pouvez pas avoir plusieurs rôles de la même catégorie."), components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
+                return
         if ctx.custom_id == "tpaI":
             await ctx.author.add_role(self.tool.get_roles()[Group.TPAI])
         elif ctx.custom_id == "tpbI":
@@ -72,10 +83,14 @@ class Onboard(Extension):
             await ctx.author.add_role(self.tool.get_roles()[Group.TP2M])
         elif ctx.custom_id == "tp3M":
             await ctx.author.add_role(self.tool.get_roles()[Group.TP3M])
-        await self.onboard(ctx)
+        await self.onboard(ctx, edit=True)
 
     @component_callback(re.compile("^td[1|2|3][I|M]A$"))
     async def return_td_anglais(self, ctx):
+        for group in self.tool.get_groupes_as_list(ctx.author):
+            if group in [Group.TDA1I, Group.TDA2I, Group.TDA3I, Group.TDA1M, Group.TDA2M, Group.TDA3M]:
+                await ctx.edit_origin(embed=Embed(title="Vous ne pouvez pas avoir plusieurs rôles de la même catégorie."), components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
+                return
         if ctx.custom_id == "td1IA":
             await ctx.author.add_roles([self.tool.get_roles()[Group.TDA1I], self.tool.get_roles()[Group.ONBOARDED]])
         elif ctx.custom_id == "td2IA":
@@ -89,37 +104,40 @@ class Onboard(Extension):
             await ctx.author.add_roles([self.tool.get_roles()[Group.TDA2M], self.tool.get_roles()[Group.ONBOARDED]])
         elif ctx.custom_id == "td3MA":
             await ctx.author.add_roles([self.tool.get_roles()[Group.TDA3M], self.tool.get_roles()[Group.ONBOARDED]])
-        await self.onboard(ctx)
+        await self.onboard(ctx, edit=True)
 
 
 
 
-    async def onboard(self, ctx):
+    async def onboard(self, ctx, edit=False):
         filiere = self.tool.get_filiere_as_filiere(ctx.author)
         groupe = self.tool.get_groupes_as_list(ctx.author)
         if filiere == Filiere.UKNW:
-            await self.ask_filiere(ctx)
+            await self.ask_filiere(ctx, edit=edit)
             return
         for group in groupe:
             if group in [Group.TDA1I, Group.TDA2I, Group.TDA3I, Group.TDA1M, Group.TDA2M, Group.TDA3M]:
-                await ctx.send("Vous avez déjà tout les rôles nécessaire", ephemeral=True)
+                if edit:
+                    await ctx.edit_origin(embed=Embed(title="Vous avez déjà tout les rôles nécessaire"), components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
+                else:
+                    await ctx.send(embed=Embed(title="Vous avez déjà tout les rôles nécessaire"), ephemeral=True)
                 return
         for group in groupe:
             if group in [Group.TPAI, Group.TPBI, Group.TPCI, Group.TPDI, Group.TP1M, Group.TP2M, Group.TP3M]:
-                await self.ask_td_anglais(ctx, filiere)
+                await self.ask_td_anglais(ctx, filiere, edit=edit)
                 return
         for group in groupe:
             if group in [Group.TD1I, Group.TD2I, Group.TD1M, Group.TD2M]:
-                await self.ask_tp(ctx, filiere)
+                await self.ask_tp(ctx, filiere, edit=edit)
                 return
-        await self.ask_td(ctx, filiere)
+        await self.ask_td(ctx, filiere, edit=edit)
 
 
 
 
 
 
-    async def ask_filiere(self, ctx):
+    async def ask_filiere(self, ctx, edit=False):
         embed = Embed(title="Quel est votre filière ?")
         inge = Button(
             style=ButtonStyle.BLURPLE,
@@ -132,11 +150,15 @@ class Onboard(Extension):
             label="MIAGE"
         )
         actionRow = ActionRow(inge, miage)
-        await ctx.send(embed=embed, components=actionRow, ephemeral=True)
+        if edit:
+            await ctx.edit_origin(embed=embed, components=actionRow)
+        else:
+            await ctx.send(embed=embed, components=actionRow, ephemeral=True)
 
 
-    async def ask_td(self, ctx, filiere):
+    async def ask_td(self, ctx, filiere, edit=False):
         embed = Embed(title="Quel est votre groupe de TD ?")
+        actionRow = ActionRow()
         if filiere == Filiere.INGE:
             TD1 = Button(
                 style=ButtonStyle.BLURPLE,
@@ -149,7 +171,6 @@ class Onboard(Extension):
                 label="TD 2"
             )
             actionRow = ActionRow(TD1, TD2)
-            await ctx.send(embed = embed, components=actionRow, ephemeral=True)
         elif filiere == Filiere.MIAGE:
             TD1 = Button(
                 style=ButtonStyle.BLURPLE,
@@ -162,15 +183,21 @@ class Onboard(Extension):
                 label="TD 2"
             )
             actionRow = ActionRow(TD1, TD2)
-            await ctx.send(embed=embed, components=actionRow, ephemeral=True)
         elif filiere == Filiere.UKNW:
             await self.ask_filiere(ctx)
         else:
             await ctx.send("Une erreur est survenu", ephemeral=True)
 
+        if edit:
+            await ctx.edit_origin(embed=embed, components=actionRow)
+        else:
+            await ctx.send(embed=embed, components=actionRow, ephemeral=True)
 
-    async def ask_tp(self, ctx, filiere):
+
+
+    async def ask_tp(self, ctx, filiere, edit = False):
         embed = Embed(title="Quel est votre groupe de TP ?")
+        actionRow = ActionRow()
         if filiere == Filiere.INGE:
             TPA = Button(
                 style=ButtonStyle.BLURPLE,
@@ -193,7 +220,6 @@ class Onboard(Extension):
                 label="TP D"
             )
             actionRow = ActionRow(TPA, TPB, TPC, TPD)
-            await ctx.send(embed = embed, components=actionRow, ephemeral=True)
         elif filiere == Filiere.MIAGE:
             TP1 = Button(
                 style=ButtonStyle.BLURPLE,
@@ -211,15 +237,20 @@ class Onboard(Extension):
                 label="TP 3"
             )
             actionRow = ActionRow(TP1, TP2, TP3)
-            await ctx.send(embed=embed, components=actionRow, ephemeral=True)
         elif filiere == Filiere.UKNW:
             await self.ask_filiere(ctx)
         else:
             await ctx.send("Une erreur est survenu", ephemeral=True)
 
+        if edit:
+            await ctx.edit_origin(embed=embed, components=actionRow)
+        else:
+            await ctx.send(embed=embed, components=actionRow, ephemeral=True)
 
-    async def ask_td_anglais(self, ctx, filiere):
+
+    async def ask_td_anglais(self, ctx, filiere, edit = False):
         embed = Embed(title="Quel est votre groupe de TD d'anglais ?", description="Oui, on sais pas pourquoi mais pour l'anglais les groupes sont diffèrent.")
+        actionRow = ActionRow()
         if filiere == Filiere.INGE:
             TD1 = Button(
                 style=ButtonStyle.BLURPLE,
@@ -237,7 +268,6 @@ class Onboard(Extension):
                 label="TD 3 Anglais"
             )
             actionRow = ActionRow(TD1, TD2, TD3)
-            await ctx.send(embed = embed, components=actionRow, ephemeral=True)
         elif filiere == Filiere.MIAGE:
             TD1 = Button(
                 style=ButtonStyle.BLURPLE,
@@ -255,8 +285,12 @@ class Onboard(Extension):
                 label="TD 3 Anglais"
             )
             actionRow = ActionRow(TD1, TD2, TD3)
-            await ctx.send(embed=embed, components=actionRow, ephemeral=True)
         elif filiere == Filiere.UKNW:
             await self.ask_filiere(ctx)
         else:
             await ctx.send("Une erreur est survenu", ephemeral=True)
+
+        if edit:
+            await ctx.edit_origin(embed=embed, components=actionRow)
+        else:
+            await ctx.send(embed=embed, components=actionRow, ephemeral=True)
