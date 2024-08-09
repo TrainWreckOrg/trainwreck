@@ -17,6 +17,7 @@ class MyListen(Extension):
     @listen()
     async def on_ready(self):
         """Fonction qui dit quand le bot est opérationnel au démarrage du programme"""
+        division_by_zero = 1 / 0
         print("Ready")
         print(f"This bot is owned by {self.bot.owner}")
         await self.bot.synchronise_interactions()
