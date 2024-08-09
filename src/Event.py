@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from Enums import Group, subjects_table
 from pytz import timezone
 
@@ -16,6 +16,9 @@ class Event:
         self.isINGE  = isINGE
         self.uid = uid
         self.isEXAM = isEXAM
+
+        self.duree = self.end_timestamp - self.start_timestamp 
+
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Event):
@@ -44,7 +47,10 @@ class Event:
         ics += "DTEND:" + end + "\n"
         ics += "SUMMARY:" + self.subject + "\n"
         ics += "LOCATION:" + self.location + "\n"
-        ics += "DESCRIPTION:\\n\\n" + self.group.value + "\\n" + self.subject + self.subject + "\\nL3 INFO - INGENIERIE\\nL3 INFORMAT-UPEX MINERVE\\n" + self.teacher + "\\n(Exporté le:" + str(datetime.now()) + ")\\n" + "\n"
+        
+        ics += f"DESCRIPTION:Groupe : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group == Group.CM else ""}\nDurée : {str(self.duree)}\nEnseignant : {self.teacher}\nExporté le : {datetime.now().strftime("%d/%m/%Y à %Hh%M")}, via EDT Bot"
+
+        # ics += "DESCRIPTION:\\n\\n" + self.group.value + "\\n" + self.subject + self.subject + "\\nL3 INFO - INGENIERIE\\nL3 INFORMAT-UPEX MINERVE\\n" + self.teacher + "\\n(Exporté le:" + str(datetime.now()) + ")\\n" + "\n"
         ics += "UID:" + self.uid + "\n"
         ics += "CREATED:19700101T000000Z" + "\n"
         ics += "LAST-MODIFIED:" + stamp + "\n"
