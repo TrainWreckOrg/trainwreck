@@ -233,7 +233,7 @@ class Onboard(Extension):
             )
             TP3 = Button(
                 style=ButtonStyle.BLURPLE,
-                custom_id="tp2M",
+                custom_id="tp3M",
                 label="TP 3"
             )
             actionRow = ActionRow(TP1, TP2, TP3)

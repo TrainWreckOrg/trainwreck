@@ -103,6 +103,7 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
                 case _:
                     # Ce cas ne devrait pas arriver et devrait être fix rapidement.
                     group = Group.UKNW
+
                     print("ERROR : NO GROUP FOUND (MIAGE) :", sum, "---------------------")
 
         else :

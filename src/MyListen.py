@@ -36,9 +36,8 @@ class MyListen(Extension):
         await MyTask.update_calendar()
 
     @component_callback(re.compile("day|week"))
-    async def on_component(self, event: Component):
+    async def on_component(self, ctx: Component):
         """Permet d'écouter les cliques des boutons contenant "day" ou "week"."""
-        ctx = event.ctx
         pattern_day = re.compile("day-")
         pattern_week = re.compile("week-")
         if pattern_day.search(ctx.custom_id):
