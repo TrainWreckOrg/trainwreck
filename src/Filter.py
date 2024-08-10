@@ -1,4 +1,6 @@
 from datetime import date
+import sentry_sdk
+
 
 from Enums import Timing, Filiere, Group
 from Event import Event
@@ -28,7 +30,10 @@ class TimeFilter(Filter):
                 return e.start_timestamp.date() == self.date
             case _:
                 # Ce cas ne devrait pas arriver et devrait être fix rapidement.
-                print("ERROR----------------------------------")
+                try:
+                    raise ValueError("Timing inconnue")
+                except BaseException as exception:
+                    sentry_sdk.capture_exception(exception)
                 return False
 
 

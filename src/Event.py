@@ -3,6 +3,7 @@ from pytz import timezone
 
 from Enums import Group, subjects_table
 
+import sentry_sdk
 
 class Event:
     """Classe utilisée pour gérer les objets événements"""
@@ -103,8 +104,10 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
                 case _:
                     # Ce cas ne devrait pas arriver et devrait être fix rapidement.
                     group = Group.UKNW
-
-                    print("ERROR : NO GROUP FOUND (MIAGE) :", sum, "---------------------")
+                    try:
+                        raise ValueError("Groupe inconnue")
+                    except BaseException as exception:
+                        sentry_sdk.capture_exception(exception)
 
         else :
             # ex : Anglais - TD 1
@@ -119,7 +122,11 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
                 case _:
                     # Ce cas ne devrait pas arriver et devrait être fix rapidement.
                     group = Group.UKNW
-                    print("ERROR : NO GROUP FOUND (INGE) :", sum, "---------------------")
+                    try:
+                        raise ValueError("Groupe inconnue")
+                    except BaseException as exception:
+                        sentry_sdk.capture_exception(exception)
+
     else:
         if "L3 INFO - INGENIERIE" in descsplit and "Pro. Pro. Per." not in sum and "MIAGE" not in sum:
             isINGE = True
@@ -145,7 +152,11 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
                     case _:
                         # Ce cas ne devrait pas arriver et devrait être fix rapidement.
                         group = Group.UKNW
-                        print("ERROR : NO GROUP FOUND (INGE) :", sum, "---------------------")
+                        try:
+                            raise ValueError("Groupe inconnue")
+                        except BaseException as exception:
+                            sentry_sdk.capture_exception(exception)
+
             else:
                 match descsplit[2][3:]:
                     case "TD1":
@@ -161,7 +172,10 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
                     case _:
                         # Ce cas ne devrait pas arriver et devrait être fix rapidement.
                         group = Group.UKNW
-                        print("ERROR : NO GROUP FOUND (MIAGE) :", sum, "---------------------")
+                        try:
+                            raise ValueError("Groupe inconnue")
+                        except BaseException as exception:
+                            sentry_sdk.capture_exception(exception)
 
     # Crée un nouvel Objet Event à partir des infos calculées.
     return Event(start, end, subject, group, location, teacher, isINGE, isMIAGE, uid)
