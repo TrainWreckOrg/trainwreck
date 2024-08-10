@@ -18,6 +18,8 @@ sentry.init(
 """
 # Charge le fichier env
 load_dotenv("cle.env")
+load_dotenv("keys.env")
+
 
 token_bot = os.getenv("TOKEN_BOT_DISCORD")
 
