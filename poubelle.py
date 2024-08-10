@@ -148,3 +148,18 @@ print("après : ", os.getcwd())
         str_role = str_role.removesuffix(", ")
         await ctx.send(
             f"{"Vous êtes" if you_are else "Informations sur"} {author.display_name}!\n{"Votre" if you_are else "Sa"} filière est {self.tool.get_filiere_as_filiere(ctx.author).value} et {"vos" if you_are else "ses"} groupes {"sont" if len(self.tool.get_groupes_as_list(ctx.author)) > 1 else "est"} {str_role}.")
+
+
+async def send_error(self, channel_name, error, ctx, semaine=None, jour=None, bouton=None):
+    message_erreur = f"ERREUR dans : {channel_name} - {datetime.now()}\nErreur de type : {type(error)}\nArgument de l'erreur : {error.args}\nDescription de l'erreur : {error}\nLes paramètres de la fonction étais : \n - auteur : {ctx.author}\n - serveur :  {ctx.guild}\n - message :  {ctx.message}\n - channel :  {ctx.channel}\n - role member :  {ctx.member.roles}"
+    if semaine:
+        message_erreur += f"\n - semaine : {semaine}"
+    if jour:
+        message_erreur += f"\n - jour : {jour}"
+    if bouton:
+        message_erreur += f"\n - id_bouton : {bouton}"
+    with open("output/error.log", "a") as f:
+        f.write(message_erreur)
+    await self.bot.get_channel(os.getenv("CHANNEL_ID")).send(f"<@&{os.getenv("ADMIN_ID")}> " + message_erreur)
+    await ctx.send(embeds=[self.create_error_embed(
+        "Une erreur est survenue, veuillez réessayer ultérieurement, l'équipe de modération est avertie du problème")])

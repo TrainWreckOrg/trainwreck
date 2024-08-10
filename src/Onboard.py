@@ -1,26 +1,28 @@
-import os
-
 from interactions import slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Permissions, Embed, \
     EmbedFooter, User, contexts, Extension, AutocompleteContext, Button, ButtonStyle, ActionRow, ContextType, \
     component_callback
-from Tool import get_tool
 
+from Tool import get_tool
 from Enums import Subscription
 from Calendar import get_calendar
 from TrainWreck import get_ics, get_embeds
 from UserBase import get_user_base
 from Filter import *
-import re
+
 from datetime import datetime, date, timedelta
+import re
+import os
 
 
 class Onboard(Extension):
+    """Classe contenant le processus d'attribution des rôles."""
     def __init__(self, bot):
         self.bot = bot
         self.tool = get_tool(bot)
 
-    @slash_command(name="onboard", description="Permet d'afficher le message d'onboard", default_member_permissions=Permissions.ADMINISTRATOR, contexts=[ContextType.GUILD])
+    @slash_command(name="onboard", description="Permet d'afficher le message d'onboard.", default_member_permissions=Permissions.ADMINISTRATOR, contexts=[ContextType.GUILD])
     async def onboard_embed(self, ctx):
+        """Permet d'afficher le message d'onboard."""
         embed = Embed("Bienvenue, ajouter vos rôles.")
         bouton = Button(
             style=ButtonStyle.BLURPLE,
@@ -31,10 +33,12 @@ class Onboard(Extension):
 
     @component_callback(re.compile("onboard"))
     async def onboard_bt(self, ctx):
+        """Permet de faire réagir le bouton d'onboard."""
         await self.onboard(ctx, edit=False)
 
     @component_callback(re.compile("inge|miage"))
     async def return_filiere(self, ctx):
+        """Permet d'ajouter un rôle de filière en fonction du bouton cliqué."""
         if self.tool.get_filiere_as_filiere(ctx.author) != Filiere.UKNW:
             await ctx.edit_origin(embed=Embed(title="Vous ne pouvez pas avoir plusieurs rôles de la même catégorie."), components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
             return
@@ -47,6 +51,7 @@ class Onboard(Extension):
 
     @component_callback(re.compile("^td[1|2][I|M]$"))
     async def return_td(self, ctx):
+        """Permet d'ajouter un rôle de TD en fonction du bouton cliqué."""
         for group in self.tool.get_groupes_as_list(ctx.author):
             if group in [Group.TD1I, Group.TD2I, Group.TD1M, Group.TD2M]:
                 await ctx.edit_origin(embed=Embed(title="Vous ne pouvez pas avoir plusieurs rôles de la même catégorie."), components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
@@ -64,6 +69,7 @@ class Onboard(Extension):
 
     @component_callback(re.compile("tp"))
     async def return_tp(self, ctx):
+        """Permet d'ajouter un rôle de TP en fonction du bouton cliqué."""
         for group in self.tool.get_groupes_as_list(ctx.author):
             if group in [Group.TPAI, Group.TPBI, Group.TPCI, Group.TPDI, Group.TP1M, Group.TP2M, Group.TP3M]:
                 await ctx.edit_origin(embed=Embed(title="Vous ne pouvez pas avoir plusieurs rôles de la même catégorie."), components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
@@ -87,6 +93,7 @@ class Onboard(Extension):
 
     @component_callback(re.compile("^td[1|2|3][I|M]A$"))
     async def return_td_anglais(self, ctx):
+        """Permet d'ajouter un rôle de TD Anglais en fonction du bouton cliqué."""
         for group in self.tool.get_groupes_as_list(ctx.author):
             if group in [Group.TDA1I, Group.TDA2I, Group.TDA3I, Group.TDA1M, Group.TDA2M, Group.TDA3M]:
                 await ctx.edit_origin(embed=Embed(title="Vous ne pouvez pas avoir plusieurs rôles de la même catégorie."), components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
@@ -106,10 +113,8 @@ class Onboard(Extension):
             await ctx.author.add_roles([self.tool.get_roles()[Group.TDA3M], self.tool.get_roles()[Group.ONBOARDED]])
         await self.onboard(ctx, edit=True)
 
-
-
-
     async def onboard(self, ctx, edit=False):
+        """Permet de demander la bonne chose en fonction des rôles déjà attribuée."""
         filiere = self.tool.get_filiere_as_filiere(ctx.author)
         groupe = self.tool.get_groupes_as_list(ctx.author)
         if filiere == Filiere.UKNW:
@@ -132,12 +137,8 @@ class Onboard(Extension):
                 return
         await self.ask_td(ctx, filiere, edit=edit)
 
-
-
-
-
-
     async def ask_filiere(self, ctx, edit=False):
+        """Permet de demander la filière."""
         embed = Embed(title="Quel est votre filière ?")
         inge = Button(
             style=ButtonStyle.BLURPLE,
@@ -155,8 +156,8 @@ class Onboard(Extension):
         else:
             await ctx.send(embed=embed, components=actionRow, ephemeral=True)
 
-
     async def ask_td(self, ctx, filiere, edit=False):
+        """Permet de demander le groupe de TD."""
         embed = Embed(title="Quel est votre groupe de TD ?")
         actionRow = ActionRow()
         if filiere == Filiere.INGE:
@@ -193,9 +194,8 @@ class Onboard(Extension):
         else:
             await ctx.send(embed=embed, components=actionRow, ephemeral=True)
 
-
-
     async def ask_tp(self, ctx, filiere, edit = False):
+        """Permet de demander le groupe de TP."""
         embed = Embed(title="Quel est votre groupe de TP ?")
         actionRow = ActionRow()
         if filiere == Filiere.INGE:
@@ -247,8 +247,8 @@ class Onboard(Extension):
         else:
             await ctx.send(embed=embed, components=actionRow, ephemeral=True)
 
-
     async def ask_td_anglais(self, ctx, filiere, edit = False):
+        """Permet de demander le groupe de TD d'Anglais."""
         embed = Embed(title="Quel est votre groupe de TD d'anglais ?", description="Oui, on sais pas pourquoi mais pour l'anglais les groupes sont diffèrent.")
         actionRow = ActionRow()
         if filiere == Filiere.INGE:

@@ -1,11 +1,11 @@
-from enum import Enum
 from dotenv import load_dotenv
+from enum import Enum
 
 import os
 load_dotenv("cle.env")
 
 
-# URL utilisée pour fetch les EDT de chaque filière
+# URL utilisée pour fetch les EDT de chaque filière.
 url = {
     "INGE" : os.getenv("INGEICS"),
     "MIAGE" : os.getenv("MIAGEICS"),
@@ -19,6 +19,7 @@ month = [
     "Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"
 ]
 
+# Pour convertir les abréviations des cours en complet.
 subjects_table = {
     "Con. Orien. Obj" : "Conception Orientée Objet",
     "Pro. Imp. Pro. Ori. Obj" : "Programmation Impérative & Orientée Objet",
@@ -28,22 +29,29 @@ subjects_table = {
     "Pro. Pro. Per." : "Projet Personnel & Professionnel"
 }
 
-colors = [0xc62139,0xe16136,0xd8a74c,0x4a668c,0x304d7a, 0x213150, 0xf3f5f7]
+# Liste des couleurs pour les embeds.
+colors = [0xc62139, 0xe16136, 0xd8a74c, 0x4a668c, 0x304d7a, 0x213150, 0xf3f5f7]
+
 
 class Timing(Enum):
-    BEFORE  = "Before"
+    """Représent les différents états de timing (BEFORE, DURING, AFTER)."""
+    BEFORE = "Before"
     DURING = "During"
-    AFTER   = "After"
+    AFTER  = "After"
+
 
 class Filiere(Enum):
-    INGE    = "Ingé"
-    MIAGE   = "Miage"
-    UKNW    = "UKNW"
+    """Représent les différentes filières (INGE, MIAGE, UKNW)."""
+    INGE  = "Ingé"
+    MIAGE = "Miage"
+    UKNW  = "UKNW"
 
     def __str__(self):
         return self.value
 
+
 class Group(Enum):
+    """Représent les différents groupes (TD, TP, TD Anglais, CM, UKNW)."""
     TD1I    = "TD 1 Inge"
     TD2I    = "TD 2 Inge"
     TPAI    = "TP A Inge"
@@ -63,20 +71,24 @@ class Group(Enum):
     TDA3M   = "TD 3 Miage Anglais"
     CM      = "CM"
     UKNW    = "UKNW"
-    ONBOARDED = "onboarded"
+    ONBOARDED = "onboarded"  # Sert uniquement à avoir le Role dans Tool.py.
 
     def __str__(self):
         return self.value
+
 
 class Subscription(Enum):
-    DAILY   = "DAILY"
-    WEEKLY  = "WEEKLY"
-    BOTH    = "BOTH"
-    NONE    = "NONE"
+    """Représent les différents états d'abonnement (DAILY, WEEKLY, BOTH, NONE)."""
+    DAILY  = "DAILY"
+    WEEKLY = "WEEKLY"
+    BOTH   = "BOTH"
+    NONE   = "NONE"
 
     def __str__(self):
         return self.value
 
+
+# Logo ascii TrainWreck.
 ascii_logo = """
 ```ansi
 [2;35m  ______           _       _       __               __   
