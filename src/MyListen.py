@@ -1,24 +1,23 @@
-from interactions import listen, Extension, component_callback, Embed
-from interactions.api.events import Component, MemberUpdate, Error
+from interactions import Client, listen, Extension, component_callback, Embed, ComponentContext
+from interactions.api.events import MemberUpdate, Error
+from datetime import datetime
+import os
+import re
 
 from UserBase import get_user_base
 from MyTask import MyTask
 from Tool import get_tool
 from Enums import RoleEnum
 
-from datetime import datetime
-import os
-import re
-
 
 class MyListen(Extension):
     """Classe contenant les Listen."""
-    def __init__(self, bot):
+    def __init__(self, bot: Client):
         self.bot = bot
         self.tool = get_tool(bot)
 
     @listen()
-    async def on_ready(self):
+    async def on_ready(self) -> None:
         """Méthode qui dit quand le bot est opérationnel au démarrage du programme,
         synchro les commandes, active les Task et lance la génération du calendrier."""
         print(
@@ -37,7 +36,7 @@ class MyListen(Extension):
         await MyTask.update_calendar()
 
     @component_callback(re.compile("day|week"))
-    async def on_component(self, ctx: Component):
+    async def on_component(self, ctx: ComponentContext) -> None:
         """Permet d'écouter les cliques des boutons contenant "day" ou "week"."""
         pattern_day = re.compile("day-")
         pattern_week = re.compile("week-")
@@ -50,7 +49,7 @@ class MyListen(Extension):
             raise ValueError("Bouton cliqué mais aucune action définie (on_component)")
 
     @listen(MemberUpdate)
-    async def on_member_update(self, event: MemberUpdate):
+    async def on_member_update(self, event: MemberUpdate) -> None:
         """Permet de mettre à jour la base de donnée quand un membre met à jour ses rôles."""
         user_base = get_user_base()
         user = event.after
@@ -60,7 +59,19 @@ class MyListen(Extension):
             user_base.update_user_groups(user.id, self.tool.get_groupes_as_list(user))
 
     @listen(Error)
-    async def on_error(self, error: Error):
+    async def on_error(self, error: Error) -> None:
         """Permet de faire la gestion des erreurs pour l'ensemble du bot, envoie un message aux admins et prévient l'utilisateur de l'erreur."""
-        await self.bot.get_channel(os.getenv("CHANNEL_ID")).send(f"{(self.tool.get_roles()[RoleEnum.ERREUR]).mention}```ERREUR dans : {error.source} - {datetime.now()}\nErreur de type : {type(error.error)}\nArgument de l'erreur : {error.error.args}\nDescription de l'erreur : {error.error}\nLes paramètres de la fonction étais : \n - auteur : {error.ctx.author}\n - serveur :  {error.ctx.guild}\n - message :  {error.ctx.message}\n - channel :  {error.ctx.channel}\n - role member :  {error.ctx.member.roles}```")
+        await self.bot.get_channel(os.getenv("CHANNEL_ID")).send(
+            f"{(self.tool.get_roles()[RoleEnum.ERREUR]).mention}"
+            f"```ERREUR dans : {error.source} - {datetime.now()}\n"
+            f"Erreur de type : {type(error.error)}\n"
+            f"Argument de l'erreur : {error.error.args}\n"
+            f"Description de l'erreur : {error.error}\n"
+            f"Les paramètres de la fonction étais : \n"
+                f" - auteur : {error.ctx.author}\n"
+                f" - serveur :  {error.ctx.guild}\n"
+                f" - message :  {error.ctx.message}\n"
+                f" - channel :  {error.ctx.channel}\n"
+                f" - role member :  {error.ctx.member.roles}```"
+        )
         await error.ctx.send(embed=Embed("Une erreur est survenu, les admins sont prévenu."), ephemeral=True)

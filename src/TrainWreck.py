@@ -1,14 +1,12 @@
-from interactions import Embed, EmbedFooter, Member
-
+from interactions import Embed, EmbedFooter, Member, User
 from datetime import date
 
 from Enums import weekday, month, colors
-from UserBase import UserBase
 from Filter import *
 from Event import *
 
 
-def display(events:list[Event]) -> None:
+def display(events: list[Event]) -> None:
     """Affiche (print) une liste d'événements"""
     current_weekday = 7
 
@@ -19,7 +17,7 @@ def display(events:list[Event]) -> None:
         print(event)
 
 
-def export(events:list[Event], filename:str="output/log.txt") -> None:
+def export(events: list[Event], filename: str = "output/log.txt") -> None:
     """Exporte une liste d'événements dans un fichier spécifié"""
     current_weekday = 7
     with open(filename, "w") as f:
@@ -30,7 +28,7 @@ def export(events:list[Event], filename:str="output/log.txt") -> None:
             print(event, file=f)
 
 
-def get_embeds(events:list[Event], user:Member, jour : date = date(year=2077, month=7, day=7), jour2 : date = None) -> list[Embed]:
+def get_embeds(events:list[Event], user: User | Member, jour : date = date(year=2077, month=7, day=7), jour2 : date = None) -> list[Embed]:
     """Permet de générer une liste d'Embed à partir d'une liste d'Event."""
     icon = user.avatar_url
     if len(events) == 0:

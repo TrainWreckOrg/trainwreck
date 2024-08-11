@@ -1,20 +1,18 @@
+from interactions import Client, slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Permissions, Embed, EmbedFooter, User, contexts, Extension, Button, ButtonStyle, ActionRow
+from datetime import datetime, date, timedelta
 import os
 
-from interactions import slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Permissions, Embed, EmbedFooter, User, contexts, Extension, Button, ButtonStyle, ActionRow
-
-from datetime import datetime, date, timedelta
-
 from TrainWreck import get_ics, get_embeds
+from Enums import Subscription, RoleEnum
 from UserBase import get_user_base
 from Calendar import get_calendar
-from Enums import Subscription, RoleEnum
 from Tool import get_tool
 from Filter import *
 
 
 class MySlashCommand(Extension):
     """Classe contenant les commandes."""
-    def __init__(self, bot):
+    def __init__(self, bot: Client):
         self.bot = bot
         self.tool = get_tool(bot)
 
@@ -31,17 +29,17 @@ class MySlashCommand(Extension):
         required=False,
         opt_type=OptionType.USER
     )
-    async def get_day(self, ctx: SlashContext, jour: str, personne: User = None):
+    async def get_day(self, ctx: SlashContext, jour: str, personne: User = None) -> None:
         """Fonction qui permet d'obtenir l'EDT d'une journée spécifique, ou d'un autre utilisateur s'il est spécifié."""
         await self.tool.get_day_bt(ctx, jour, False, personne)
 
     @slash_command(name="today", description="Envoie votre EDT du jour.")
-    async def today(self, ctx: SlashContext):
+    async def today(self, ctx: SlashContext) -> None:
         """Fonction qui permet d'obtenir l'EDT d'aujourd'hui."""
         await self.tool.get_day_bt(ctx, date.today().strftime("%d-%m-%Y"), False)
 
     @slash_command(name="tomorrow", description="Envoie votre EDT de demain.")
-    async def tomorrow(self, ctx: SlashContext):
+    async def tomorrow(self, ctx: SlashContext) -> None:
         """Fonction qui permet d'obtenir l'EDT de demain."""
         await self.tool.get_day_bt(ctx, (date.today() + timedelta(days=1)).strftime("%d-%m-%Y"), False)
 
@@ -58,22 +56,21 @@ class MySlashCommand(Extension):
         required=False,
         opt_type=OptionType.USER
     )
-    async def get_week(self, ctx: SlashContext, semaine: str, personne: User = None):
+    async def get_week(self, ctx: SlashContext, semaine: str, personne: User = None) -> None:
         """Fonction qui permet d'obtenir l'EDT d'une semaine spécifique, ou d'un autre utilisateur s'il est spécifié."""
         await self.tool.get_week_bt(ctx, semaine, False, personne)
 
     @slash_command(name="week", description="Envoie votre EDT de la semaine.")
-    async def week(self, ctx: SlashContext):
+    async def week(self, ctx: SlashContext) -> None:
         """Fonction qui permet d'obtenir l'EDT de cette semaine."""
         await self.tool.get_week_bt(ctx, date.today().strftime("%d-%m-%Y"), False)
 
     @slash_command(name="userscan", description="Permet d'ajouter tout les membres dans la BD.", default_member_permissions=Permissions.ADMINISTRATOR)
     @contexts(guild=True, bot_dm=False)
-    async def userscan(self, ctx: SlashContext):
+    async def userscan(self, ctx: SlashContext) -> None:
         """Permet de scanner tous les membres du serveur et de mettre à jour la BD."""
-        guild = ctx.guild
         user_base = get_user_base()
-        for user in guild.members:
+        for user in ctx.guild.members:
             if not user_base.has_user(user.id):
                 user_base.add_user(user.id, self.tool.get_groupes_as_list(user), self.tool.get_filiere_as_filiere(user))
             else:
@@ -81,11 +78,12 @@ class MySlashCommand(Extension):
         await ctx.send("Les membres du serveur ont été ajoutée et mit à jour.", ephemeral=True)
 
     @slash_command(name="help", description="Affiche la page d'Aide.")
-    async def help(self, ctx: SlashContext):
+    async def help(self, ctx: SlashContext) -> None:
         """Affiche le Contenu de HELP.md."""
         with open("HELP.md", "r", encoding="utf-8") as f:
-            help = f.read()
-        embed = Embed(description=help, footer=EmbedFooter(
+            help_file = f.read()
+
+        embed = Embed(description=help_file, footer=EmbedFooter(
             "Les EDT sont fournis a titre informatif uniquement -> Veuillez vous référer à votre page personnelle sur l'ENT.",
             self.bot.user.avatar_url), color=0xd8a74c)
 
@@ -120,18 +118,18 @@ class MySlashCommand(Extension):
         required=True,
         opt_type=OptionType.STRING
     )
-    async def ics(self, ctx: SlashContext, debut: str, fin: str):
+    async def ics(self, ctx: SlashContext, debut: str, fin: str) -> None:
         """Génère le fichier ICS entre deux dates."""
         try:
             date_debut = datetime.strptime(debut, "%d-%m-%Y").date()
             date_fin = datetime.strptime(fin, "%d-%m-%Y").date()
-            filename= f"output/{ctx.author.display_name}"
+            filename = f"output/{ctx.author.display_name}"
             get_ics(filter_events(get_calendar().get_events(),
                                   [TimeFilter(date_debut, Timing.AFTER), TimeFilter(date_fin, Timing.BEFORE),
                                    self.tool.get_filiere(ctx.author), self.tool.get_groupes(ctx.author)]),
                     filename=filename
                     )
-            await ctx.send("Voici votre fichier ics", files=[f"{filename}.ics"], ephemeral=self.tool.is_guild_chan(ctx.author))
+            await ctx.send("Voici votre fichier ics (:warning: : Le calendrier n'est pas mis a jour dynamiquement)", files=[f"{filename}.ics"], ephemeral=self.tool.is_guild_chan(ctx.author))
             os.remove(f"{filename}.ics")
         except ValueError:
             await ctx.send(embeds=[self.tool.create_error_embed(f"La valeur `{debut}` ou `{fin}` ne correspond pas à une date.")], ephemeral=True)
@@ -149,7 +147,7 @@ class MySlashCommand(Extension):
             SlashCommandChoice(name="Both", value="BOTH")
         ]
     )
-    async def subscribe(self, ctx: SlashContext, service: str):
+    async def subscribe(self, ctx: SlashContext, service: str) -> None:
         """Permet de s'abonnée à l'envoi automatique de l'EDT."""
         user_base = get_user_base()
         id = ctx.author_id
@@ -180,7 +178,7 @@ class MySlashCommand(Extension):
             SlashCommandChoice(name="Both", value="BOTH")
         ]
     )
-    async def unsubscribe(self, ctx: SlashContext, service: str):
+    async def unsubscribe(self, ctx: SlashContext, service: str) -> None:
         """Permet de se désabonnée à l'envoi automatique de l'EDT."""
         user_base = get_user_base()
         id = ctx.author_id
@@ -202,7 +200,7 @@ class MySlashCommand(Extension):
 
     @slash_command(name="check_subscription",
                    description="Vous permet de consulter à quels service d'envoi d'EDT vous êtes inscrit.")
-    async def check_subscription(self, ctx: SlashContext):
+    async def check_subscription(self, ctx: SlashContext) -> None:
         """Permet d'afficher quel sont les abonnements d'un utilisateur."""
         user_base = get_user_base()
         id = ctx.author_id
@@ -214,7 +212,7 @@ class MySlashCommand(Extension):
         )
 
     @slash_command(name="exam", description="Vous permet de consulter la liste des exams.")
-    async def exam(self, ctx: SlashContext):
+    async def exam(self, ctx: SlashContext) -> None:
         exams = get_calendar().get_exams()
         embeds = get_embeds(exams, ctx.author)
         if not exams:

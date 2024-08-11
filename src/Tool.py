@@ -1,4 +1,5 @@
-from interactions import ActionRow, Button, ButtonStyle, SlashContext, Guild, Role, Embed, User, Member
+from interactions import Client, ActionRow, Button, ButtonStyle, SlashContext, Guild, Role, Embed, User, Member, \
+    ModalContext, ContextMenuContext, ComponentContext
 
 from TrainWreck import get_embeds, get_ics
 from UserBase import get_user_base
@@ -13,11 +14,11 @@ import os
 
 class Tool:
     """Classe regroupant plusieurs méthodes utiles."""
-    def __init__(self, bot):
+    def __init__(self, bot: Client):
         self.bot = bot
         self.roles: dict[Enum:Role] = {}
 
-    def get_roles(self):
+    def get_roles(self) -> dict[Enum:Role]:
         """Permet d'obtenir le dictionnaire des Role discord associé aux Enum."""
         if self.roles == {}:
             serveur: Guild = self.bot.get_guild(os.getenv("SERVEUR_ID"))
@@ -36,11 +37,10 @@ class Tool:
                             self.roles[roleEnum] = role
         return self.roles
 
-    def get_filiere(self, author) -> FiliereFilter:
+    def get_filiere(self, author: User | Member) -> FiliereFilter | Filter:
         """Fonction qui permet d'avoir le filtre filière d'un utilisateur, renvoie un filtre neutre si pas défini."""
         if self.is_guild_chan(author):
-            roles = author.roles
-            for role in roles:
+            for role in author.roles:
                 if role.name == Filiere.INGE.value:
                     return FiliereFilter(Filiere.INGE)
                 if role.name == Filiere.MIAGE.value:
@@ -49,11 +49,10 @@ class Tool:
             return FiliereFilter(get_user_base().get_user(author.id).filiere)
         return Filter()
 
-    def get_filiere_as_filiere(self, author) -> Filiere:
+    def get_filiere_as_filiere(self, author: User | Member) -> Filiere:
         """Fonction qui permet d'avoir la filière d'un utilisateur, renvoie UKNW si pas définie."""
         if self.is_guild_chan(author):
-            roles = author.roles
-            for role in roles:
+            for role in author.roles:
                 if role.name == Filiere.INGE.value:
                     return Filiere.INGE
                 if role.name == Filiere.MIAGE.value:
@@ -62,7 +61,7 @@ class Tool:
             return get_user_base().get_user(author.id).filiere
         return Filiere.UKNW
 
-    def get_groupes(self, author) -> GroupFilter:
+    def get_groupes(self, author: User | Member) -> GroupFilter:
         """Fonction qui renvoie un filtre des groupes d'un utilisateur."""
         if self.is_guild_chan(author):
             out = [Group.CM]
@@ -76,7 +75,7 @@ class Tool:
         else :
             return GroupFilter([Group.CM])
 
-    def get_groupes_as_list(self, author) -> list[Group]:
+    def get_groupes_as_list(self, author: User | Member) -> list[Group]:
         """Fonction qui renvoie la liste des groupes d'un utilisateur."""
         if self.is_guild_chan(author):
             out = [Group.CM]
@@ -90,15 +89,15 @@ class Tool:
         else :
             return [Group.CM]
 
-    def is_guild_chan(self, author) -> bool:
+    def is_guild_chan(self, author: User | Member) -> bool:
         """Permet de savoir si l'auteur est un member (si l'action a été fait dans un serveur ou en MP)."""
         return "Member" in str(type(author))
 
-    def create_error_embed(self, message:str) -> Embed:
+    def create_error_embed(self, message: str) -> Embed:
         """Permet de créer un Embed d'erreur."""
         return Embed(":warning: Erreur: ", message, 0x992d22)
 
-    def ping_liste(self, event : Event) -> str:
+    def ping_liste(self, event: Event) -> str:
         """Permet d'avoir une liste de mention pour un Event."""
         roles = self.get_roles()
         if event.group == Group.CM:
@@ -111,11 +110,11 @@ class Tool:
         else:
             return f"{roles.get(event.group).mention}"
 
-    async def get_day_bt(self, ctx, jour: str, modifier: bool, personne: User = None):
+    async def get_day_bt(self, ctx: SlashContext | ModalContext | ContextMenuContext | ComponentContext, jour: str, modifier: bool, personne: User = None) -> None:
         """Fonction qui permet d'obtenir l'EDT d'une journée spécifique.
             Jour : Le jour que l'on souhaite obtenir.
             Modifier : Si l'on doit modifier le message d'origine ou bien en envoyer un nouveau.
-            Personne : La personne dont laquelle on veut savoir l'emploi du temps.."""
+            Personne : La personne dont laquelle on veut savoir l'emploi du temps."""
         try:
             author = ctx.author if (personne is None) else personne
 
@@ -158,7 +157,7 @@ class Tool:
         except ValueError:
             await ctx.send(embeds=[self.create_error_embed(f"La valeur `{jour}` ne correspond pas à une date")], ephemeral=True)
 
-    async def get_week_bt(self, ctx: SlashContext, semaine : str, modifier: bool, personne: User = None):
+    async def get_week_bt(self, ctx: SlashContext | ModalContext | ContextMenuContext | ComponentContext, semaine: str, modifier: bool, personne: User = None):
         """Fonction qui permet d'obtenir l'EDT d'une semaine spécifique.
                     Semaine : La semaine que l'on souhaite obtenir.
                     Modifier : Si l'on doit modifier le message d'origine ou bien en envoyer un nouveau.
@@ -170,10 +169,10 @@ class Tool:
             days_since_monday = date_formater.weekday()
             monday_date = date_formater - timedelta(days=days_since_monday)
             sunday_date = monday_date + timedelta(days=6)
-            events :list[Event] = []
+            events: list[Event] = []
             if int(author.id) == int(os.getenv("BOT_ID")):
                 events = filter_events(get_calendar().get_events(),[TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE)])
-            else :
+            else:
                 events = filter_events(get_calendar().get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), self.get_filiere(author), self.get_groupes(author)])
 
             embeds = get_embeds(events, author, monday_date, sunday_date)
@@ -206,17 +205,16 @@ class Tool:
         except ValueError:
             await ctx.send(embeds=[self.create_error_embed(f"La valeur `{semaine}` ne correspond pas à une date")], ephemeral=True)
 
-    async def send_daily_update(self, user):
+    async def send_daily_update(self, user: User):
         """Permet d'envoyer les EDT automatiquement pour le jour."""
         events = filter_events(get_calendar().get_events(), [TimeFilter(date.today(), Timing.DURING), self.get_filiere(user), self.get_groupes(user)] )
         embeds = get_embeds(events, user, date.today())
         filename = f"output/{user.display_name}"
         ics_file = get_ics(events, filename=filename)
-        await user.send(embeds=embeds, files=[f"{filename}.ics"], ephemeral=False)
+        await user.send(":warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, files=[f"{filename}.ics"], ephemeral=False)
         os.remove(f"{filename}.ics")
 
-
-    async def send_weekly_update(self, user):
+    async def send_weekly_update(self, user: User):
         """Permet d'envoyer les EDT automatiquement pour la semaine."""
         days_since_monday = date.today().weekday()
         monday_date = date.today() - timedelta(days=days_since_monday)
@@ -225,14 +223,14 @@ class Tool:
 
         events = filter_events (get_calendar().get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), self.get_filiere(user), self.get_groupes(user)])
         ics_file = get_ics(events, filename=filename)
-        await user.send(embeds=get_embeds(events, user, monday_date, sunday_date), files=[f"{filename}.ics"], ephemeral=False)
+        await user.send(":warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=get_embeds(events, user, monday_date, sunday_date), files=[f"{filename}.ics"], ephemeral=False)
         os.remove(f"{filename}.ics")
 
 
-tool: Tool = None
+tool: Tool | None = None
 
 
-def get_tool(bot) -> Tool:
+def get_tool(bot : Client) -> Tool:
     """Permet d'obtenir un objet Tool."""
     global tool
     if tool is None:

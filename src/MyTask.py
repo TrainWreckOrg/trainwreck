@@ -1,19 +1,15 @@
-from interactions import Task, TimeTrigger, OrTrigger, Embed, Extension
+from interactions import Client, Task, TimeTrigger, OrTrigger, Embed, Extension
+from datetime import datetime
+import os
 
 from Calendar import Calendar, changed_events
 from UserBase import get_user_base
 from Tool import get_tool
-from enum import Enum
-
-from datetime import datetime, date, timedelta
-from dotenv import load_dotenv
-import os
-import re
 
 
 class MyTask(Extension):
     """Classe contenant les Tasks."""
-    def __init__(self, bot):
+    def __init__(self, bot: Client):
         self.bot = bot
         self.ping_chan = bot.get_channel(os.getenv("PING_CHAN"))
         self.tool = get_tool(bot)
@@ -29,7 +25,7 @@ class MyTask(Extension):
         TimeTrigger(hour=18, minute=0, utc=False),
         TimeTrigger(hour=20, minute=0, utc=False)
     ))
-    async def update_calendar(self):
+    async def update_calendar(self) -> None:
         """Permet de mettre à jour le calendrier et de vérifier qu'il n'y a pas eu de changement."""
         # sup :set[Event]         = set()
         # add :set[Event]         = set()
@@ -65,7 +61,7 @@ class MyTask(Extension):
             await self.ping_chan.send(embeds=embeds, ephemeral=False)
 
     @Task.create(TimeTrigger(hour=6, minute=0, utc=False))
-    async def daily_morning_update(self):
+    async def daily_morning_update(self) -> None:
         """Permet d'envoyer les EDT automatiquement."""
         user_base = get_user_base()
         # Pour l'envoi hebdomadaire.

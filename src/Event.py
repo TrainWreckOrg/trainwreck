@@ -1,9 +1,9 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from pytz import timezone
+import sentry_sdk
 
 from Enums import Group, subjects_table
 
-import sentry_sdk
 
 class Event:
     """Classe utilisée pour gérer les objets événements"""
@@ -21,7 +21,6 @@ class Event:
         self.isEXAM = isEXAM
 
         self.duree = self.end_timestamp - self.start_timestamp 
-
 
     def __eq__(self, other: object) -> bool:
         """Permet de vérifier l'égalité avec un autre objet."""
@@ -61,6 +60,7 @@ class Event:
         ics += "SEQUENCE:" + str(datetime.now(tz=timezone("UTC")).timestamp())[:10] + "\n"
         ics += "END:VEVENT" + "\n"
         return ics
+
 
 def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str) -> Event:
     """Permet d'extraire les informations des données parsées."""

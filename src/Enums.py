@@ -1,9 +1,9 @@
 from dotenv import load_dotenv
+import os
+
 from enum import Enum
 
-import os
 load_dotenv("cle.env")
-
 
 # URL utilisée pour fetch les EDT de chaque filière.
 url = {
@@ -77,17 +77,17 @@ class Group(Enum):
 
 
 class RoleEnum(Enum):
-    """Représent les différents groupes (TD, TP, TD Anglais, CM, UKNW)."""
+    """Représent les différents rôles du discord qui ne sont pas en lien avec l'EDT."""
     ADMIN = "Admin"
     MODO = "Modérateur"
     ERREUR = "Erreur"
-    BOT = "EDT Bot"
-    TEST = "EDT TEST"
-    ONBOARDED = "onboarded"  # Sert uniquement à avoir le Role dans Tool.py.
+    BOT = "BOT"
+    EDTBOT = "EDT Bot"
+    EDTTEST = "EDT TEST"
+    ONBOARDED = "onboarded"
 
     def __str__(self):
         return self.value
-
 
 
 class Subscription(Enum):

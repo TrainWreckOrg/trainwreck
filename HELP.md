@@ -1,5 +1,5 @@
-## TrainWreck
-TrainWreck.py est un bot discord Open Source codé en Python par @Dany & @Nathan et hébérgé par @Vincent dont l'objectif est de faciliter l'accés des Etudiants de l'Université d'Orléans a leur Emploi du Temps
+## EDT Bot
+EDT BOT est un bot discord Open Source codé en Python par @Dany & @Nathan et hébérgé par @Vincent dont l'objectif est de faciliter l'accés des Etudiants de l'Université d'Orléans a leur Emploi du Temps
 
 ## Fonctions & Services
 - Avertissement de changements : Si un changement a lieux dans votre EDT pour les 14 jours a venir, vous recevrez un ping dans #annonce-bot

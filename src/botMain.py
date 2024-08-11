@@ -1,8 +1,8 @@
 from interactions import Client, Intents
 from dotenv import load_dotenv
+import sentry_sdk
 import os
 
-import sentry_sdk
 
 # Charge le fichier env
 load_dotenv("cle.env")
@@ -11,11 +11,9 @@ load_dotenv("keys.env")
 # Init https://sentry.io/
 sentry_sdk.init(
     dsn=os.getenv("SENTRY_DSN"),
-    # Set traces_sample_rate to 1.0 to capture 100%
-    # of transactions for performance monitoring.
+    # Set traces_sample_rate to 1.0 to capture 100% of transactions for performance monitoring.
     traces_sample_rate=1.0,
-    # Set profiles_sample_rate to 1.0 to profile 100%
-    # of sampled transactions.
+    # Set profiles_sample_rate to 1.0 to profile 100% of sampled transactions.
     # We recommend adjusting this value in production.
     profiles_sample_rate=1.0,
 )

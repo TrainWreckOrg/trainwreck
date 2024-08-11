@@ -1,7 +1,6 @@
 from datetime import date
 import sentry_sdk
 
-
 from Enums import Timing, Filiere, Group
 from Event import Event
 

@@ -163,3 +163,8 @@ async def send_error(self, channel_name, error, ctx, semaine=None, jour=None, bo
     await self.bot.get_channel(os.getenv("CHANNEL_ID")).send(f"<@&{os.getenv("ADMIN_ID")}> " + message_erreur)
     await ctx.send(embeds=[self.create_error_embed(
         "Une erreur est survenue, veuillez réessayer ultérieurement, l'équipe de modération est avertie du problème")])
+
+
+    def get_events_dict(self) -> dict[str:Event]:
+        """Retourne le dictionnaire des événements."""
+        return self.events_dict

@@ -32,7 +32,7 @@ class Calendar:
         iso_date = f"{input[0:4]}-{input[4:6]}-{input[6:11]}:{input[11:13]}:{input[13:]}"
         return datetime.fromisoformat(iso_date).astimezone(timezone("Europe/Paris"))
 
-    def update_events(self, update: bool):
+    def update_events(self, update: bool) -> None:
         """Met à jour la liste d'événements en mêlant les événements issus des deux .ics.
         Update : Si l'on doit télécharger les fichiers ics.
         """
@@ -111,16 +111,12 @@ class Calendar:
         """Retourne la liste des événements."""
         return self.events_list
 
-    def get_events_dict(self) -> dict[str:Event]:
-        """Retourne le dictionnaire des événements."""
-        return self.events_dict
-
     def get_exams(self) -> list[Event]:
         """Retourne la liste des exams."""
         return self.exams_list
 
 
-calendar: Calendar = None
+calendar: Calendar
 
 
 def changed_events(old: Calendar, new: Calendar, filters: list[Filter] = [TimeFilter(date.today(), Timing.AFTER), TimeFilter((date.today() + timedelta(days=14)), Timing.BEFORE)]):
@@ -138,14 +134,17 @@ def changed_events(old: Calendar, new: Calendar, filters: list[Filter] = [TimeFi
     add :set[Event]         = set()
     mod :set[(Event,Event)] = set()
 
+    # Recherche des Event supprimé
     for e in old_events:
         if e.uid not in new_events_dict.keys():
             sup.add(e)
-    
+
+    # Recherche des Event ajouté
     for e in new_events:
         if e.uid not in old_events_dict.keys():
             add.add(e)
-    
+
+    # Recherche des Event modifié
     for e in old_events:
         if e.uid in new_events_dict.keys() and e != new_events_dict[e.uid]:
             mod.add((e, new_events_dict[e.uid]))
