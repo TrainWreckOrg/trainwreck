@@ -111,12 +111,11 @@ class Tool:
         else:
             return f"{roles.get(event.group).mention}"
 
-    async def get_day_bt(self, ctx, jour: str, modifier: bool, personne: User = None, ephemeral: bool= False):
+    async def get_day_bt(self, ctx, jour: str, modifier: bool, personne: User = None):
         """Fonction qui permet d'obtenir l'EDT d'une journée spécifique.
             Jour : Le jour que l'on souhaite obtenir.
             Modifier : Si l'on doit modifier le message d'origine ou bien en envoyer un nouveau.
-            Personne : La personne dont laquelle on veut savoir l'emploi du temps.
-            Ephemeral : Si l'on envoie le message en ephemeral."""
+            Personne : La personne dont laquelle on veut savoir l'emploi du temps.."""
         try:
             author = ctx.author if (personne is None) else personne
 
@@ -144,7 +143,6 @@ class Tool:
             )
 
             ephemeral = self.is_guild_chan(ctx.author)
-
             if personne is None:
                 action_row = ActionRow(precedent, suivant)
                 if modifier:
@@ -160,12 +158,11 @@ class Tool:
         except ValueError:
             await ctx.send(embeds=[self.create_error_embed(f"La valeur `{jour}` ne correspond pas à une date")], ephemeral=True)
 
-    async def get_week_bt(self, ctx: SlashContext, semaine : str, modifier: bool, personne: User = None, ephemeral: bool= False):
+    async def get_week_bt(self, ctx: SlashContext, semaine : str, modifier: bool, personne: User = None):
         """Fonction qui permet d'obtenir l'EDT d'une semaine spécifique.
                     Semaine : La semaine que l'on souhaite obtenir.
                     Modifier : Si l'on doit modifier le message d'origine ou bien en envoyer un nouveau.
-                    Personne : La personne dont laquelle on veut savoir l'emploi du temps.
-                    Ephemeral : Si l'on envoie le message en ephemeral."""
+                    Personne : La personne dont laquelle on veut savoir l'emploi du temps."""
         try:
             author = ctx.author if (personne is None) else personne
 

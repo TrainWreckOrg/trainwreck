@@ -15,17 +15,17 @@ class MyContextMenus(Extension):
     @user_context_menu(name="today_user")
     async def today_user(self, ctx: ContextMenuContext):
         """Permet de savoir l'EDT d'une personne pour aujourd'hui."""
-        await self.tool.get_day_bt(ctx, date.today().strftime("%d-%m-%Y"), False,personne=ctx.target, ephemeral=True)
+        await self.tool.get_day_bt(ctx, date.today().strftime("%d-%m-%Y"), False,personne=ctx.target)
 
     @user_context_menu(name="tomorrow_user")
     async def tomorrow_user(self, ctx: ContextMenuContext):
         """Permet de savoir l'EDT d'une personne pour demain."""
-        await self.tool.get_day_bt(ctx, (date.today()+timedelta(days=1)).strftime("%d-%m-%Y"), False, personne=ctx.target, ephemeral=True)
+        await self.tool.get_day_bt(ctx, (date.today()+timedelta(days=1)).strftime("%d-%m-%Y"), False, personne=ctx.target)
 
     @user_context_menu(name="week_user")
     async def week_user(self, ctx: ContextMenuContext):
         """Permet de savoir l'EDT d'une personne pour cette semaine."""
-        await self.tool.get_week_bt(ctx, date.today().strftime("%d-%m-%Y"), False, personne=ctx.target, ephemeral=True)
+        await self.tool.get_week_bt(ctx, date.today().strftime("%d-%m-%Y"), False, personne=ctx.target)
 
     @user_context_menu(name="day_user")
     async def day_user(self, ctx: ContextMenuContext):
@@ -48,7 +48,7 @@ class MyContextMenus(Extension):
 
         jour = modal_ctx.responses["date_user"]
 
-        await self.tool.get_day_bt(ctx=modal_ctx, jour=jour, modifier=False, personne=ctx.target, ephemeral=True)
+        await self.tool.get_day_bt(ctx=modal_ctx, jour=jour, modifier=False, personne=ctx.target)
 
     @user_context_menu(name="week_user")
     async def week_user(self, ctx: ContextMenuContext):
@@ -70,4 +70,4 @@ class MyContextMenus(Extension):
 
         semaine = modal_ctx.responses["semaine_user"]
 
-        await self.tool.get_week_bt(ctx=modal_ctx, semaine=semaine, modifier=False, personne=ctx.target, ephemeral=True)
+        await self.tool.get_week_bt(ctx=modal_ctx, semaine=semaine, modifier=False, personne=ctx.target)

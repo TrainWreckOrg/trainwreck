@@ -4,6 +4,7 @@ from interactions.api.events import Component, MemberUpdate, Error
 from UserBase import get_user_base
 from MyTask import MyTask
 from Tool import get_tool
+from Enums import RoleEnum
 
 from datetime import datetime
 import os
@@ -61,5 +62,5 @@ class MyListen(Extension):
     @listen(Error)
     async def on_error(self, error: Error):
         """Permet de faire la gestion des erreurs pour l'ensemble du bot, envoie un message aux admins et prévient l'utilisateur de l'erreur."""
-        await self.bot.get_channel(os.getenv("CHANNEL_ID")).send(f"<@&{os.getenv("ADMIN_ID")}>```ERREUR dans : {error.source} - {datetime.now()}\nErreur de type : {type(error.error)}\nArgument de l'erreur : {error.error.args}\nDescription de l'erreur : {error.error}\nLes paramètres de la fonction étais : \n - auteur : {error.ctx.author}\n - serveur :  {error.ctx.guild}\n - message :  {error.ctx.message}\n - channel :  {error.ctx.channel}\n - role member :  {error.ctx.member.roles}```")
+        await self.bot.get_channel(os.getenv("CHANNEL_ID")).send(f"{(self.tool.get_roles()[RoleEnum.ERREUR]).mention}```ERREUR dans : {error.source} - {datetime.now()}\nErreur de type : {type(error.error)}\nArgument de l'erreur : {error.error.args}\nDescription de l'erreur : {error.error}\nLes paramètres de la fonction étais : \n - auteur : {error.ctx.author}\n - serveur :  {error.ctx.guild}\n - message :  {error.ctx.message}\n - channel :  {error.ctx.channel}\n - role member :  {error.ctx.member.roles}```")
         await error.ctx.send(embed=Embed("Une erreur est survenu, les admins sont prévenu."), ephemeral=True)

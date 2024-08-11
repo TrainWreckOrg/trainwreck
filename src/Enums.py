@@ -80,6 +80,7 @@ class RoleEnum(Enum):
     """Représent les différents groupes (TD, TP, TD Anglais, CM, UKNW)."""
     ADMIN = "Admin"
     MODO = "Modérateur"
+    ERREUR = "Erreur"
     BOT = "EDT Bot"
     TEST = "EDT TEST"
     ONBOARDED = "onboarded"  # Sert uniquement à avoir le Role dans Tool.py.

@@ -100,7 +100,7 @@ class MySlashCommand(Extension):
         )
 
         action_row = ActionRow(repo, vincent)
-        ephemeral = not ctx.author.has_role(self.tool.get_roles()[RoleEnum.ADMIN])
+        ephemeral = not ctx.author.has_role(self.tool.get_roles()[RoleEnum.ADMIN]) # Permanent pour les admins, mais pas pour les autres
         await ctx.send(embed=embed, components=action_row, ephemeral=ephemeral)
 
     @slash_command(name="ics", description="Envoie un fichier ICS importable dans la plupart des applications de calendrier.")
