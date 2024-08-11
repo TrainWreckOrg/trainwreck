@@ -48,7 +48,7 @@ def get_embeds(events:list[Event], user:Member, jour : date = date(year=2077, mo
     return embeds
 
 
-def get_ics(events:list[Event]):
+def get_ics(events:list[Event], filename:str):
     """Permet de régénérer un fichier ics."""
     ics = ("BEGIN:VCALENDAR\n"
            "METHOD:REQUEST\n"
@@ -60,6 +60,6 @@ def get_ics(events:list[Event]):
         ics += event.ics()
 
     ics += "END:VCALENDAR"
-    with open("output/calendar.ics", "w", encoding="UTF-8") as f:
+    with open(f"{filename}.ics", "w", encoding="UTF-8") as f:
         f.write(ics)
     return True

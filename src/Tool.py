@@ -210,18 +210,23 @@ class Tool:
         """Permet d'envoyer les EDT automatiquement pour le jour."""
         events = filter_events(get_calendar().get_events(), [TimeFilter(date.today(), Timing.DURING), self.get_filiere(user), self.get_groupes(user)] )
         embeds = get_embeds(events, user, date.today())
-        ics_file = get_ics(events)
-        await user.send(embeds=embeds, files=["output/calendar.ics"], ephemeral=False)
+        filename = f"output/{user.display_name}"
+        ics_file = get_ics(events, filename=filename)
+        await user.send(embeds=embeds, files=[f"{filename}.ics"], ephemeral=False)
+        os.remove(f"{filename}.ics")
+
 
     async def send_weekly_update(self, user):
         """Permet d'envoyer les EDT automatiquement pour la semaine."""
         days_since_monday = date.today().weekday()
         monday_date = date.today() - timedelta(days=days_since_monday)
         sunday_date = monday_date + timedelta(days=6)
+        filename = f"output/{user.display_name}"
 
         events = filter_events (get_calendar().get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), self.get_filiere(user), self.get_groupes(user)])
-        ics_file = get_ics(events)
-        await user.send(embeds=get_embeds(events, user, monday_date, sunday_date), files=["output/calendar.ics"], ephemeral=False)
+        ics_file = get_ics(events, filename=filename)
+        await user.send(embeds=get_embeds(events, user, monday_date, sunday_date), files=[f"{filename}.ics"], ephemeral=False)
+        os.remove(f"{filename}.ics")
 
 
 tool: Tool = None

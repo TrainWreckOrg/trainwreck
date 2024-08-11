@@ -1,3 +1,5 @@
+import os
+
 from interactions import slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Permissions, Embed, EmbedFooter, User, contexts, Extension, Button, ButtonStyle, ActionRow
 
 from datetime import datetime, date, timedelta
@@ -123,10 +125,14 @@ class MySlashCommand(Extension):
         try:
             date_debut = datetime.strptime(debut, "%d-%m-%Y").date()
             date_fin = datetime.strptime(fin, "%d-%m-%Y").date()
+            filename= f"output/{ctx.author.display_name}"
             get_ics(filter_events(get_calendar().get_events(),
                                   [TimeFilter(date_debut, Timing.AFTER), TimeFilter(date_fin, Timing.BEFORE),
-                                   self.tool.get_filiere(ctx.author), self.tool.get_groupes(ctx.author)]))
-            await ctx.send("Voici votre fichier ics", files=["output/calendar.ics"], ephemeral=self.tool.is_guild_chan(ctx.author))
+                                   self.tool.get_filiere(ctx.author), self.tool.get_groupes(ctx.author)]),
+                    filename=filename
+                    )
+            await ctx.send("Voici votre fichier ics", files=[f"{filename}.ics"], ephemeral=self.tool.is_guild_chan(ctx.author))
+            os.remove(f"{filename}.ics")
         except ValueError:
             await ctx.send(embeds=[self.tool.create_error_embed(f"La valeur `{debut}` ou `{fin}` ne correspond pas à une date.")], ephemeral=True)
 
