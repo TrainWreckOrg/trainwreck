@@ -62,7 +62,7 @@ class MyTask(Extension):
             embeds.append(Embed(title="Événements modifiés :", description=descstr, color=0x5865f2))
 
         if len(embeds):
-            await self.ping_chan.send(embeds=embeds)
+            await self.ping_chan.send(embeds=embeds, ephemeral=False)
 
     @Task.create(TimeTrigger(hour=6, minute=0, utc=False))
     async def daily_morning_update(self):

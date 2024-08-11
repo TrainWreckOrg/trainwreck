@@ -5,7 +5,7 @@ from datetime import datetime, date, timedelta
 from TrainWreck import get_ics, get_embeds
 from UserBase import get_user_base
 from Calendar import get_calendar
-from Enums import Subscription
+from Enums import Subscription, RoleEnum
 from Tool import get_tool
 from Filter import *
 
@@ -76,7 +76,7 @@ class MySlashCommand(Extension):
                 user_base.add_user(user.id, self.tool.get_groupes_as_list(user), self.tool.get_filiere_as_filiere(user))
             else:
                 user_base.update_user_groups(user.id, self.tool.get_groupes_as_list(user))
-        await ctx.send("Les membres du serveur ont été ajoutée et mit à jour.")
+        await ctx.send("Les membres du serveur ont été ajoutée et mit à jour.", ephemeral=True)
 
     @slash_command(name="help", description="Affiche la page d'Aide.")
     async def help(self, ctx: SlashContext):
@@ -100,7 +100,8 @@ class MySlashCommand(Extension):
         )
 
         action_row = ActionRow(repo, vincent)
-        await ctx.send(embed=embed, components=action_row)
+        ephemeral = not ctx.author.has_role(self.tool.get_roles()[RoleEnum.ADMIN])
+        await ctx.send(embed=embed, components=action_row, ephemeral=ephemeral)
 
     @slash_command(name="ics", description="Envoie un fichier ICS importable dans la plupart des applications de calendrier.")
     @slash_option(
@@ -123,9 +124,9 @@ class MySlashCommand(Extension):
             get_ics(filter_events(get_calendar().get_events(),
                                   [TimeFilter(date_debut, Timing.AFTER), TimeFilter(date_fin, Timing.BEFORE),
                                    self.tool.get_filiere(ctx.author), self.tool.get_groupes(ctx.author)]))
-            await ctx.send("Voici votre fichier ics", files=["output/calendar.ics"])
+            await ctx.send("Voici votre fichier ics", files=["output/calendar.ics"], ephemeral=self.tool.is_guild_chan(ctx.author))
         except ValueError:
-            await ctx.send(embeds=[self.tool.create_error_embed(f"La valeur `{debut}` ou `{fin}` ne correspond pas à une date.")])
+            await ctx.send(embeds=[self.tool.create_error_embed(f"La valeur `{debut}` ou `{fin}` ne correspond pas à une date.")], ephemeral=True)
 
     @slash_command(name="subscribe",
                    description="Vous permet de vous abonner à l'envoi de l'EDT dans vos DM, de manière quotidienne ou hebdomadaire.")
@@ -153,8 +154,11 @@ class MySlashCommand(Extension):
                 user_base.user_subscribe(id, Subscription.WEEKLY)
             case "BOTH":
                 user_base.user_subscribe(id, Subscription.BOTH)
-        await ctx.send(embed=Embed(f"Abonnements de {ctx.author.display_name}",
-                                   f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"))
+        await ctx.send(
+            embed=Embed(f"Abonnements de {ctx.author.display_name}",
+                f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n"
+                f"- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"),
+            ephemeral=self.tool.is_guild_chan(ctx.author))
 
     @slash_command(name="unsubscribe", description="Vous permet de vous désabonner à l'envoi de l'EDT dans vos DM.")
     @slash_option(
@@ -181,8 +185,12 @@ class MySlashCommand(Extension):
                 user_base.user_unsubscribe(id, Subscription.WEEKLY)
             case "BOTH":
                 user_base.user_unsubscribe(id, Subscription.BOTH)
-        await ctx.send(embed=Embed(f"Abonnements de {ctx.author.display_name}",
-                                   f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"))
+        await ctx.send(
+            embed=Embed(f"Abonnements de {ctx.author.display_name}",
+                f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n"
+                f"- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"),
+            ephemeral=self.tool.is_guild_chan(ctx.author)
+        )
 
     @slash_command(name="check_subscription",
                    description="Vous permet de consulter à quels service d'envoi d'EDT vous êtes inscrit.")
@@ -190,8 +198,12 @@ class MySlashCommand(Extension):
         """Permet d'afficher quel sont les abonnements d'un utilisateur."""
         user_base = get_user_base()
         id = ctx.author_id
-        await ctx.send(embed=Embed(f"Abonnements de {ctx.author.display_name}",
-                                   f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"))
+        await ctx.send(
+            embed=Embed(f"Abonnements de {ctx.author.display_name}",
+                f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n"
+                f"- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"),
+            ephemeral=self.tool.is_guild_chan(ctx.author)
+        )
 
     @slash_command(name="exam", description="Vous permet de consulter la liste des exams.")
     async def exam(self, ctx: SlashContext):
@@ -207,4 +219,4 @@ class MySlashCommand(Extension):
             url="https://www.univ-orleans.fr/fr/sciences-techniques/etudiant/examens-reglementationrse/examens-20232024"
         )
 
-        await ctx.send(embeds=embeds, components=universite)
+        await ctx.send(embeds=embeds, components=universite, ephemeral=self.tool.is_guild_chan(ctx.author))

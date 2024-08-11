@@ -45,7 +45,7 @@ class MyListen(Extension):
         elif pattern_week.search(ctx.custom_id):
             await self.tool.get_week_bt(ctx, ctx.custom_id[5:], True)
         else:
-            await ctx.send("Bouton cliqué mais aucune action définie")
+            await ctx.send("Bouton cliqué mais aucune action définie", ephemeral=True)
             raise ValueError("Bouton cliqué mais aucune action définie (on_component)")
 
     @listen(MemberUpdate)
@@ -62,4 +62,4 @@ class MyListen(Extension):
     async def on_error(self, error: Error):
         """Permet de faire la gestion des erreurs pour l'ensemble du bot, envoie un message aux admins et prévient l'utilisateur de l'erreur."""
         await self.bot.get_channel(os.getenv("CHANNEL_ID")).send(f"<@&{os.getenv("ADMIN_ID")}>```ERREUR dans : {error.source} - {datetime.now()}\nErreur de type : {type(error.error)}\nArgument de l'erreur : {error.error.args}\nDescription de l'erreur : {error.error}\nLes paramètres de la fonction étais : \n - auteur : {error.ctx.author}\n - serveur :  {error.ctx.guild}\n - message :  {error.ctx.message}\n - channel :  {error.ctx.channel}\n - role member :  {error.ctx.member.roles}```")
-        await error.ctx.send(embed=Embed("Une erreur est survenu, les admins sont prévenu."))
+        await error.ctx.send(embed=Embed("Une erreur est survenu, les admins sont prévenu."), ephemeral=True)

@@ -71,10 +71,22 @@ class Group(Enum):
     TDA3M   = "TD 3 Miage Anglais"
     CM      = "CM"
     UKNW    = "UKNW"
+
+    def __str__(self):
+        return self.value
+
+
+class RoleEnum(Enum):
+    """Représent les différents groupes (TD, TP, TD Anglais, CM, UKNW)."""
+    ADMIN = "Admin"
+    MODO = "Modérateur"
+    BOT = "EDT Bot"
+    TEST = "EDT TEST"
     ONBOARDED = "onboarded"  # Sert uniquement à avoir le Role dans Tool.py.
 
     def __str__(self):
         return self.value
+
 
 
 class Subscription(Enum):

@@ -4,6 +4,7 @@ from TrainWreck import get_embeds, get_ics
 from UserBase import get_user_base
 from Calendar import get_calendar
 from Filter import *
+from Enums import RoleEnum
 
 from datetime import datetime, date, timedelta
 from enum import Enum
@@ -29,6 +30,10 @@ class Tool:
                     for filiere in Filiere:
                         if filiere.value == role.name:
                             self.roles[filiere] = role
+                if role.name in RoleEnum:
+                    for roleEnum in RoleEnum:
+                        if roleEnum.value == role.name:
+                            self.roles[roleEnum] = role
         return self.roles
 
     def get_filiere(self, author) -> FiliereFilter:
@@ -138,12 +143,14 @@ class Tool:
                 label="Jour suivant"
             )
 
+            ephemeral = self.is_guild_chan(ctx.author)
+
             if personne is None:
                 action_row = ActionRow(precedent, suivant)
                 if modifier:
                     await ctx.edit_origin(embeds=embeds, components=[action_row])
                 else:
-                    await ctx.send(embeds=embeds, components=[action_row])
+                    await ctx.send(embeds=embeds, components=[action_row], ephemeral=ephemeral)
             else:
                 if modifier:
                     await ctx.edit_origin(embeds=embeds)
@@ -151,7 +158,7 @@ class Tool:
                     await ctx.send(embeds=embeds, ephemeral=ephemeral)
 
         except ValueError:
-            await ctx.send(embeds=[self.create_error_embed(f"La valeur `{jour}` ne correspond pas à une date")], )
+            await ctx.send(embeds=[self.create_error_embed(f"La valeur `{jour}` ne correspond pas à une date")], ephemeral=True)
 
     async def get_week_bt(self, ctx: SlashContext, semaine : str, modifier: bool, personne: User = None, ephemeral: bool= False):
         """Fonction qui permet d'obtenir l'EDT d'une semaine spécifique.
@@ -186,25 +193,28 @@ class Tool:
                 label="Semaine suivante"
             )
 
+            ephemeral = self.is_guild_chan(ctx.author)
+
             if personne is None:
                 action_row = ActionRow(precedent, suivant)
                 if modifier:
                     await ctx.edit_origin(embeds=embeds, components=[action_row])
                 else:
-                    await ctx.send(embeds=embeds, components=[action_row])
+                    await ctx.send(embeds=embeds, components=[action_row], ephemeral=ephemeral)
             else:
                 if modifier:
                     await ctx.edit_origin(embeds=embeds)
                 else:
                     await ctx.send(embeds=embeds, ephemeral=ephemeral)
         except ValueError:
-            await ctx.send(embeds=[self.create_error_embed(f"La valeur `{semaine}` ne correspond pas à une date")], )
+            await ctx.send(embeds=[self.create_error_embed(f"La valeur `{semaine}` ne correspond pas à une date")], ephemeral=True)
 
     async def send_daily_update(self, user):
         """Permet d'envoyer les EDT automatiquement pour le jour."""
         events = filter_events(get_calendar().get_events(), [TimeFilter(date.today(), Timing.DURING), self.get_filiere(user), self.get_groupes(user)] )
         embeds = get_embeds(events, user, date.today())
-        await user.send(embeds=embeds)
+        ics_file = get_ics(events)
+        await user.send(embeds=embeds, files=["output/calendar.ics"], ephemeral=False)
 
     async def send_weekly_update(self, user):
         """Permet d'envoyer les EDT automatiquement pour la semaine."""
@@ -214,7 +224,7 @@ class Tool:
 
         events = filter_events (get_calendar().get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), self.get_filiere(user), self.get_groupes(user)])
         ics_file = get_ics(events)
-        await user.send(embeds=get_embeds(events, user, monday_date, sunday_date), files=["output/calendar.ics"])
+        await user.send(embeds=get_embeds(events, user, monday_date, sunday_date), files=["output/calendar.ics"], ephemeral=False)
 
 
 tool: Tool = None
