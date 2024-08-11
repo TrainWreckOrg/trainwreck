@@ -4,7 +4,7 @@ from interactions.api.events import Component, MemberUpdate
 
 from Enums import Filiere, Group, Timing, Subscription, ascii_logo
 from Calendar import get_calendar, Calendar, changed_events
-from TrainWreck import get_embeds, get_ics
+from Generator import get_embeds, get_ics
 from UserBase import get_user_base
 from Filter import *
 

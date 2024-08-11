@@ -6,29 +6,7 @@ from Filter import *
 from Event import *
 
 
-def display(events: list[Event]) -> None:
-    """Affiche (print) une liste d'événements"""
-    current_weekday = 7
-
-    for event in events:
-        if event.start_timestamp.weekday() != current_weekday:
-            current_weekday = event.end_timestamp.weekday()
-            print(f"**{weekday[current_weekday]} {event.start_timestamp.day} {month[event.start_timestamp.month -1]}:**")
-        print(event)
-
-
-def export(events: list[Event], filename: str = "output/log.txt") -> None:
-    """Exporte une liste d'événements dans un fichier spécifié"""
-    current_weekday = 7
-    with open(filename, "w") as f:
-        for event in events:
-            if event.start_timestamp.weekday() != current_weekday:
-                current_weekday = event.end_timestamp.weekday()
-                print(f"**{weekday[current_weekday]} {event.start_timestamp.day} {month[event.start_timestamp.month -1]}:**", file=f)
-            print(event, file=f)
-
-
-def get_embeds(events:list[Event], user: User | Member, jour : date = date(year=2077, month=7, day=7), jour2 : date = None) -> list[Embed]:
+def get_embeds(events: list[Event], user: User | Member, jour: date = date(year=2077, month=7, day=7), jour2: date = None) -> list[Embed]:
     """Permet de générer une liste d'Embed à partir d'une liste d'Event."""
     icon = user.avatar_url
     if len(events) == 0:
@@ -46,7 +24,7 @@ def get_embeds(events:list[Event], user: User | Member, jour : date = date(year=
     return embeds
 
 
-def get_ics(events:list[Event], filename:str):
+def get_ics(events: list[Event], filename: str):
     """Permet de régénérer un fichier ics."""
     ics = ("BEGIN:VCALENDAR\n"
            "METHOD:REQUEST\n"

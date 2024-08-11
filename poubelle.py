@@ -168,3 +168,26 @@ async def send_error(self, channel_name, error, ctx, semaine=None, jour=None, bo
     def get_events_dict(self) -> dict[str:Event]:
         """Retourne le dictionnaire des événements."""
         return self.events_dict
+
+
+
+def display(events: list[Event]) -> None:
+    """Affiche (print) une liste d'événements"""
+    current_weekday = 7
+
+    for event in events:
+        if event.start_timestamp.weekday() != current_weekday:
+            current_weekday = event.end_timestamp.weekday()
+            print(f"**{weekday[current_weekday]} {event.start_timestamp.day} {month[event.start_timestamp.month -1]}:**")
+        print(event)
+
+
+def export(events: list[Event], filename: str = "output/log.txt") -> None:
+    """Exporte une liste d'événements dans un fichier spécifié"""
+    current_weekday = 7
+    with open(filename, "w") as f:
+        for event in events:
+            if event.start_timestamp.weekday() != current_weekday:
+                current_weekday = event.end_timestamp.weekday()
+                print(f"**{weekday[current_weekday]} {event.start_timestamp.day} {month[event.start_timestamp.month -1]}:**", file=f)
+            print(event, file=f)
