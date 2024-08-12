@@ -3,7 +3,7 @@ from datetime import datetime, date, timedelta
 import os
 
 from Generator import get_ics, get_embeds
-from Enums import Subscription, RoleEnum
+from Enums import Subscription, RoleEnum, colors
 from UserBase import get_user_base
 from Calendar import get_calendar
 from Tool import get_tool
@@ -85,7 +85,7 @@ class MySlashCommand(Extension):
 
         embed = Embed(description=help_file, footer=EmbedFooter(
             "Les EDT sont fournis a titre informatif uniquement -> Veuillez vous référer à votre page personnelle sur l'ENT.",
-            self.bot.user.avatar_url), color=0xd8a74c)
+            self.bot.user.avatar_url), color=colors[2])
 
         repo = Button(
             style=ButtonStyle.URL,
@@ -217,7 +217,7 @@ class MySlashCommand(Extension):
         embeds = get_embeds(exams, ctx.author)
         if not exams:
             embeds[0].description = "Aucun examens"
-        embeds.insert(0, Embed(title="EXAMENS", description="ATTENTION CETTE LISTE D'EXAMS N'EST PEUT ÊTRE PAS A JOUR MERCI DE VERIFIER SUR LE SITE DE L'UNIVERSITÉ!", color=0xc62139))
+        embeds.insert(0, Embed(title="EXAMENS", description="ATTENTION CETTE LISTE D'EXAMS N'EST PEUT ÊTRE PAS A JOUR MERCI DE VERIFIER SUR LE SITE DE L'UNIVERSITÉ!", color=colors[0]))
 
         universite = Button(
             style=ButtonStyle.URL,

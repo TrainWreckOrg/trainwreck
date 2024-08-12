@@ -5,7 +5,7 @@ from Generator import get_embeds, get_ics
 from UserBase import get_user_base
 from Calendar import get_calendar
 from Filter import *
-from Enums import RoleEnum, Group
+from Enums import RoleEnum, Group, colors
 
 from datetime import datetime, date, timedelta
 from enum import Enum
@@ -37,64 +37,53 @@ class Tool:
                             self.roles[roleEnum] = role
         return self.roles
 
-    def get_filiere(self, author: User | Member) -> FiliereFilter | Filter:
-        """Fonction qui permet d'avoir le filtre filière d'un utilisateur, renvoie un filtre neutre si pas défini."""
-        if self.is_guild_chan(author):
-            for role in author.roles:
-                if role.name == Filiere.INGE.value:
-                    return FiliereFilter(Filiere.INGE)
-                if role.name == Filiere.MIAGE.value:
-                    return FiliereFilter(Filiere.MIAGE)
-        elif get_user_base().has_user(author.id):
-            return FiliereFilter(get_user_base().get_user(author.id).filiere)
-        return Filter()
-
     def get_filiere_as_filiere(self, author: User | Member) -> Filiere:
         """Fonction qui permet d'avoir la filière d'un utilisateur, renvoie UKNW si pas définie."""
         if self.is_guild_chan(author):
-            for role in author.roles:
-                if role.name == Filiere.INGE.value:
-                    return Filiere.INGE
-                if role.name == Filiere.MIAGE.value:
-                    return Filiere.MIAGE
+            if author.has_role(self.get_roles()[Filiere.INGE]):
+                return Filiere.INGE
+            if author.has_role(self.get_roles()[Filiere.MIAGE]):
+                return Filiere.MIAGE
         elif get_user_base().has_user(author.id):
             return get_user_base().get_user(author.id).filiere
         return Filiere.UKNW
-
-    def get_groupes(self, author: User | Member) -> Filter | GroupFilter:
-        """Fonction qui renvoie un filtre des groupes d'un utilisateur."""
-        if self.is_guild_chan(author):
-            out = [Group.CM]
-            for role in author.roles:
-                for gr in Group:
-                    if role.name == gr.value:
-                        out.append(gr)
-            if out == [Group.CM]:
+    
+    def get_filiere(self, author: User | Member) -> FiliereFilter | Filter:
+        """Fonction qui permet d'avoir le filtre filière d'un utilisateur, renvoie un filtre neutre si pas défini."""
+        match self.get_filiere_as_filiere(author) :
+            case Filiere.INGE:
+                return FiliereFilter(Filiere.INGE)
+            case Filiere.MIAGE:
+                return FiliereFilter(Filiere.MIAGE)
+            case _:
                 return Filter()
-            return GroupFilter(out)
-        elif get_user_base().has_user(author.id):
-            out = get_user_base().get_user(author.id).groups
-            if out == [Group.CM]:
-                return Filter()
-            return GroupFilter(out)
-        else :
-            return Filter()
 
-    def get_groupes_as_list(self, author: User | Member) -> Filter | list[Group]:
+
+    def get_groupes_as_list(self, author: User | Member) -> list[Group]:
         """Fonction qui renvoie la liste des groupes d'un utilisateur."""
+        out = [Group.CM]
         if self.is_guild_chan(author):
-            out = [Group.CM]
             for role in author.roles:
                 for gr in Group:
                     if role.name == gr.value:
                         out.append(gr)
-            if out == [Group.CM]:
-                return Filter()
             return out
         elif get_user_base().has_user(author.id):
             return get_user_base().get_user(author.id).groups
         else :
+            return out
+
+
+    def get_groupes(self, author: User | Member) -> Filter | GroupFilter:
+        """Fonction qui renvoie un filtre des groupes d'un utilisateur."""
+        groups = self.get_groupes_as_list(author)
+        if groups == [Group.CM]:
             return Filter()
+        else :
+            return GroupFilter(groups)
+
+
+
 
     def is_guild_chan(self, author: User | Member) -> bool:
         """Permet de savoir si l'auteur est un member (si l'action a été fait dans un serveur ou en MP)."""
@@ -102,7 +91,7 @@ class Tool:
 
     def create_error_embed(self, message: str) -> Embed:
         """Permet de créer un Embed d'erreur."""
-        return Embed(":warning: Erreur: ", message, 0x992d22)
+        return Embed(":warning: Erreur: ", message, colors[0])
 
     def ping_liste(self, event: Event) -> str:
         """Permet d'avoir une liste de mention pour un Event."""
