@@ -56,7 +56,7 @@ class MyListen(Extension):
         if not user_base.has_user(user.id):
             user_base.add_user(user.id, self.tool.get_groupes_as_list(user), self.tool.get_filiere_as_filiere(user))
         else:
-            user_base.update_user_groups(user.id, self.tool.get_groupes_as_list(user))
+            user_base.update_user(user.id, self.tool.get_groupes_as_list(user), self.tool.get_filiere_as_filiere(user))
 
     @listen(Error)
     async def on_error(self, error: Error) -> None:

@@ -74,13 +74,13 @@ class MySlashCommand(Extension):
             if not user_base.has_user(user.id):
                 user_base.add_user(user.id, self.tool.get_groupes_as_list(user), self.tool.get_filiere_as_filiere(user))
             else:
-                user_base.update_user_groups(user.id, self.tool.get_groupes_as_list(user))
+                user_base.update_user(user.id, self.tool.get_groupes_as_list(user), self.tool.get_filiere_as_filiere(user))
         await ctx.send("Les membres du serveur ont été ajoutée et mit à jour.", ephemeral=True)
 
     @slash_command(name="help", description="Affiche la page d'Aide.")
     async def help(self, ctx: SlashContext) -> None:
         """Affiche le Contenu de HELP.md."""
-        with open("HELP.md", "r", encoding="utf-8") as f:
+        with open("data/HELP.md", "r", encoding="utf-8") as f:
             help_file = f.read()
 
         embed = Embed(description=help_file, footer=EmbedFooter(
