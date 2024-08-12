@@ -5,7 +5,7 @@ from Generator import get_embeds, get_ics
 from UserBase import get_user_base
 from Calendar import get_calendar
 from Filter import *
-from Enums import RoleEnum
+from Enums import RoleEnum, Group
 
 from datetime import datetime, date, timedelta
 from enum import Enum
@@ -61,7 +61,7 @@ class Tool:
             return get_user_base().get_user(author.id).filiere
         return Filiere.UKNW
 
-    def get_groupes(self, author: User | Member) -> GroupFilter:
+    def get_groupes(self, author: User | Member) -> Filter | GroupFilter:
         """Fonction qui renvoie un filtre des groupes d'un utilisateur."""
         if self.is_guild_chan(author):
             out = [Group.CM]
@@ -69,13 +69,18 @@ class Tool:
                 for gr in Group:
                     if role.name == gr.value:
                         out.append(gr)
+            if out == [Group.CM]:
+                return Filter()
             return GroupFilter(out)
         elif get_user_base().has_user(author.id):
-            return GroupFilter(get_user_base().get_user(author.id).groups)
+            out = get_user_base().get_user(author.id).groups
+            if out == [Group.CM]:
+                return Filter()
+            return GroupFilter(out)
         else :
-            return GroupFilter([Group.CM])
+            return Filter()
 
-    def get_groupes_as_list(self, author: User | Member) -> list[Group]:
+    def get_groupes_as_list(self, author: User | Member) -> Filter | list[Group]:
         """Fonction qui renvoie la liste des groupes d'un utilisateur."""
         if self.is_guild_chan(author):
             out = [Group.CM]
@@ -83,11 +88,13 @@ class Tool:
                 for gr in Group:
                     if role.name == gr.value:
                         out.append(gr)
+            if out == [Group.CM]:
+                return Filter()
             return out
         elif get_user_base().has_user(author.id):
             return get_user_base().get_user(author.id).groups
         else :
-            return [Group.CM]
+            return Filter()
 
     def is_guild_chan(self, author: User | Member) -> bool:
         """Permet de savoir si l'auteur est un member (si l'action a été fait dans un serveur ou en MP)."""
@@ -120,13 +127,12 @@ class Tool:
 
             date_formater = datetime.strptime(jour, "%d-%m-%Y").date()
 
-            events: list[Event] = []
-            if int(author.id) == int(os.getenv("BOT_ID")):
-                events = filter_events(get_calendar().get_events(), [TimeFilter(date_formater, Timing.DURING)])
-            else:
-                events = filter_events(get_calendar().get_events(),
-                                       [TimeFilter(date_formater, Timing.DURING), self.get_filiere(author),
-                                        self.get_groupes(author)])
+            filiere = self.get_filiere(author)
+            groupe = self.get_groupes(author)
+
+            events: list[Event] = filter_events(get_calendar().get_events(),
+                                       [TimeFilter(date_formater, Timing.DURING), filiere,
+                                        groupe])
             embeds = get_embeds(events, author, date_formater)
 
             precedent = Button(
@@ -169,11 +175,7 @@ class Tool:
             days_since_monday = date_formater.weekday()
             monday_date = date_formater - timedelta(days=days_since_monday)
             sunday_date = monday_date + timedelta(days=6)
-            events: list[Event] = []
-            if int(author.id) == int(os.getenv("BOT_ID")):
-                events = filter_events(get_calendar().get_events(),[TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE)])
-            else:
-                events = filter_events(get_calendar().get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), self.get_filiere(author), self.get_groupes(author)])
+            events: list[Event] = filter_events(get_calendar().get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), self.get_filiere(author), self.get_groupes(author)])
 
             embeds = get_embeds(events, author, monday_date, sunday_date)
 

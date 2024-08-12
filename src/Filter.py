@@ -45,8 +45,10 @@ class FiliereFilter(Filter):
         """Permet de savoir si l'Event passe le filtre."""
         if self.filiere == Filiere.INGE:
             return e.isINGE
-        else:
+        elif self.filiere == Filiere.MIAGE:
             return e.isMIAGE
+        else:
+            return True
 
 
 class GroupFilter(Filter):
