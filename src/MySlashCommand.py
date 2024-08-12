@@ -2,7 +2,7 @@ from interactions import Client, slash_command, SlashContext, OptionType, slash_
 from datetime import datetime, date, timedelta
 import os
 
-from Generator import get_ics, get_embeds
+from TrainWreck import get_ics, get_embeds
 from Enums import Subscription, RoleEnum, colors
 from UserBase import get_user_base
 from Calendar import get_calendar

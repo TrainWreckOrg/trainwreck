@@ -109,6 +109,7 @@ def dump_user_base(user_base: UserBase):
 # exécuter la commande /userscan,
 # puis arrêter le bot,
 # ensuite inverser les commentaires.
+
 # user_base : UserBase = UserBase({}, set(), set())
 
 def get_user_base() -> UserBase:

@@ -1,7 +1,7 @@
 from interactions import Client, ActionRow, Button, ButtonStyle, SlashContext, Guild, Role, Embed, User, Member, \
     ModalContext, ContextMenuContext, ComponentContext
 
-from Generator import get_embeds, get_ics
+from TrainWreck import get_embeds, get_ics
 from UserBase import get_user_base
 from Calendar import get_calendar
 from Filter import *
