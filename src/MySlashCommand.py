@@ -123,7 +123,7 @@ class MySlashCommand(Extension):
         try:
             date_debut = datetime.strptime(debut, "%d-%m-%Y").date()
             date_fin = datetime.strptime(fin, "%d-%m-%Y").date()
-            filename = f"output/{ctx.author.display_name}"
+            filename = f"output/{ctx.author.id}"
             get_ics(filter_events(get_calendar().get_events(),
                                   [TimeFilter(date_debut, Timing.AFTER), TimeFilter(date_fin, Timing.BEFORE),
                                    self.tool.get_filiere(ctx.author), self.tool.get_groupes(ctx.author)]),

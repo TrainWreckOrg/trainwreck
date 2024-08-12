@@ -6,6 +6,7 @@ from Filter import Filter, TimeFilter, filter_events
 from Enums import url, Timing
 from Event import *
 
+import os
 
 class Calendar:
     """Classe utilisée pour stocker une liste d'objet Event."""
@@ -39,6 +40,9 @@ class Calendar:
         output = {}
         filenameINGE = "data/INGE.ics"
         filenameMIAGE = "data/MIAGE.ics"
+        
+        if not (os.path.exists(filenameINGE) and os.path.exists(filenameMIAGE)):
+            update = True
 
         if update:
             self.fetch_calendar(url["INGE"], filenameINGE)
@@ -93,11 +97,11 @@ class Calendar:
         # Exam list.
 
         exams = [
-            Event(
-            start=datetime(day=3, month=6, year=2024, hour=13, minute=30, second=0, microsecond=0, tzinfo=timezone("Europe/Paris")),
-            end=datetime(day=3, month=6, year=2024, hour=13, minute=30, second=0, microsecond=0, tzinfo=timezone("Europe/Paris")),
-            subject="Exam Anglais", group=Group.CM, location="S103", teacher="Anne-Cécile Alzy", isINGE=True, isMIAGE=True, uid="EXAM01",
-            isEXAM=True)
+            # Event(
+            # start=datetime(day=3, month=6, year=2024, hour=13, minute=30, second=0, microsecond=0, tzinfo=timezone("Europe/Paris")),
+            # end=datetime(day=3, month=6, year=2024, hour=13, minute=30, second=0, microsecond=0, tzinfo=timezone("Europe/Paris")),
+            # subject="Exam Anglais", group=Group.CM, location="S103", teacher="Anne-Cécile Alzy", isINGE=True, isMIAGE=True, uid="EXAM01",
+            # isEXAM=True)
         ]
 
         self.exams_list = exams
@@ -115,8 +119,6 @@ class Calendar:
         """Retourne la liste des exams."""
         return self.exams_list
 
-
-calendar: Calendar
 
 
 def changed_events(old: Calendar, new: Calendar, filters: list[Filter] = [TimeFilter(date.today(), Timing.AFTER), TimeFilter((date.today() + timedelta(days=14)), Timing.BEFORE)]):
@@ -151,6 +153,7 @@ def changed_events(old: Calendar, new: Calendar, filters: list[Filter] = [TimeFi
     
     return sup, add, mod
 
+calendar: Calendar = None
 
 def get_calendar() -> Calendar:
     """Permet d'obtenir l'objet Calendar."""
