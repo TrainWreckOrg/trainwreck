@@ -38,10 +38,10 @@ class Onboard(Extension):
             return
 
         if ctx.custom_id == "inge":
-            await ctx.author.add_role(self.tool.get_roles()[Filiere.INGE])
+            await ctx.author.add_role(self.tool.get_roles(ctx.guild)[Filiere.INGE])
 
         elif ctx.custom_id == "miage":
-            await ctx.author.add_role(self.tool.get_roles()[Filiere.MIAGE])
+            await ctx.author.add_role(self.tool.get_roles(ctx.guild)[Filiere.MIAGE])
         await self.onboard(ctx, edit=True)
 
     @component_callback(re.compile("^td[1|2][I|M]$"))
@@ -54,14 +54,14 @@ class Onboard(Extension):
                 return
 
         if ctx.custom_id == "td1I":
-            await ctx.author.add_role(self.tool.get_roles()[Group.TD1I])
+            await ctx.author.add_role(self.tool.get_roles(ctx.guild)[Group.TD1I])
         elif ctx.custom_id == "td2I":
-            await ctx.author.add_role(self.tool.get_roles()[Group.TD2I])
+            await ctx.author.add_role(self.tool.get_roles(ctx.guild)[Group.TD2I])
 
         elif ctx.custom_id == "td1M":
-            await ctx.author.add_role(self.tool.get_roles()[Group.TD1M])
+            await ctx.author.add_role(self.tool.get_roles(ctx.guild)[Group.TD1M])
         elif ctx.custom_id == "td2M":
-            await ctx.author.add_role(self.tool.get_roles()[Group.TD2M])
+            await ctx.author.add_role(self.tool.get_roles(ctx.guild)[Group.TD2M])
         await self.onboard(ctx, edit=True)
 
     @component_callback(re.compile("tp"))
@@ -74,20 +74,20 @@ class Onboard(Extension):
                 return
 
         if ctx.custom_id == "tpaI":
-            await ctx.author.add_role(self.tool.get_roles()[Group.TPAI])
+            await ctx.author.add_role(self.tool.get_roles(ctx.guild)[Group.TPAI])
         elif ctx.custom_id == "tpbI":
-            await ctx.author.add_role(self.tool.get_roles()[Group.TPBI])
+            await ctx.author.add_role(self.tool.get_roles(ctx.guild)[Group.TPBI])
         elif ctx.custom_id == "tpcI":
-            await ctx.author.add_role(self.tool.get_roles()[Group.TPCI])
+            await ctx.author.add_role(self.tool.get_roles(ctx.guild)[Group.TPCI])
         elif ctx.custom_id == "tpdI":
-            await ctx.author.add_role(self.tool.get_roles()[Group.TPDI])
+            await ctx.author.add_role(self.tool.get_roles(ctx.guild)[Group.TPDI])
 
         elif ctx.custom_id == "tp1M":
-            await ctx.author.add_role(self.tool.get_roles()[Group.TP1M])
+            await ctx.author.add_role(self.tool.get_roles(ctx.guild)[Group.TP1M])
         elif ctx.custom_id == "tp2M":
-            await ctx.author.add_role(self.tool.get_roles()[Group.TP2M])
+            await ctx.author.add_role(self.tool.get_roles(ctx.guild)[Group.TP2M])
         elif ctx.custom_id == "tp3M":
-            await ctx.author.add_role(self.tool.get_roles()[Group.TP3M])
+            await ctx.author.add_role(self.tool.get_roles(ctx.guild)[Group.TP3M])
         await self.onboard(ctx, edit=True)
 
     @component_callback(re.compile("^td[1|2|3][I|M]A$"))
@@ -99,18 +99,18 @@ class Onboard(Extension):
                 await ctx.edit_origin(embed=Embed(title="Vous ne pouvez pas avoir plusieurs rôles de la même catégorie."), components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
                 return
         if ctx.custom_id == "td1IA":
-            await ctx.author.add_roles([self.tool.get_roles()[Group.TDA1I], self.tool.get_roles()[RoleEnum.ONBOARDED]])
+            await ctx.author.add_roles([self.tool.get_roles(ctx.guild)[Group.TDA1I], self.tool.get_roles(ctx.guild)[RoleEnum.ONBOARDED]])
         elif ctx.custom_id == "td2IA":
-            await ctx.author.add_roles([self.tool.get_roles()[Group.TDA2I], self.tool.get_roles()[RoleEnum.ONBOARDED]])
+            await ctx.author.add_roles([self.tool.get_roles(ctx.guild)[Group.TDA2I], self.tool.get_roles(ctx.guild)[RoleEnum.ONBOARDED]])
         elif ctx.custom_id == "td3IA":
-            await ctx.author.add_roles([self.tool.get_roles()[Group.TDA3I], self.tool.get_roles()[RoleEnum.ONBOARDED]])
+            await ctx.author.add_roles([self.tool.get_roles(ctx.guild)[Group.TDA3I], self.tool.get_roles(ctx.guild)[RoleEnum.ONBOARDED]])
 
         elif ctx.custom_id == "td1MA":
-            await ctx.author.add_roles([self.tool.get_roles()[Group.TDA1M], self.tool.get_roles()[RoleEnum.ONBOARDED]])
+            await ctx.author.add_roles([self.tool.get_roles(ctx.guild)[Group.TDA1M], self.tool.get_roles(ctx.guild)[RoleEnum.ONBOARDED]])
         elif ctx.custom_id == "td2MA":
-            await ctx.author.add_roles([self.tool.get_roles()[Group.TDA2M], self.tool.get_roles()[RoleEnum.ONBOARDED]])
+            await ctx.author.add_roles([self.tool.get_roles(ctx.guild)[Group.TDA2M], self.tool.get_roles(ctx.guild)[RoleEnum.ONBOARDED]])
         elif ctx.custom_id == "td3MA":
-            await ctx.author.add_roles([self.tool.get_roles()[Group.TDA3M], self.tool.get_roles()[RoleEnum.ONBOARDED]])
+            await ctx.author.add_roles([self.tool.get_roles(ctx.guild)[Group.TDA3M], self.tool.get_roles(ctx.guild)[RoleEnum.ONBOARDED]])
         await self.onboard(ctx, edit=True)
 
     async def onboard(self, ctx: SlashContext | ComponentContext, edit: bool = False) -> None:

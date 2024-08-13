@@ -11,7 +11,7 @@ class MyTask(Extension):
     """Classe contenant les Tasks."""
     def __init__(self, bot: Client):
         self.bot = bot
-        self.ping_chan = bot.get_channel(os.getenv("PING_CHAN"))
+        self.ping_chan = bot.get_channel(os.getenv("PING_CHANGE_CHANNEL_ID"))
         self.tool = get_tool(bot)
 
     @Task.create(OrTrigger(
@@ -36,24 +36,26 @@ class MyTask(Extension):
         sup, add, mod = changed_events(old_calendar, new_calendar)
         embeds: list[Embed] = []
 
+        serveur = self.bot.user.guilds[0]
+
         if len(sup) > 0:
             descstr = ""
             for event in sup:
-                descstr += f"- {self.tool.ping_liste(event)} {str(event)}\n"
+                descstr += f"- {self.tool.ping_liste(event, serveur)} {str(event)}\n"
             embeds.append(Embed(title="Événements supprimés :", description=descstr, color=0xEd4245))
 
         if len(add) > 0:
             descstr = ""
             for event in add:
-                descstr += f"- {self.tool.ping_liste(event)} {str(event)}\n"
+                descstr += f"- {self.tool.ping_liste(event, serveur)} {str(event)}\n"
             embeds.append(Embed(title="Événements ajoutés :", description=descstr, color=0x57f287))
 
         if len(mod) > 0:
             descstr = ""
             for (old, new) in mod:
-                ping = self.tool.ping_liste(old)
+                ping = self.tool.ping_liste(old, serveur)
                 if old.group != new.group:
-                    ping += f" {self.tool.ping_liste(new)}"
+                    ping += f" {self.tool.ping_liste(new, serveur)}"
                 descstr += f"- {ping} {str(old)} → {str(new)}\n"
             embeds.append(Embed(title="Événements modifiés :", description=descstr, color=0x5865f2))
 

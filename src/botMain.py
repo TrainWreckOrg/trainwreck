@@ -5,7 +5,6 @@ import os
 
 
 # Charge le fichier env
-load_dotenv("cle.env")
 load_dotenv("keys.env")
 
 # Init https://sentry.io/
