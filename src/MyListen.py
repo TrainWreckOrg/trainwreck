@@ -32,11 +32,11 @@ class MyListen(Extension):
             \u001b[0m\u001b[2;34m/_/ /_/   \\__,_/_/_/ /_/  |__/|__/_/   \\___/\\___/_/|_|(_)\u001b[0m
             """
         )
-        print(f"Ready\nThis bot is owned by {self.bot.owner}")
         await self.bot.synchronise_interactions()
         MyTask.daily_morning_update.start()
         MyTask.update_calendar.start()
         await MyTask.update_calendar()
+        print(f"Ready\nThis bot is owned by {self.bot.owner}")
 
     @component_callback(re.compile("day|week"))
     async def on_component(self, ctx: ComponentContext) -> None:

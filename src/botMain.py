@@ -1,4 +1,6 @@
-from interactions import Client, Intents
+import datetime
+
+from interactions import Client, Intents, SlashContext, ModalContext, ContextMenuContext, ComponentContext
 from dotenv import load_dotenv
 import sentry_sdk
 import os
@@ -30,5 +32,13 @@ bot.load_extension("MyListen")
 bot.load_extension("MyContextMenus")
 bot.load_extension("MySlashCommand")
 bot.load_extension("Onboard")
+
+
+async def log(ctx: SlashContext | ModalContext | ContextMenuContext | ComponentContext, **kwargs):
+    await bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(f"{ctx.author.display_name} ({ctx.author.id}) à utilise {ctx.command.name} {kwargs}, le {datetime.datetime.now()}")
+
+
+bot.pre_run_callback = log
+
 
 bot.start()
