@@ -1,17 +1,19 @@
 from interactions import Client, Task, TimeTrigger, OrTrigger, Embed, Extension
 from datetime import datetime
+from dotenv import load_dotenv
 import os
 
 from Calendar import Calendar, changed_events
 from UserBase import get_user_base
 from Tool import get_tool
 
+load_dotenv("keys.env")
+
 
 class MyTask(Extension):
     """Classe contenant les Tasks."""
     def __init__(self, bot: Client):
         self.bot = bot
-        self.ping_chan = bot.get_channel(os.getenv("PING_CHANGE_CHANNEL_ID"))
         self.tool = get_tool(bot)
 
     @Task.create(OrTrigger(
@@ -60,7 +62,8 @@ class MyTask(Extension):
             embeds.append(Embed(title="Événements modifiés :", description=descstr, color=0x5865f2))
 
         if len(embeds):
-            await self.ping_chan.send(embeds=embeds, ephemeral=False)
+            ping_chan = self.bot.get_channel(os.getenv("PING_CHANGE_CHANNEL_ID"))
+            await ping_chan.send(embeds=embeds, ephemeral=False)
 
     @Task.create(TimeTrigger(hour=6, minute=0, utc=False))
     async def daily_morning_update(self) -> None:

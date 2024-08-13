@@ -1,5 +1,6 @@
 from interactions import Client, listen, Extension, component_callback, Embed, ComponentContext
 from interactions.api.events import MemberUpdate, Error
+from dotenv import load_dotenv
 from datetime import datetime
 import os
 import re
@@ -8,6 +9,8 @@ from UserBase import get_user_base
 from MyTask import MyTask
 from Tool import get_tool
 from Enums import RoleEnum, Filiere, Group
+
+load_dotenv("keys.env")
 
 
 class MyListen(Extension):
