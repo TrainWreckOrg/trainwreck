@@ -16,26 +16,6 @@ class MySlashCommand(Extension):
         self.bot = bot
         self.tool = get_tool(bot)
 
-    @slash_command(name="wipe", description="Enlève tout les rôles.")
-    async def wipe(self, ctx: SlashContext) -> None:
-        """Fonction qui permet d'enlever tous les attribués"""
-        await ctx.send("La commande est shunté pour des raisons de sécurité.", ephemeral=False)
-        return
-        for user in ctx.guild.members:
-            for filiere in Filiere:
-                if filiere in [Filiere.UKNW]:
-                    continue
-                if user.has_role(self.tool.get_roles()[filiere]):
-                    print(user.display_name, " supp ", filiere)
-                    #await user.remove_role(self.tool.get_roles()[filiere])
-            for group in Group:
-                if group in [Group.CM, Group.UKNW]:
-                    continue
-                if user.has_role(self.tool.get_roles()[group]):
-                    print(user.display_name, " supp ", group)
-                    #await user.remove_role(self.tool.get_roles()[group])
-        await ctx.send("Les membres du serveur n'ont plus de rôle.", ephemeral=False)
-
     @slash_command(name="get_day", description="Envoie votre EDT pour un jour donné. Si une personne est donnée, donne le sien.")
     @slash_option(
         name="jour",
