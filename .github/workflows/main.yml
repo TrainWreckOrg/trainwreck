@@ -25,13 +25,30 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-  
-      - name: Check network configuration
+
+      - name: DNS Resolution Test
         run: |
-          ip addr show
-          ip route
-          cat /etc/resolv.conf
+          nslookup ${{ secrets.DEPLOY_WEBHOOK_URL  }}
+          dig ${{ secrets.DEPLOY_WEBHOOK_URL  }}
   
+      - name: Traceroute to Hostname
+        run: traceroute ${{ secrets.DEPLOY_WEBHOOK_URL  }}
+  
+      - name: Test Curl to Hostname
+        run: curl -v ${{ secrets.DEPLOY_WEBHOOK_URL  }}
+  
+      - name: Test Curl to Google
+        run: curl -v https://www.google.com
+  
+      - name: Show Network Interfaces
+        run: ip addr show
+  
+      - name: Show Routing Table
+        run: ip route show
+  
+      - name: Show DNS Configuration
+        run: cat /etc/resolv.conf
+        
       - name: Test curl command
         run: |
           curl -v ${{ secrets.DEPLOY_WEBHOOK_URL  }}
