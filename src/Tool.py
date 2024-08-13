@@ -200,7 +200,7 @@ class Tool:
         """Permet d'envoyer les EDT automatiquement pour le jour."""
         events = filter_events(get_calendar().get_events(), [TimeFilter(date.today(), Timing.DURING), self.get_filiere(user), self.get_groupes(user)] )
         embeds = get_embeds(events, user, date.today())
-        filename = f"output/{user.id}"
+        filename = str(user.id)
         ics_file = get_ics(events, filename=filename)
         await user.send(":warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, files=[f"{filename}.ics"], ephemeral=False)
         os.remove(f"{filename}.ics")
@@ -210,7 +210,7 @@ class Tool:
         days_since_monday = date.today().weekday()
         monday_date = date.today() - timedelta(days=days_since_monday)
         sunday_date = monday_date + timedelta(days=6)
-        filename = f"output/{user.id}"
+        filename = str(user.id)
 
         events = filter_events (get_calendar().get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), self.get_filiere(user), self.get_groupes(user)])
         ics_file = get_ics(events, filename=filename)

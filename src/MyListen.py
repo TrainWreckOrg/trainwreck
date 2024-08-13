@@ -7,7 +7,7 @@ import re
 from UserBase import get_user_base
 from MyTask import MyTask
 from Tool import get_tool
-from Enums import RoleEnum
+from Enums import RoleEnum, Filiere, Group
 
 
 class MyListen(Extension):
@@ -75,3 +75,18 @@ class MyListen(Extension):
                 f" - role member :  {error.ctx.member.roles}```"
         )
         await error.ctx.send(embed=Embed("Une erreur est survenu, les admins sont prévenu."), ephemeral=True)
+
+    @component_callback(re.compile("delete-role"))
+    async def wipe_bt(self, ctx: ComponentContext):
+        for user in ctx.guild.members:
+            for filiere in Filiere:
+                if filiere in [Filiere.UKNW]:
+                    continue
+                if user.has_role(self.tool.get_roles()[filiere]):
+                    await user.remove_role(self.tool.get_roles()[filiere])
+            for group in Group:
+                if group in [Group.CM, Group.UKNW]:
+                    continue
+                if user.has_role(self.tool.get_roles()[group]):
+                    await user.remove_role(self.tool.get_roles()[group])
+        await ctx.send("Les membres du serveur n'ont plus de rôle.", ephemeral=False)
