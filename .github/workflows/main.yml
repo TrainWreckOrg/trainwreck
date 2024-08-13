@@ -25,4 +25,4 @@ jobs:
     steps:
       - name: Deploy docker container webhook
         run: |
-          curl -n "${{ secrets.DEPLOY_WEBHOOK_URL  }}"
+          curl "${{ secrets.DEPLOY_WEBHOOK_URL  }}"
