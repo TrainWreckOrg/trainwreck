@@ -25,29 +25,24 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
-      - name: DNS Resolution Test
-        run: |
-          nslookup ${{ secrets.DEPLOY_WEBHOOK_URL  }}
-          dig ${{ secrets.DEPLOY_WEBHOOK_URL  }}
-  
-      - name: Traceroute to Hostname
-        run: traceroute ${{ secrets.DEPLOY_WEBHOOK_URL  }}
-  
-      - name: Test Curl to Hostname
-        run: curl -v ${{ secrets.DEPLOY_WEBHOOK_URL  }}
-  
-      - name: Test Curl to Google
-        run: curl -v https://www.google.com
-  
-      - name: Show Network Interfaces
-        run: ip addr show
-  
-      - name: Show Routing Table
-        run: ip route show
   
       - name: Show DNS Configuration
         run: cat /etc/resolv.conf
+  
+      - name: Test DNS Resolution for Known Domain
+        run: |
+          nslookup google.com
+          dig google.com
+  
+      - name: Test DNS with Google DNS
+        run: |
+          nslookup ${{ secrets.DEPLOY_WEBHOOK_URL  }} 8.8.8.8
+          dig @8.8.8.8 ${{ secrets.DEPLOY_WEBHOOK_URL  }}
+  
+      - name: Test DNS with Cloudflare DNS
+        run: |
+          nslookup ${{ secrets.DEPLOY_WEBHOOK_URL  }} 1.1.1.1
+          dig @1.1.1.1 ${{ secrets.DEPLOY_WEBHOOK_URL  }}
         
       - name: Test curl command
         run: |
