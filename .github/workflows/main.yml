@@ -23,6 +23,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: [docker]
     steps:
-      - name: Deploy docker container webhook
+      - name: Checkout code
+        uses: actions/checkout@v2
+  
+      - name: Check network configuration
         run: |
-          curl ${{ secrets.DEPLOY_WEBHOOK_URL  }}
+          ip addr show
+          ip route
+          cat /etc/resolv.conf
+  
+      - name: Test curl command
+        run: |
+          curl -v ${{ secrets.DEPLOY_WEBHOOK_URL  }}
