@@ -116,3 +116,8 @@ def get_user_base() -> UserBase:
     global user_base
     user_base = load_user_base()
     return user_base
+
+def nuke():
+    global user_base
+    user_base = UserBase({}, set(), set())
+    dump_user_base(user_base)
