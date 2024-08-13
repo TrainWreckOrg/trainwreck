@@ -1,5 +1,6 @@
 from interactions import Client, listen, Extension, component_callback, Embed, ComponentContext
 from interactions.api.events import MemberUpdate, Error
+from dotenv import load_dotenv
 from datetime import datetime
 import os
 import re
@@ -8,6 +9,8 @@ from UserBase import get_user_base
 from MyTask import MyTask
 from Tool import get_tool
 from Enums import RoleEnum, Filiere, Group
+
+load_dotenv("keys.env")
 
 
 class MyListen(Extension):
@@ -61,8 +64,8 @@ class MyListen(Extension):
     @listen(Error)
     async def on_error(self, error: Error) -> None:
         """Permet de faire la gestion des erreurs pour l'ensemble du bot, envoie un message aux admins et prévient l'utilisateur de l'erreur."""
-        await self.bot.get_channel(os.getenv("CHANNEL_ID")).send(
-            f"{(self.tool.get_roles()[RoleEnum.ERREUR]).mention}"
+        await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(
+            f"{(self.tool.get_roles(error.ctx.guild)[RoleEnum.ADMIN]).mention}"
             f"```ERREUR dans : {error.source} - {datetime.now()}\n"
             f"Erreur de type : {type(error.error)}\n"
             f"Argument de l'erreur : {error.error.args}\n"
@@ -82,11 +85,11 @@ class MyListen(Extension):
             for filiere in Filiere:
                 if filiere in [Filiere.UKNW]:
                     continue
-                if user.has_role(self.tool.get_roles()[filiere]):
-                    await user.remove_role(self.tool.get_roles()[filiere])
+                if user.has_role(self.tool.get_roles(ctx.guild)[filiere]):
+                    await user.remove_role(self.tool.get_roles(ctx.guild)[filiere])
             for group in Group:
                 if group in [Group.CM, Group.UKNW]:
                     continue
-                if user.has_role(self.tool.get_roles()[group]):
-                    await user.remove_role(self.tool.get_roles()[group])
+                if user.has_role(self.tool.get_roles(ctx.guild)[group]):
+                    await user.remove_role(self.tool.get_roles(ctx.guild)[group])
         await ctx.send("Les membres du serveur n'ont plus de rôle.", ephemeral=False)

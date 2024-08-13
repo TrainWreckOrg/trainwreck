@@ -16,33 +16,34 @@ class Tool:
     """Classe regroupant plusieurs méthodes utiles."""
     def __init__(self, bot: Client):
         self.bot = bot
-        self.roles: dict[Enum:Role] = {}
+        self.roles: dict[int,dict[Enum:Role]] = {}
 
-    def get_roles(self) -> dict[Enum:Role]:
+    def get_roles(self, guild: Guild) -> dict[Enum:Role]:
         """Permet d'obtenir le dictionnaire des Role discord associé aux Enum."""
-        if self.roles == {}:
-            serveur: Guild = self.bot.get_guild(os.getenv("SERVEUR_ID"))
-            for role in serveur.roles:
+        if self.roles.get(int(guild.id)) is None:
+            self.roles[int(guild.id)] = {}
+            for role in guild.roles:
                 if role.name in Group:
                     for groupe in Group:
                         if groupe.value == role.name:
-                            self.roles[groupe] = role
+                            self.roles[int(guild.id)][groupe] = role
                 if role.name in Filiere:
                     for filiere in Filiere:
                         if filiere.value == role.name:
-                            self.roles[filiere] = role
+                            self.roles[int(guild.id)][filiere] = role
                 if role.name in RoleEnum:
                     for roleEnum in RoleEnum:
                         if roleEnum.value == role.name:
-                            self.roles[roleEnum] = role
-        return self.roles
+                            self.roles[int(guild.id)][roleEnum] = role
+        return self.roles.get(int(guild.id))
+
 
     def get_filiere_as_filiere(self, author: User | Member) -> Filiere:
         """Fonction qui permet d'avoir la filière d'un utilisateur, renvoie UKNW si pas définie."""
         if self.is_guild_chan(author):
-            if author.has_role(self.get_roles()[Filiere.INGE]):
+            if author.has_role(self.get_roles(author.guild)[Filiere.INGE]):
                 return Filiere.INGE
-            if author.has_role(self.get_roles()[Filiere.MIAGE]):
+            if author.has_role(self.get_roles(author.guild)[Filiere.MIAGE]):
                 return Filiere.MIAGE
         elif get_user_base().has_user(author.id):
             return get_user_base().get_user(author.id).filiere
@@ -93,9 +94,9 @@ class Tool:
         """Permet de créer un Embed d'erreur."""
         return Embed(":warning: Erreur: ", message, colors[0])
 
-    def ping_liste(self, event: Event) -> str:
+    def ping_liste(self, event: Event, guild: Guild) -> str:
         """Permet d'avoir une liste de mention pour un Event."""
-        roles = self.get_roles()
+        roles = self.get_roles(guild)
         if event.group == Group.CM:
             if event.isINGE and event.isMIAGE:
                 return f"{roles[Filiere.INGE].mention} {roles[Filiere.MIAGE].mention}"

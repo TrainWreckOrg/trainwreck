@@ -3,7 +3,7 @@ import os
 
 from enum import Enum
 
-load_dotenv("cle.env")
+load_dotenv("keys.env")
 
 # URL utilisée pour fetch les EDT de chaque filière.
 url = {
@@ -80,8 +80,6 @@ class RoleEnum(Enum):
     """Représent les différents rôles du discord qui ne sont pas en lien avec l'EDT."""
     ADMIN = "Admin"
     MODO = "Modérateur"
-    ERREUR = "Erreur"
-    BOT = "BOT"
     EDTBOT = "EDT Bot"
     EDTTEST = "EDT TEST"
     ONBOARDED = "onboarded"
