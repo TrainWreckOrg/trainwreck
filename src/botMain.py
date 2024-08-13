@@ -35,7 +35,12 @@ bot.load_extension("Onboard")
 
 
 async def log(ctx: SlashContext | ModalContext | ContextMenuContext | ComponentContext, **kwargs):
-    await bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(f"{ctx.author.display_name} ({ctx.author.id}) à utilise {ctx.command.name} {kwargs}, le {datetime.datetime.now()}")
+    if isinstance(ctx, ComponentContext):
+        ctx_bt : ComponentContext = ctx
+        await bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(
+            f"{ctx.author.display_name} ({ctx.author.id}) à utilise {ctx_bt.custom_id} {kwargs}, le {datetime.datetime.now()}")
+    else:
+        await bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(f"{ctx.author.display_name} ({ctx.author.id}) à utilise {ctx.command.name} {kwargs}, le {datetime.datetime.now()}")
 
 
 bot.pre_run_callback = log
