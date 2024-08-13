@@ -5,7 +5,7 @@ import os
 
 from TrainWreck import get_ics, get_embeds
 from Enums import Subscription, RoleEnum, colors
-from UserBase import get_user_base
+from UserBase import get_user_base, nuke
 from Calendar import get_calendar
 from Tool import get_tool
 from Filter import *
@@ -75,6 +75,7 @@ class MySlashCommand(Extension):
     @contexts(guild=True, bot_dm=False)
     async def userscan(self, ctx: SlashContext) -> None:
         """Permet de scanner tous les membres du serveur et de mettre à jour la BD."""
+        nuke()
         user_base = get_user_base()
         for user in ctx.guild.members:
             if not user_base.has_user(user.id):
