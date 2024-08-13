@@ -1,4 +1,5 @@
-from interactions import Client, slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Permissions, Embed, EmbedFooter, User, contexts, Extension, Button, ButtonStyle, ActionRow
+from interactions import Client, slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Permissions, \
+    Embed, EmbedFooter, User, contexts, Extension, Button, ButtonStyle, ActionRow, ContextType
 from datetime import datetime, date, timedelta
 import os
 
@@ -16,7 +17,7 @@ class MySlashCommand(Extension):
         self.bot = bot
         self.tool = get_tool(bot)
 
-    @slash_command(name="wipe", description="Enlève tout les rôles.")
+    @slash_command(name="wipe", description="Enlève tout les rôles.", default_member_permissions=Permissions.ADMINISTRATOR, contexts=[ContextType.GUILD])
     async def wipe(self, ctx: SlashContext) -> None:
         """Fonction qui permet d'enlever tous les attribués"""
         await ctx.send(":warning: Vous êtes sur le point de supprimer les rôles est vous sûr", components=Button(style=ButtonStyle.BLURPLE, custom_id="delete-role", label="OUI"),  ephemeral=True)
