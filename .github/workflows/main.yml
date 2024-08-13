@@ -23,27 +23,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: [docker]
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-  
-      - name: Show DNS Configuration
-        run: cat /etc/resolv.conf
-  
-      - name: Test DNS Resolution for Known Domain
-        run: |
-          nslookup google.com
-          dig google.com
-  
-      - name: Test DNS with Google DNS
-        run: |
-          nslookup ${{ secrets.DEPLOY_WEBHOOK_URL  }} 8.8.8.8
-          dig @8.8.8.8 ${{ secrets.DEPLOY_WEBHOOK_URL  }}
-  
-      - name: Test DNS with Cloudflare DNS
-        run: |
-          nslookup ${{ secrets.DEPLOY_WEBHOOK_URL  }} 1.1.1.1
-          dig @1.1.1.1 ${{ secrets.DEPLOY_WEBHOOK_URL  }}
-        
       - name: Test curl command
         run: |
-          curl -v ${{ secrets.DEPLOY_WEBHOOK_URL  }}
+          curl -v -6 ${{ secrets.DEPLOY_WEBHOOK_URL  }}
