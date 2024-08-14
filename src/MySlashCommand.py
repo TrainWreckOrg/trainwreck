@@ -86,10 +86,17 @@ class MySlashCommand(Extension):
     @slash_command(name="nuke", description="Permet de nuke la BD.",
                    default_member_permissions=Permissions.ADMINISTRATOR)
     @contexts(guild=True, bot_dm=False)
-    async def userscan(self, ctx: SlashContext) -> None:
+    async def nuke(self, ctx: SlashContext) -> None:
         """Permet de scanner tous les membres du serveur et de mettre à jour la BD."""
         nuke()
         await ctx.send("La BD à été nuke.", ephemeral=True)
+
+    @slash_command(name="bd", description="Permet d'obtenir' BD.",
+                   default_member_permissions=Permissions.ADMINISTRATOR)
+    @contexts(guild=True, bot_dm=False)
+    async def bd(self, ctx: SlashContext) -> None:
+        """Permet de scanner tous les membres du serveur et de mettre à jour la BD."""
+        await ctx.send("Voici la BD.", file="data/UserBase.pkl", ephemeral=False)
 
     @slash_command(name="help", description="Affiche la page d'Aide.")
     async def help(self, ctx: SlashContext) -> None:
