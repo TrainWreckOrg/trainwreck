@@ -75,7 +75,6 @@ class MySlashCommand(Extension):
     @contexts(guild=True, bot_dm=False)
     async def userscan(self, ctx: SlashContext) -> None:
         """Permet de scanner tous les membres du serveur et de mettre à jour la BD."""
-        nuke()
         user_base = get_user_base()
         for user in ctx.guild.members:
             if not user_base.has_user(user.id):
@@ -83,6 +82,14 @@ class MySlashCommand(Extension):
             else:
                 user_base.update_user(user.id, self.tool.get_groupes_as_list(user), self.tool.get_filiere_as_filiere(user))
         await ctx.send("Les membres du serveur ont été ajoutée et mit à jour.", ephemeral=True)
+
+    @slash_command(name="nuke", description="Permet de nuke la BD.",
+                   default_member_permissions=Permissions.ADMINISTRATOR)
+    @contexts(guild=True, bot_dm=False)
+    async def userscan(self, ctx: SlashContext) -> None:
+        """Permet de scanner tous les membres du serveur et de mettre à jour la BD."""
+        nuke()
+        await ctx.send("La BD à été nuke.", ephemeral=True)
 
     @slash_command(name="help", description="Affiche la page d'Aide.")
     async def help(self, ctx: SlashContext) -> None:
