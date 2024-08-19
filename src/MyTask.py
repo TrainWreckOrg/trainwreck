@@ -1,3 +1,5 @@
+import asyncio
+
 from interactions import Client, Task, TimeTrigger, OrTrigger, Embed, Extension
 from datetime import datetime
 from dotenv import load_dotenv
@@ -73,7 +75,9 @@ class MyTask(Extension):
         if datetime.today().weekday() == 0:
             for id in user_base.weekly_subscribed_users:
                 await self.tool.send_weekly_update(self.bot.get_user(id))
+                await asyncio.sleep(1)  # Sinon ça fait une pile d'envoi et ça envoie un message plusieurs fois
         # Pour l'envoi quotidien.
         if datetime.today().weekday() <= 4:  # Si on est le week end
             for id in user_base.daily_subscribed_users:
                 await self.tool.send_daily_update(self.bot.get_user(id))
+                await asyncio.sleep(1) # Sinon ça fait une pile d'envoi et ça envoie un message plusieurs fois
