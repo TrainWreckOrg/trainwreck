@@ -36,6 +36,7 @@ class MyListen(Extension):
         MyTask.daily_morning_update.start()
         MyTask.update_calendar.start()
         await MyTask.update_calendar()
+        await MyTask.daily_morning_update()
         print(f"Ready\nThis bot is owned by {self.bot.owner}")
 
     @component_callback(re.compile("day|week"))
