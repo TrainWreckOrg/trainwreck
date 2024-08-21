@@ -1,3 +1,4 @@
+import sentry_sdk
 from interactions import Client, ActionRow, Button, ButtonStyle, SlashContext, Guild, Role, Embed, User, Member, \
     ModalContext, ContextMenuContext, ComponentContext
 
@@ -7,6 +8,7 @@ from Calendar import get_calendar
 from Filter import *
 from Enums import RoleEnum, Group, colors
 
+
 from datetime import datetime, date, timedelta
 from enum import Enum
 import os
@@ -15,8 +17,9 @@ import os
 class Tool:
     """Classe regroupant plusieurs méthodes utiles."""
     def __init__(self, bot: Client):
+        self.guild = None
         self.bot = bot
-        self.roles: dict[int,dict[Enum:Role]] = {}
+        self.roles: dict[int, dict[Enum:Role]] = {}
 
     def get_roles(self, guild: Guild) -> dict[Enum:Role]:
         """Permet d'obtenir le dictionnaire des Role discord associé aux Enum."""
@@ -93,6 +96,14 @@ class Tool:
     def create_error_embed(self, message: str) -> Embed:
         """Permet de créer un Embed d'erreur."""
         return Embed(":warning: Erreur: ", message, colors[0])
+
+    async def send_error(self, exception: BaseException) -> None:
+        """Permet de faire la gestion des erreurs pour l'ensemble du bot, envoie un message aux admins et prévient l'utilisateur de l'erreur."""
+        guild = self.bot.user.guilds[0]
+        print(exception)
+        sentry_sdk.capture_exception(exception)
+        await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(
+            f"{(self.get_roles(guild)[RoleEnum.ADMIN]).mention} {exception}")
 
     def ping_liste(self, event: Event, guild: Guild) -> str:
         """Permet d'avoir une liste de mention pour un Event."""
@@ -227,6 +238,9 @@ class Tool:
         os.remove(f"{filename}.ics")
 
 
+
+
+
 tool: Tool | None = None
 
 
@@ -235,4 +249,10 @@ def get_tool(bot : Client) -> Tool:
     global tool
     if tool is None:
         tool = Tool(bot)
+    return tool
+
+
+def get_tool_sans_bot() -> Tool | None:
+    """Permet d'obtenir un objet Tool."""
+    global tool
     return tool
