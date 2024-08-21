@@ -66,6 +66,7 @@ class Group(Enum):
     TDA1I   = "TD 1 Inge Anglais"
     TDA2I   = "TD 2 Inge Anglais"
     TDA3I   = "TD 3 Inge Anglais"
+    TDA4I   = "TD 4 Inge Anglais"
     TDA1M   = "TD 1 Miage Anglais"
     TDA2M   = "TD 2 Miage Anglais"
     TDA3M   = "TD 3 Miage Anglais"

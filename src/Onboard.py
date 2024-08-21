@@ -90,12 +90,12 @@ class Onboard(Extension):
             await ctx.author.add_role(self.tool.get_roles(ctx.guild)[Group.TP3M])
         await self.onboard(ctx, edit=True)
 
-    @component_callback(re.compile("^td[1|2|3][I|M]A$"))
+    @component_callback(re.compile("^td[1|2|3|4][I|M]A$"))
     async def return_td_anglais(self, ctx:ComponentContext) -> None:
         """Permet d'ajouter un rôle de TD Anglais en fonction du bouton cliqué."""
         # Si la personne à déjà un groupe de TD d'Anglais.
         for group in self.tool.get_groupes_as_list(ctx.author):
-            if group in [Group.TDA1I, Group.TDA2I, Group.TDA3I, Group.TDA1M, Group.TDA2M, Group.TDA3M]:
+            if group in [Group.TDA1I, Group.TDA2I, Group.TDA3I, Group.TDA4I, Group.TDA1M, Group.TDA2M, Group.TDA3M]:
                 await ctx.edit_origin(embed=Embed(title="Vous ne pouvez pas avoir plusieurs rôles de la même catégorie."), components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
                 return
         if ctx.custom_id == "td1IA":
@@ -104,6 +104,8 @@ class Onboard(Extension):
             await ctx.author.add_roles([self.tool.get_roles(ctx.guild)[Group.TDA2I], self.tool.get_roles(ctx.guild)[RoleEnum.ONBOARDED]])
         elif ctx.custom_id == "td3IA":
             await ctx.author.add_roles([self.tool.get_roles(ctx.guild)[Group.TDA3I], self.tool.get_roles(ctx.guild)[RoleEnum.ONBOARDED]])
+        elif ctx.custom_id == "td4IA":
+            await ctx.author.add_roles([self.tool.get_roles(ctx.guild)[Group.TDA4I], self.tool.get_roles(ctx.guild)[RoleEnum.ONBOARDED]])
 
         elif ctx.custom_id == "td1MA":
             await ctx.author.add_roles([self.tool.get_roles(ctx.guild)[Group.TDA1M], self.tool.get_roles(ctx.guild)[RoleEnum.ONBOARDED]])
@@ -123,7 +125,7 @@ class Onboard(Extension):
             return
         # Est-ce que la personne a déjà un groupe de TD d'Anglais.
         for group in groupe:
-            if group in [Group.TDA1I, Group.TDA2I, Group.TDA3I, Group.TDA1M, Group.TDA2M, Group.TDA3M]:
+            if group in [Group.TDA1I, Group.TDA2I, Group.TDA3I, Group.TDA4I, Group.TDA1M, Group.TDA2M, Group.TDA3M]:
                 if edit:
                     await ctx.edit_origin(embed=Embed(title="Vous avez déjà tout les rôles nécessaire"), components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
                 else:
@@ -193,9 +195,9 @@ class Onboard(Extension):
         else:
             await ctx.send("Une erreur est survenu", ephemeral=True)
             try:
-                raise ValueError("Filière inconnue")
+                raise ValueError("Onboard Filière inconnue dans ask_td")
             except BaseException as exception:
-                sentry_sdk.capture_exception(exception)
+                await self.tool.send_error(exception)
 
         if edit:
             await ctx.edit_origin(embed=embed, components=actionRow)
@@ -250,9 +252,9 @@ class Onboard(Extension):
         else:
             await ctx.send("Une erreur est survenu", ephemeral=True)
             try:
-                raise ValueError("Filière inconnue")
+                raise ValueError("Onboard Filière inconnue dans ask_tp")
             except BaseException as exception:
-                sentry_sdk.capture_exception(exception)
+                await self.tool.send_error(exception)
 
         if edit:
             await ctx.edit_origin(embed=embed, components=actionRow)
@@ -279,7 +281,12 @@ class Onboard(Extension):
                 custom_id="td3IA",
                 label="TD 3 Anglais"
             )
-            actionRow = ActionRow(TD1, TD2, TD3)
+            TD4 = Button(
+                style=ButtonStyle.BLURPLE,
+                custom_id="td4IA",
+                label="TD 4 Anglais"
+            )
+            actionRow = ActionRow(TD1, TD2, TD3, TD4)
         elif filiere == Filiere.MIAGE:
             TD1 = Button(
                 style=ButtonStyle.BLURPLE,
@@ -302,9 +309,9 @@ class Onboard(Extension):
         else:
             await ctx.send("Une erreur est survenu", ephemeral=True)
             try:
-                raise ValueError("Filière inconnue")
+                raise ValueError("Onboard Filière inconnue dans ask_td_anglais")
             except BaseException as exception:
-                sentry_sdk.capture_exception(exception)
+                await self.tool.send_error(exception)
 
         if edit:
             await ctx.edit_origin(embed=embed, components=actionRow)

@@ -30,8 +30,9 @@ class TimeFilter(Filter):
             case _:
                 # Ce cas ne devrait pas arriver et devrait être fix rapidement.
                 try:
-                    raise ValueError("Timing inconnue")
+                    raise ValueError("Timing inconnue dans la classe TimeFilter")
                 except BaseException as exception:
+                    print(exception)
                     sentry_sdk.capture_exception(exception)
                 return False
 
