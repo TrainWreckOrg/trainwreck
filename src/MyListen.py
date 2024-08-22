@@ -1,5 +1,5 @@
 from interactions import Client, listen, Extension, component_callback, Embed, ComponentContext
-from interactions.api.events import MemberUpdate, Error
+from interactions.api.events import MemberUpdate, Error, Startup
 from dotenv import load_dotenv
 from datetime import datetime
 import os
@@ -19,7 +19,7 @@ class MyListen(Extension):
         self.bot = bot
         self.tool = get_tool(bot)
 
-    @listen()
+    @listen(Startup)
     async def on_ready(self) -> None:
         """Méthode qui dit quand le bot est opérationnel au démarrage du programme,
         synchro les commandes, active les Task et lance la génération du calendrier."""
@@ -33,11 +33,15 @@ class MyListen(Extension):
             """
         )
         await self.bot.synchronise_interactions()
-        MyTask.daily_morning_update.start()
-        MyTask.update_calendar.start()
+        if not MyTask.daily_morning_update.running:
+            await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Démarrage de la task daily")
+            MyTask.daily_morning_update.start()
+        if not MyTask.update_calendar.running:
+            await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Démarrage de la task update")
+            MyTask.update_calendar.start()
         await MyTask.update_calendar()
         print(f"Ready\nThis bot is owned by {self.bot.owner}")
-        await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Démarrage du bot v1")
+        await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Démarrage du bot v2")
 
     @component_callback(re.compile("day|week"))
     async def on_component(self, ctx: ComponentContext) -> None:
