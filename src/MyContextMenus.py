@@ -1,6 +1,8 @@
+import os
+
 from interactions import Extension, Client, ContextMenuContext, user_context_menu, ModalContext
 from interactions import Modal, ShortText
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 from Tool import get_tool
 
@@ -46,7 +48,8 @@ class MyContextMenus(Extension):
         modal_ctx: ModalContext = await ctx.bot.wait_for_modal(my_modal)
 
         jour = modal_ctx.responses["date_user"]
-
+        await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(
+            f"{ctx.author.display_name} ({ctx.author.id}) à utilise {ctx.command.name} sur {ctx.target} ({ctx.target_id}) pour avoir le jour {jour}, le {datetime.now()}")
         await self.tool.get_day_bt(ctx=modal_ctx, jour=jour, modifier=False, personne=ctx.target)
 
     @user_context_menu(name="week_user")
@@ -68,5 +71,6 @@ class MyContextMenus(Extension):
         modal_ctx: ModalContext = await ctx.bot.wait_for_modal(my_modal)
 
         semaine = modal_ctx.responses["semaine_user"]
-
+        await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(
+            f"{ctx.author.display_name} ({ctx.author.id}) à utilise {ctx.command.name} sur {ctx.target} ({ctx.target_id}) pour avoir la semaine du {semaine}, le {datetime.now()}")
         await self.tool.get_week_bt(ctx=modal_ctx, semaine=semaine, modifier=False, personne=ctx.target)
