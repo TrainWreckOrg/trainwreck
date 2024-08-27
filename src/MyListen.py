@@ -34,10 +34,8 @@ class MyListen(Extension):
         )
         await self.bot.synchronise_interactions()
         if not MyTask.daily_morning_update.running:
-            await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Démarrage de la task daily")
             MyTask.daily_morning_update.start()
         if not MyTask.update_calendar.running:
-            await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Démarrage de la task update")
             MyTask.update_calendar.start()
         await MyTask.update_calendar()
         print(f"Ready\nThis bot is owned by {self.bot.owner}")

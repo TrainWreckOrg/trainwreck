@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, date
+from urllib.error import URLError
 from urllib.request import urlretrieve
 from pytz import timezone
 
@@ -24,7 +25,11 @@ class Calendar:
         Url : L'URL du fichier à télécharger.
         Filename : Chemin de la destination du fichier.
         """
-        urlretrieve(url, filename)
+        try:
+            urlretrieve(url, filename)
+        except URLError as exception:
+            print(exception)
+            sentry_sdk.capture_exception(exception)
 
     def convert_timestamp(self, input: str) -> datetime:
         """Permet de convertir les timestamp en ISO-8601, et les passer en UTC+2.

@@ -34,6 +34,7 @@ class MyTask(Extension):
         # sup :set[Event]         = set()
         # add :set[Event]         = set()
         # mod :set[(Event,Event)] = set()
+        await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Exécution de `update_calendar`")
         old_calendar = Calendar(False)
         new_calendar = Calendar(True)
 
@@ -60,7 +61,7 @@ class MyTask(Extension):
                 ping = self.tool.ping_liste(old, serveur)
                 if old.group != new.group:
                     ping += f" {self.tool.ping_liste(new, serveur)}"
-                descstr += f"- {ping} {old.str_day()} → {new.str_day()}\n"
+                descstr += f"- {ping} {old.str_day(new)} → {new.str_day(old)}\n"
             embeds.append(Embed(title="Événements modifiés :", description=descstr, color=0x5865f2))
 
         if len(embeds):
@@ -70,24 +71,13 @@ class MyTask(Extension):
     @Task.create(TimeTrigger(hour=6, minute=0, seconds=0, utc=False))
     async def daily_morning_update(self) -> None:
         """Permet d'envoyer les EDT automatiquement."""
-        with open("debug.txt", "a", encoding="UTF-8") as f:
-            f.write(f"début de la task {datetime.now()}\n\n")
+        await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Exécution de `daily_morning_update`")
         user_base = get_user_base()
         # Pour l'envoi hebdomadaire.
         if datetime.today().weekday() == 0:
             for id in user_base.weekly_subscribed_users:
-                with open("debug.txt", "a", encoding="UTF-8") as f:
-                    f.write(f"début for {id}\n")
                 await self.tool.send_weekly_update(self.bot.get_user(id))
-                with open("debug.txt", "a", encoding="UTF-8") as f:
-                    f.write(f"fin for {id}\n")
-                await asyncio.sleep(1)  # Sinon ça fait une pile d'envoi et ça envoie un message plusieurs fois
         # Pour l'envoi quotidien.
         if datetime.today().weekday() <= 4:  # Si on est le week end
             for id in user_base.daily_subscribed_users:
-                with open("debug.txt", "a", encoding="UTF-8") as f:
-                    f.write(f"début for {id}\n")
                 await self.tool.send_daily_update(self.bot.get_user(id))
-                with open("debug.txt", "a", encoding="UTF-8") as f:
-                    f.write(f"fin for {id}\n")
-                await asyncio.sleep(1) # Sinon ça fait une pile d'envoi et ça envoie un message plusieurs fois
