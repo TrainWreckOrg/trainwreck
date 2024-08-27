@@ -45,13 +45,13 @@ class MyTask(Extension):
         if len(sup) > 0:
             descstr = ""
             for event in sup:
-                descstr += f"- {self.tool.ping_liste(event, serveur)} {str(event)}\n"
+                descstr += f"- {self.tool.ping_liste(event, serveur)} {event.str_day()}\n"
             embeds.append(Embed(title="Événements supprimés :", description=descstr, color=0xEd4245))
 
         if len(add) > 0:
             descstr = ""
             for event in add:
-                descstr += f"- {self.tool.ping_liste(event, serveur)} {str(event)}\n"
+                descstr += f"- {self.tool.ping_liste(event, serveur)} {event.str_day()}\n"
             embeds.append(Embed(title="Événements ajoutés :", description=descstr, color=0x57f287))
 
         if len(mod) > 0:
@@ -60,7 +60,7 @@ class MyTask(Extension):
                 ping = self.tool.ping_liste(old, serveur)
                 if old.group != new.group:
                     ping += f" {self.tool.ping_liste(new, serveur)}"
-                descstr += f"- {ping} {str(old)} → {str(new)}\n"
+                descstr += f"- {ping} {old.str_day()} → {new.str_day()}\n"
             embeds.append(Embed(title="Événements modifiés :", description=descstr, color=0x5865f2))
 
         if len(embeds):

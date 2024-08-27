@@ -112,7 +112,7 @@ class Tool:
             if event.isINGE and event.isMIAGE:
                 return f"{roles[Filiere.INGE].mention} {roles[Filiere.MIAGE].mention}"
             elif event.isINGE:
-                return f"{roles[Filiere.INGE].mention}>"
+                return f"{roles[Filiere.INGE].mention}"
             else:
                 return f"{roles[Filiere.MIAGE].mention}"
         else:
