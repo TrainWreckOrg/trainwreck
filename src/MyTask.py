@@ -61,7 +61,7 @@ class MyTask(Extension):
                 ping = self.tool.ping_liste(old, serveur)
                 if old.group != new.group:
                     ping += f" {self.tool.ping_liste(new, serveur)}"
-                descstr += f"- {ping} {old.str_day()} → {new.str_day()}\n"
+                descstr += f"- {ping} {old.str_day(new)} → {new.str_day(old)}\n"
             embeds.append(Embed(title="Événements modifiés :", description=descstr, color=0x5865f2))
 
         if len(embeds):

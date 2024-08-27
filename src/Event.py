@@ -41,12 +41,65 @@ class Event:
         else:
             return f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
 
-    def str_day(self) -> str:
+
+    def str_day(self, autre: 'Event' = None) -> str:
         """Permet d'avoir une str pour représenter l'Event."""
-        if self.isEXAM:
-            return ":warning: " + (f"{self.start_timestamp.strftime("%d-%m-%Y")} {self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.subject} - {f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.location} - {self.teacher}".upper()) + " :warning:"
+
+        if autre is None:
+            if self.isEXAM:
+                return ":warning: " + (f"{self.start_timestamp.strftime("%d-%m-%Y")} {self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.subject} - {f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.location} - {self.teacher}".upper()) + " :warning:"
+            else:
+                return f"{self.start_timestamp.strftime("%d-%m-%Y")} {self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
+
+        texte = ""
+
+        if(self.start_timestamp.strftime("%d-%m-%Y")) != (autre.start_timestamp.strftime("%d-%m-%Y")):
+            texte += f"**{self.start_timestamp.strftime("%d-%m-%Y")}** "
         else:
-            return f"{self.start_timestamp.strftime("%d-%m-%Y")} {self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
+            texte += f"{self.start_timestamp.strftime("%d-%m-%Y")} "
+
+        if (self.start_timestamp.strftime("%Hh%M")) != (autre.start_timestamp.strftime("%Hh%M")):
+            texte += f"**{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")}**"
+        else:
+            texte += f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")}"
+
+        texte += " : "
+
+        self_groupe = f"{self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""}"
+        autre_groupe = f"{autre.group.value}{f" {"INGE" if autre.isINGE else ""}{"-" if autre.isINGE and autre.isMIAGE else ""}{"MIAGE" if autre.isMIAGE else ""}" if autre.group.value == "CM" else ""}"
+        if (self_groupe) != (autre_groupe):
+            texte += f"**{self_groupe}**"
+        else:
+            texte += self_groupe
+
+        texte += " - "
+
+        if (self.subject) != (autre.subject):
+            texte += f"**{self.subject}**"
+        else:
+            texte += self.subject
+
+        texte += " - "
+
+        if (self.location) != (autre.location):
+            texte += f"**{self.location}**"
+        else:
+            texte += self.location
+
+        texte += " - "
+
+        if (self.teacher) != (autre.teacher):
+            texte += f"**{self.teacher}**"
+        else:
+            texte += self.teacher
+
+        if self.isEXAM:
+            return ":warning: " + (texte.upper()) + " :warning:"
+        else:
+            return texte
+
+
+
 
 
     def ics(self) -> str:
