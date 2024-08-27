@@ -41,6 +41,14 @@ class Event:
         else:
             return f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
 
+    def str_day(self) -> str:
+        """Permet d'avoir une str pour représenter l'Event."""
+        if self.isEXAM:
+            return ":warning: " + (f"{self.start_timestamp.strftime("%d-%m-%Y")} {self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.subject} - {f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.location} - {self.teacher}".upper()) + " :warning:"
+        else:
+            return f"{self.start_timestamp.strftime("%d-%m-%Y")} {self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
+
+
     def ics(self) -> str:
         """Permet d'avoir l'Event au format ICS."""
         ics = "BEGIN:VEVENT\n"
