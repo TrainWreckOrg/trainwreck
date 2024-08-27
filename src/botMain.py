@@ -39,6 +39,10 @@ async def log(ctx: SlashContext | ModalContext | ContextMenuContext | ComponentC
         ctx_bt : ComponentContext = ctx
         await bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(
             f"{ctx.author.display_name} ({ctx.author.id}) à utilise {ctx_bt.custom_id} {kwargs}, le {datetime.datetime.now()}")
+    elif isinstance(ctx, ContextMenuContext):
+        ctx_menu : ContextMenuContext = ctx
+        await bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(
+            f"{ctx_menu.author.display_name} ({ctx_menu.author.id}) à utilise {ctx_menu.command.name} sur {ctx_menu.target} ({ctx_menu.target_id}) {kwargs}, le {datetime.datetime.now()}")
     else:
         await bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(f"{ctx.author.display_name} ({ctx.author.id}) à utilise {ctx.command.name} {kwargs}, le {datetime.datetime.now()}")
 
