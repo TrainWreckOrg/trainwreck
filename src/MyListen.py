@@ -39,7 +39,7 @@ class MyListen(Extension):
             MyTask.update_calendar.start()
         await MyTask.update_calendar()
         print(f"Ready\nThis bot is owned by {self.bot.owner}")
-        await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Démarrage du bot v2")
+        await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Démarrage du bot v3")
 
     @component_callback(re.compile("day|week"))
     async def on_component(self, ctx: ComponentContext) -> None:
