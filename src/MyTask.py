@@ -8,6 +8,7 @@ import os
 from Calendar import Calendar, changed_events
 from UserBase import get_user_base
 from Tool import get_tool
+from Enums import Subscription
 
 load_dotenv("keys.env")
 
@@ -76,8 +77,8 @@ class MyTask(Extension):
         # Pour l'envoi hebdomadaire.
         if datetime.today().weekday() == 0:
             for id in user_base.weekly_subscribed_users:
-                await self.tool.send_weekly_update(self.bot.get_user(id))
+                await self.tool.send_weekly_update(self.bot.get_user(id), user_base.is_user_subscribed_ics(id, Subscription.WEEKLY))
         # Pour l'envoi quotidien.
         if datetime.today().weekday() <= 4:  # Si on est le week end
             for id in user_base.daily_subscribed_users:
-                await self.tool.send_daily_update(self.bot.get_user(id))
+                await self.tool.send_daily_update(self.bot.get_user(id), user_base.is_user_subscribed_ics(id, Subscription.DAILY))
