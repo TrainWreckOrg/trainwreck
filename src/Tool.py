@@ -214,7 +214,11 @@ class Tool:
         embeds = get_embeds(events, user, date.today())
         filename = str(user.id)
         ics_file = get_ics(events, filename=filename)
+        with open("debug.txt", "a", encoding="UTF-8") as f:
+            f.write(f"avant envoi pour {user.id}\n")
         await user.send(":warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, files=[f"{filename}.ics"], ephemeral=False)
+        with open("debug.txt", "a", encoding="UTF-8") as f:
+            f.write(f"après envoi pour {user.id}\n")
         os.remove(f"{filename}.ics")
 
     async def send_weekly_update(self, user: User):
@@ -226,7 +230,11 @@ class Tool:
 
         events = filter_events (get_calendar().get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), self.get_filiere(user), self.get_groupes(user)])
         ics_file = get_ics(events, filename=filename)
+        with open("debug.txt", "a", encoding="UTF-8") as f:
+            f.write(f"avant envoi pour {user.id}\n")
         await user.send(":warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=get_embeds(events, user, monday_date, sunday_date), files=[f"{filename}.ics"], ephemeral=False)
+        with open("debug.txt", "a", encoding="UTF-8") as f:
+            f.write(f"après envoi pour {user.id}\n")
         os.remove(f"{filename}.ics")
 
 
