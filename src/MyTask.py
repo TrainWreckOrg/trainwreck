@@ -34,6 +34,7 @@ class MyTask(Extension):
         # sup :set[Event]         = set()
         # add :set[Event]         = set()
         # mod :set[(Event,Event)] = set()
+        await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Exécution de `update_calendar`")
         old_calendar = Calendar(False)
         new_calendar = Calendar(True)
 
@@ -70,6 +71,7 @@ class MyTask(Extension):
     @Task.create(TimeTrigger(hour=6, minute=0, seconds=0, utc=False))
     async def daily_morning_update(self) -> None:
         """Permet d'envoyer les EDT automatiquement."""
+        await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Exécution de `daily_morning_update`")
         user_base = get_user_base()
         # Pour l'envoi hebdomadaire.
         if datetime.today().weekday() == 0:
