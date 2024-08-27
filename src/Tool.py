@@ -6,7 +6,7 @@ from TrainWreck import get_embeds, get_ics
 from UserBase import get_user_base
 from Calendar import get_calendar
 from Filter import *
-from Enums import RoleEnum, Group, colors
+from Enums import RoleEnum, Group, colors, Subscription
 
 
 from datetime import datetime, date, timedelta
@@ -208,26 +208,49 @@ class Tool:
         except ValueError:
             await ctx.send(embeds=[self.create_error_embed(f"La valeur `{semaine}` ne correspond pas à une date")], ephemeral=True)
 
-    async def send_daily_update(self, user: User):
+    async def send_daily_update(self, user: User, ics: bool):
         """Permet d'envoyer les EDT automatiquement pour le jour."""
         events = filter_events(get_calendar().get_events(), [TimeFilter(date.today(), Timing.DURING), self.get_filiere(user), self.get_groupes(user)] )
         embeds = get_embeds(events, user, date.today())
-        filename = str(user.id)
-        ics_file = get_ics(events, filename=filename)
-        await user.send("Bonjour voici votre EDT pour aujourd'hui.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, files=[f"{filename}.ics"], ephemeral=False)
-        os.remove(f"{filename}.ics")
+        if ics:
+            filename = str(user.id)
+            ics_file = get_ics(events, filename=filename)
+            await user.send("Bonjour voici votre EDT pour aujourd'hui.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, files=[f"{filename}.ics"], ephemeral=False)
+            os.remove(f"{filename}.ics")
+        else:
+            await user.send("Bonjour voici votre EDT pour aujourd'hui.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, ephemeral=False)
 
-    async def send_weekly_update(self, user: User):
+
+    async def send_weekly_update(self, user: User, ics: bool):
         """Permet d'envoyer les EDT automatiquement pour la semaine."""
         days_since_monday = date.today().weekday()
         monday_date = date.today() - timedelta(days=days_since_monday)
         sunday_date = monday_date + timedelta(days=6)
-        filename = str(user.id)
-
         events = filter_events (get_calendar().get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), self.get_filiere(user), self.get_groupes(user)])
-        ics_file = get_ics(events, filename=filename)
-        await user.send("Bonjour voici votre EDT pour la semaine.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=get_embeds(events, user, monday_date, sunday_date), files=[f"{filename}.ics"], ephemeral=False)
-        os.remove(f"{filename}.ics")
+        embeds = get_embeds(events, user, monday_date, sunday_date)
+
+        if ics:
+            filename = str(user.id)
+            ics_file = get_ics(events, filename=filename)
+            await user.send("Bonjour voici votre EDT pour la semaine.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, files=[f"{filename}.ics"], ephemeral=False)
+            os.remove(f"{filename}.ics")
+        else:
+            await user.send("Bonjour voici votre EDT pour la semaine.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, ephemeral=False)
+
+
+    async def check_subscription(self, ctx: SlashContext) -> None:
+        """Permet d'afficher quel sont les abonnements d'un utilisateur."""
+        user_base = get_user_base()
+        id = ctx.author_id
+        await ctx.send(
+            embed=Embed(f"Abonnements de {ctx.author.display_name}",
+                f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n"
+                f"- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}\n"
+                f"- Mise à Jour Quotidienne ICS: {'✅' if (user_base.is_user_subscribed_ics(id, Subscription.DAILY)) else '❌'}\n"
+                f"- Mise à Jour Hebdomadaire ICS: {'✅' if (user_base.is_user_subscribed_ics(id, Subscription.WEEKLY)) else '❌'}\n"
+                ),
+            ephemeral=self.is_guild_chan(ctx.author)
+        )
 
 
 

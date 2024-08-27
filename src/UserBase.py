@@ -17,10 +17,13 @@ class DBUser:
 
 
 class UserBase:
-    def __init__(self, users: dict[int:DBUser], daily_subscribed_users: set, weekly_subscribed_users: set) -> None:
+    def __init__(self, users: dict[int:DBUser], daily_subscribed_users: set, weekly_subscribed_users: set, daily_subscribed_users_ics: set, weekly_subscribed_users_ics: set) -> None:
         self.users                      = users
         self.daily_subscribed_users     = daily_subscribed_users
         self.weekly_subscribed_users    = weekly_subscribed_users
+        self.daily_subscribed_users_ics     = daily_subscribed_users_ics
+        self.weekly_subscribed_users_ics    = weekly_subscribed_users_ics
+
 
     def __str__(self) -> str:
         return f"<users:{[str(x) for x in self.users.values()]}, daily:{self.daily_subscribed_users}, weekly:{self.weekly_subscribed_users}>"
@@ -33,6 +36,20 @@ class UserBase:
         if self.has_user(id):
             is_daily = id in self.daily_subscribed_users
             is_weekly = id in self.weekly_subscribed_users
+            match subscription:
+                case Subscription.DAILY:
+                    return is_daily
+                case Subscription.WEEKLY:
+                    return is_weekly
+                case Subscription.BOTH:
+                    return is_daily and is_weekly
+                case Subscription.NONE:
+                    return (not is_daily) and (not is_weekly)
+
+    def is_user_subscribed_ics(self, id: int, subscription: Subscription) -> bool:
+        if self.has_user(id):
+            is_daily = id in self.daily_subscribed_users_ics
+            is_weekly = id in self.weekly_subscribed_users_ics
             match subscription:
                 case Subscription.DAILY:
                     return is_daily
@@ -72,6 +89,7 @@ class UserBase:
     def user_unsubscribe(self, id: int, subscription: Subscription) -> None:
         """Désabonne un utilisateur à une ou plusieurs des listes"""
         if self.has_user(id):
+            self.user_unsubscribe_ics(id, subscription)
             match subscription:
                 case Subscription.DAILY if self.is_user_subscribed(id, subscription):
                     self.daily_subscribed_users.remove(id)
@@ -82,6 +100,35 @@ class UserBase:
                         self.daily_subscribed_users.remove(id)
                     if self.is_user_subscribed(id, Subscription.WEEKLY):
                         self.weekly_subscribed_users.remove(id)
+            dump_user_base(self)
+
+    def user_subscribe_ics(self, id: int, subscription: Subscription) -> None:
+        """Abonne un utilisateur à une ou plusieurs des listes"""
+        if self.has_user(id):
+            self.user_subscribe(id, subscription)
+            match subscription:
+                case Subscription.DAILY:
+                        self.daily_subscribed_users_ics.add(id)
+                case Subscription.WEEKLY:
+                        self.weekly_subscribed_users_ics.add(id)
+                case Subscription.BOTH:
+                        self.daily_subscribed_users_ics.add(id)
+                        self.weekly_subscribed_users_ics.add(id)
+            dump_user_base(self)
+
+    def user_unsubscribe_ics(self, id: int, subscription: Subscription) -> None:
+        """Désabonne un utilisateur à une ou plusieurs des listes"""
+        if self.has_user(id):
+            match subscription:
+                case Subscription.DAILY if self.is_user_subscribed_ics(id, subscription):
+                    self.daily_subscribed_users_ics.remove(id)
+                case Subscription.WEEKLY if self.is_user_subscribed_ics(id, subscription):
+                    self.weekly_subscribed_users_ics.remove(id)
+                case Subscription.BOTH:
+                    if self.is_user_subscribed_ics(id, Subscription.DAILY):
+                        self.daily_subscribed_users_ics.remove(id)
+                    if self.is_user_subscribed_ics(id, Subscription.WEEKLY):
+                        self.weekly_subscribed_users_ics.remove(id)
             dump_user_base(self)
 
     def get_user(self, id: int) -> DBUser | None:
@@ -110,7 +157,7 @@ def dump_user_base(user_base: UserBase):
 # puis arrêter le bot,
 # ensuite inverser les commentaires.
 
-# user_base : UserBase = UserBase({}, set(), set())
+# user_base : UserBase = UserBase({}, set(), set(), set(), set())
 
 def get_user_base() -> UserBase:
     global user_base
@@ -119,5 +166,5 @@ def get_user_base() -> UserBase:
 
 def nuke():
     global user_base
-    user_base = UserBase({}, set(), set())
+    user_base = UserBase({}, set(), set(), set(), set())
     dump_user_base(user_base)

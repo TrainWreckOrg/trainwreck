@@ -160,7 +160,7 @@ class MySlashCommand(Extension):
     @slash_option(
         name="service",
         description="Mise a jour Quotidienne `DAILY`, Hebdomadaire `WEEKLY`, ou les deux `BOTH`.",
-        required=True,
+        required=False,
         opt_type=OptionType.STRING,
         choices=[
             SlashCommandChoice(name="Daily", value="DAILY"),
@@ -168,7 +168,18 @@ class MySlashCommand(Extension):
             SlashCommandChoice(name="Both", value="BOTH")
         ]
     )
-    async def subscribe(self, ctx: SlashContext, service: str) -> None:
+    @slash_option(
+        name="ics",
+        description="L'envoie du fichier ICS, Quotidienne `DAILY`, Hebdomadaire `WEEKLY`, ou les deux `BOTH`.",
+        required=False,
+        opt_type=OptionType.STRING,
+        choices=[
+            SlashCommandChoice(name="Daily", value="DAILY"),
+            SlashCommandChoice(name="Weekly", value="WEEKLY"),
+            SlashCommandChoice(name="Both", value="BOTH")
+        ]
+    )
+    async def subscribe(self, ctx: SlashContext, service: str = "None", ics: str = "None") -> None:
         """Permet de s'abonnée à l'envoi automatique de l'EDT."""
         user_base = get_user_base()
         id = ctx.author_id
@@ -181,17 +192,22 @@ class MySlashCommand(Extension):
                 user_base.user_subscribe(id, Subscription.WEEKLY)
             case "BOTH":
                 user_base.user_subscribe(id, Subscription.BOTH)
-        await ctx.send(
-            embed=Embed(f"Abonnements de {ctx.author.display_name}",
-                f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n"
-                f"- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"),
-            ephemeral=self.tool.is_guild_chan(ctx.author))
+
+        match ics:
+            case "DAILY":
+                user_base.user_subscribe_ics(id, Subscription.DAILY)
+            case "WEEKLY":
+                user_base.user_subscribe_ics(id, Subscription.WEEKLY)
+            case "BOTH":
+                user_base.user_subscribe_ics(id, Subscription.BOTH)
+
+        await self.tool.check_subscription(ctx)
 
     @slash_command(name="unsubscribe", description="Vous permet de vous désabonner à l'envoi de l'EDT dans vos DM.")
     @slash_option(
         name="service",
         description="mise a jour Quotidienne `DAILY`, Hebdomadaire `WEEKLY`, ou les deux `BOTH`.",
-        required=True,
+        required=False,
         opt_type=OptionType.STRING,
         choices=[
             SlashCommandChoice(name="Daily", value="DAILY"),
@@ -199,7 +215,18 @@ class MySlashCommand(Extension):
             SlashCommandChoice(name="Both", value="BOTH")
         ]
     )
-    async def unsubscribe(self, ctx: SlashContext, service: str) -> None:
+    @slash_option(
+        name="ics",
+        description="L'envoie du fichier ICS, Quotidienne `DAILY`, Hebdomadaire `WEEKLY`, ou les deux `BOTH`.",
+        required=False,
+        opt_type=OptionType.STRING,
+        choices=[
+            SlashCommandChoice(name="Daily", value="DAILY"),
+            SlashCommandChoice(name="Weekly", value="WEEKLY"),
+            SlashCommandChoice(name="Both", value="BOTH")
+        ]
+    )
+    async def unsubscribe(self, ctx: SlashContext, service: str = "None", ics: str = "None") -> None:
         """Permet de se désabonnée à l'envoi automatique de l'EDT."""
         user_base = get_user_base()
         id = ctx.author_id
@@ -212,25 +239,21 @@ class MySlashCommand(Extension):
                 user_base.user_unsubscribe(id, Subscription.WEEKLY)
             case "BOTH":
                 user_base.user_unsubscribe(id, Subscription.BOTH)
-        await ctx.send(
-            embed=Embed(f"Abonnements de {ctx.author.display_name}",
-                f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n"
-                f"- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"),
-            ephemeral=self.tool.is_guild_chan(ctx.author)
-        )
+
+        match ics:
+            case "DAILY":
+                user_base.user_unsubscribe_ics(id, Subscription.DAILY)
+            case "WEEKLY":
+                user_base.user_unsubscribe_ics(id, Subscription.WEEKLY)
+            case "BOTH":
+                user_base.user_unsubscribe_ics(id, Subscription.BOTH)
+        await self.tool.check_subscription(ctx)
 
     @slash_command(name="check_subscription",
                    description="Vous permet de consulter à quels service d'envoi d'EDT vous êtes inscrit.")
     async def check_subscription(self, ctx: SlashContext) -> None:
         """Permet d'afficher quel sont les abonnements d'un utilisateur."""
-        user_base = get_user_base()
-        id = ctx.author_id
-        await ctx.send(
-            embed=Embed(f"Abonnements de {ctx.author.display_name}",
-                f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n"
-                f"- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}"),
-            ephemeral=self.tool.is_guild_chan(ctx.author)
-        )
+        await self.tool.check_subscription(ctx)
 
     @slash_command(name="exam", description="Vous permet de consulter la liste des exams.")
     async def exam(self, ctx: SlashContext) -> None:
