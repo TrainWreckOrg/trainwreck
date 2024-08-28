@@ -162,7 +162,7 @@ class Tool:
                     await ctx.send(embeds=embeds, ephemeral=ephemeral)
 
         except ValueError:
-            await ctx.send(embeds=[self.create_error_embed(f"La valeur `{jour}` ne correspond pas à une date")], ephemeral=True)
+            await ctx.send(embeds=[self.create_error_embed(f"La valeur `{jour}` ne correspond pas à une date au format DD-MM-YYYY")], ephemeral=True)
 
     async def get_week_bt(self, ctx: SlashContext | ModalContext | ContextMenuContext | ComponentContext, semaine: str, modifier: bool, personne: User = None):
         """Fonction qui permet d'obtenir l'EDT d'une semaine spécifique.
@@ -206,7 +206,7 @@ class Tool:
                 else:
                     await ctx.send(embeds=embeds, ephemeral=ephemeral)
         except ValueError:
-            await ctx.send(embeds=[self.create_error_embed(f"La valeur `{semaine}` ne correspond pas à une date")], ephemeral=True)
+            await ctx.send(embeds=[self.create_error_embed(f"La valeur `{semaine}` ne correspond pas à une date au format DD-MM-YYYY")], ephemeral=True)
 
     async def send_daily_update(self, user: User, ics: bool):
         """Permet d'envoyer les EDT automatiquement pour le jour."""
@@ -214,7 +214,7 @@ class Tool:
         embeds = get_embeds(events, user, date.today())
         if ics:
             filename = str(user.id)
-            ics_file = get_ics(events, filename=filename)
+            get_ics(events, filename=filename)
             await user.send("Bonjour voici votre EDT pour aujourd'hui.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, files=[f"{filename}.ics"], ephemeral=False)
             os.remove(f"{filename}.ics")
         else:
@@ -231,7 +231,7 @@ class Tool:
 
         if ics:
             filename = str(user.id)
-            ics_file = get_ics(events, filename=filename)
+            get_ics(events, filename=filename)
             await user.send("Bonjour voici votre EDT pour la semaine.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, files=[f"{filename}.ics"], ephemeral=False)
             os.remove(f"{filename}.ics")
         else:

@@ -4,6 +4,7 @@ from Enums import Group, Filiere, Subscription
 
 
 class DBUser:
+    """Classe représentant un utilisateur dans la BD."""
     def __init__(self, id: int, groups: list[Group], filiere: Filiere) -> None:
         self.id         = id
         self.groups     = groups
@@ -17,6 +18,7 @@ class DBUser:
 
 
 class UserBase:
+    """Classe représentant la BD."""
     def __init__(self, users: dict[int:DBUser], daily_subscribed_users: set, weekly_subscribed_users: set, daily_subscribed_users_ics: set, weekly_subscribed_users_ics: set) -> None:
         self.users                      = users
         self.daily_subscribed_users     = daily_subscribed_users
@@ -33,6 +35,7 @@ class UserBase:
         return id in self.users.keys()
 
     def is_user_subscribed(self, id: int, subscription: Subscription) -> bool:
+        """Permet de savoir si un utilisateur est abonée à une certaine subscription."""
         if self.has_user(id):
             is_daily = id in self.daily_subscribed_users
             is_weekly = id in self.weekly_subscribed_users
@@ -47,6 +50,7 @@ class UserBase:
                     return (not is_daily) and (not is_weekly)
 
     def is_user_subscribed_ics(self, id: int, subscription: Subscription) -> bool:
+        """Permet de savoir si un utilisateur est abonée aux ics à une certaine subscription."""
         if self.has_user(id):
             is_daily = id in self.daily_subscribed_users_ics
             is_weekly = id in self.weekly_subscribed_users_ics
@@ -87,7 +91,8 @@ class UserBase:
             dump_user_base(self)
 
     def user_unsubscribe(self, id: int, subscription: Subscription) -> None:
-        """Désabonne un utilisateur à une ou plusieurs des listes"""
+        """Désabonne un utilisateur à une ou plusieurs des listes
+        (si l'utilisateur est abonnée à l'ICS, il est aussi désactivée)."""
         if self.has_user(id):
             self.user_unsubscribe_ics(id, subscription)
             match subscription:
@@ -103,7 +108,8 @@ class UserBase:
             dump_user_base(self)
 
     def user_subscribe_ics(self, id: int, subscription: Subscription) -> None:
-        """Abonne un utilisateur à une ou plusieurs des listes"""
+        """Abonne un utilisateur à une ou plusieurs des listes d'ICS
+        (si l'utilisateur n'est pas abonnée à l'envoyer classique, il est aussi activée)."""
         if self.has_user(id):
             self.user_subscribe(id, subscription)
             match subscription:
@@ -117,7 +123,7 @@ class UserBase:
             dump_user_base(self)
 
     def user_unsubscribe_ics(self, id: int, subscription: Subscription) -> None:
-        """Désabonne un utilisateur à une ou plusieurs des listes"""
+        """Désabonne un utilisateur à une ou plusieurs des listes d'ICS."""
         if self.has_user(id):
             match subscription:
                 case Subscription.DAILY if self.is_user_subscribed_ics(id, subscription):
@@ -160,11 +166,13 @@ def dump_user_base(user_base: UserBase):
 # user_base : UserBase = UserBase({}, set(), set(), set(), set())
 
 def get_user_base() -> UserBase:
+    """Permet d'obtenir la BD"""
     global user_base
     user_base = load_user_base()
     return user_base
 
 def nuke():
+    """Permet d'effacer la BD."""
     global user_base
     user_base = UserBase({}, set(), set(), set(), set())
     dump_user_base(user_base)

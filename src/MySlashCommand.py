@@ -95,7 +95,7 @@ class MySlashCommand(Extension):
                    default_member_permissions=Permissions.ADMINISTRATOR)
     @contexts(guild=True, bot_dm=False)
     async def bd(self, ctx: SlashContext) -> None:
-        """Permet de scanner tous les membres du serveur et de mettre à jour la BD."""
+        """Permet d'obtenir la BD."""
         await ctx.send("Voici la BD.", file="data/UserBase.pkl", ephemeral=False)
 
     @slash_command(name="help", description="Affiche la page d'Aide.")
@@ -111,7 +111,7 @@ class MySlashCommand(Extension):
         repo = Button(
             style=ButtonStyle.URL,
             label="Repository bot",
-            url="https://github.com/Kaawan-d20/trainwreck"
+            url="https://github.com/TrainWreckOrg/trainwreck"
         )
 
         vincent = Button(
