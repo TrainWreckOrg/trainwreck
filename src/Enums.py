@@ -83,6 +83,7 @@ class RoleEnum(Enum):
     MODO = "Modérateur"
     EDTBOT = "EDT Bot"
     EDTTEST = "EDT TEST"
+    PERMA = "Perma"
     ONBOARDED = "onboarded"
 
     def __str__(self):

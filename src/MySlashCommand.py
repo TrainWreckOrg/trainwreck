@@ -123,7 +123,7 @@ class MySlashCommand(Extension):
         action_row = ActionRow(repo, vincent)
         ephemeral = False
         if self.tool.is_guild_chan(ctx.author):
-            ephemeral = not ctx.author.has_role(self.tool.get_roles(ctx.guild)[RoleEnum.ADMIN]) # Permanent pour les admins, mais pas pour les autres
+            ephemeral = not ctx.author.has_role(self.tool.get_roles(ctx.guild)[RoleEnum.PERMA]) # Permanent si la personne à le rôle
         await ctx.send(embed=embed, components=action_row, ephemeral=ephemeral)
 
     @slash_command(name="ics", description="Envoie un fichier ICS importable dans la plupart des applications de calendrier.")
@@ -150,7 +150,12 @@ class MySlashCommand(Extension):
                                    self.tool.get_filiere(ctx.author), self.tool.get_groupes(ctx.author)]),
                     filename=filename
                     )
-            await ctx.send("Voici votre fichier ics (:warning: : Le calendrier n'est pas mis a jour dynamiquement)", files=[f"{filename}.ics"], ephemeral=self.tool.is_guild_chan(ctx.author))
+
+            ephemeral = False
+            if self.tool.is_guild_chan(ctx.author):
+                ephemeral = not ctx.author.has_role(self.tool.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
+
+            await ctx.send("Voici votre fichier ics (:warning: : Le calendrier n'est pas mis a jour dynamiquement)", files=[f"{filename}.ics"], ephemeral=ephemeral)
             os.remove(f"{filename}.ics")
         except ValueError:
             await ctx.send(embeds=[self.tool.create_error_embed(f"La valeur `{debut}` ou `{fin}` ne correspond pas à une date.")], ephemeral=True)
@@ -269,4 +274,7 @@ class MySlashCommand(Extension):
             url="https://www.univ-orleans.fr/fr/sciences-techniques/etudiant/examens-reglementationrse/examens-20232024"
         )
 
-        await ctx.send(embeds=embeds, components=universite, ephemeral=self.tool.is_guild_chan(ctx.author))
+        ephemeral = False
+        if self.tool.is_guild_chan(ctx.author):
+            ephemeral = not ctx.author.has_role( self.tool.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
+        await ctx.send(embeds=embeds, components=universite, ephemeral=ephemeral)

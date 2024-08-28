@@ -148,7 +148,10 @@ class Tool:
                 label="Jour suivant"
             )
 
-            ephemeral = self.is_guild_chan(ctx.author)
+            ephemeral = False
+            if self.is_guild_chan(ctx.author):
+                ephemeral = not ctx.author.has_role(self.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
+
             if personne is None:
                 action_row = ActionRow(precedent, suivant)
                 if modifier:
@@ -192,7 +195,10 @@ class Tool:
                 label="Semaine suivante"
             )
 
-            ephemeral = self.is_guild_chan(ctx.author)
+            ephemeral = False
+            if self.is_guild_chan(ctx.author):
+                ephemeral = not ctx.author.has_role(
+                    self.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
 
             if personne is None:
                 action_row = ActionRow(precedent, suivant)
@@ -242,6 +248,11 @@ class Tool:
         """Permet d'afficher quel sont les abonnements d'un utilisateur."""
         user_base = get_user_base()
         id = ctx.author_id
+
+        ephemeral = False
+        if self.is_guild_chan(ctx.author):
+            ephemeral = not ctx.author.has_role(self.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
+
         await ctx.send(
             embed=Embed(f"Abonnements de {ctx.author.display_name}",
                 f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n"
@@ -249,7 +260,7 @@ class Tool:
                 f"- Mise à Jour Quotidienne ICS: {'✅' if (user_base.is_user_subscribed_ics(id, Subscription.DAILY)) else '❌'}\n"
                 f"- Mise à Jour Hebdomadaire ICS: {'✅' if (user_base.is_user_subscribed_ics(id, Subscription.WEEKLY)) else '❌'}\n"
                 ),
-            ephemeral=self.is_guild_chan(ctx.author)
+            ephemeral=ephemeral
         )
 
 
