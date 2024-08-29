@@ -34,11 +34,42 @@ class Tool:
                     for filiere in Filiere:
                         if filiere.value == role.name:
                             self.roles[int(guild.id)][filiere] = role
+                if role.name in Subscription:
+                    for sub in Subscription:
+                        if sub.value == role.name:
+                            self.roles[int(guild.id)][sub] = role
                 if role.name in RoleEnum:
                     for roleEnum in RoleEnum:
                         if roleEnum.value == role.name:
                             self.roles[int(guild.id)][roleEnum] = role
         return self.roles.get(int(guild.id))
+
+
+    def get_subscription(self, author: User | Member) -> list[Subscription]:
+        """Fonction qui permet d'avoir la liste de subscription."""
+        sub = []
+        if self.is_guild_chan(author):
+            if author.has_role(self.get_roles(author.guild)[Subscription.DAILY]):
+                sub.append(Subscription.DAILY)
+            if author.has_role(self.get_roles(author.guild)[Subscription.WEEKLY]):
+                sub.append(Subscription.WEEKLY)
+            if author.has_role(self.get_roles(author.guild)[Subscription.DAILY_ICS]):
+                sub.append(Subscription.DAILY_ICS)
+            if author.has_role(self.get_roles(author.guild)[Subscription.WEEKLY_ICS]):
+                sub.append(Subscription.WEEKLY_ICS)
+
+        elif get_user_base().has_user(author.id):
+            if get_user_base().is_user_subscribed(author.id, Subscription.DAILY):
+                sub.append(Subscription.DAILY)
+            if get_user_base().is_user_subscribed(author.id, Subscription.WEEKLY):
+                sub.append(Subscription.WEEKLY)
+            if get_user_base().is_user_subscribed_ics(author.id, Subscription.DAILY_ICS):
+                sub.append(Subscription.DAILY_ICS)
+            if get_user_base().is_user_subscribed_ics(author.id, Subscription.WEEKLY_ICS):
+                sub.append(Subscription.WEEKLY_ICS)
+
+        return sub
+
 
 
     def get_filiere_as_filiere(self, author: User | Member) -> Filiere:
@@ -148,7 +179,10 @@ class Tool:
                 label="Jour suivant"
             )
 
-            ephemeral = self.is_guild_chan(ctx.author)
+            ephemeral = False
+            if self.is_guild_chan(ctx.author):
+                ephemeral = not ctx.author.has_role(self.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
+
             if personne is None:
                 action_row = ActionRow(precedent, suivant)
                 if modifier:
@@ -162,7 +196,7 @@ class Tool:
                     await ctx.send(embeds=embeds, ephemeral=ephemeral)
 
         except ValueError:
-            await ctx.send(embeds=[self.create_error_embed(f"La valeur `{jour}` ne correspond pas à une date")], ephemeral=True)
+            await ctx.send(embeds=[self.create_error_embed(f"La valeur `{jour}` ne correspond pas à une date au format DD-MM-YYYY")], ephemeral=True)
 
     async def get_week_bt(self, ctx: SlashContext | ModalContext | ContextMenuContext | ComponentContext, semaine: str, modifier: bool, personne: User = None):
         """Fonction qui permet d'obtenir l'EDT d'une semaine spécifique.
@@ -192,7 +226,10 @@ class Tool:
                 label="Semaine suivante"
             )
 
-            ephemeral = self.is_guild_chan(ctx.author)
+            ephemeral = False
+            if self.is_guild_chan(ctx.author):
+                ephemeral = not ctx.author.has_role(
+                    self.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
 
             if personne is None:
                 action_row = ActionRow(precedent, suivant)
@@ -206,7 +243,7 @@ class Tool:
                 else:
                     await ctx.send(embeds=embeds, ephemeral=ephemeral)
         except ValueError:
-            await ctx.send(embeds=[self.create_error_embed(f"La valeur `{semaine}` ne correspond pas à une date")], ephemeral=True)
+            await ctx.send(embeds=[self.create_error_embed(f"La valeur `{semaine}` ne correspond pas à une date au format DD-MM-YYYY")], ephemeral=True)
 
     async def send_daily_update(self, user: User, ics: bool):
         """Permet d'envoyer les EDT automatiquement pour le jour."""
@@ -214,7 +251,7 @@ class Tool:
         embeds = get_embeds(events, user, date.today())
         if ics:
             filename = str(user.id)
-            ics_file = get_ics(events, filename=filename)
+            get_ics(events, filename=filename)
             await user.send("Bonjour voici votre EDT pour aujourd'hui.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, files=[f"{filename}.ics"], ephemeral=False)
             os.remove(f"{filename}.ics")
         else:
@@ -231,7 +268,7 @@ class Tool:
 
         if ics:
             filename = str(user.id)
-            ics_file = get_ics(events, filename=filename)
+            get_ics(events, filename=filename)
             await user.send("Bonjour voici votre EDT pour la semaine.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, files=[f"{filename}.ics"], ephemeral=False)
             os.remove(f"{filename}.ics")
         else:
@@ -242,15 +279,81 @@ class Tool:
         """Permet d'afficher quel sont les abonnements d'un utilisateur."""
         user_base = get_user_base()
         id = ctx.author_id
+
+        ephemeral = False
+        if self.is_guild_chan(ctx.author):
+            ephemeral = not ctx.author.has_role(self.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
+
         await ctx.send(
             embed=Embed(f"Abonnements de {ctx.author.display_name}",
                 f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n"
                 f"- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}\n"
-                f"- Mise à Jour Quotidienne ICS: {'✅' if (user_base.is_user_subscribed_ics(id, Subscription.DAILY)) else '❌'}\n"
-                f"- Mise à Jour Hebdomadaire ICS: {'✅' if (user_base.is_user_subscribed_ics(id, Subscription.WEEKLY)) else '❌'}\n"
+                f"- Mise à Jour Quotidienne ICS: {'✅' if (user_base.is_user_subscribed_ics(id, Subscription.DAILY_ICS)) else '❌'}\n"
+                f"- Mise à Jour Hebdomadaire ICS: {'✅' if (user_base.is_user_subscribed_ics(id, Subscription.WEEKLY_ICS)) else '❌'}\n"
                 ),
-            ephemeral=self.is_guild_chan(ctx.author)
+            ephemeral=ephemeral
         )
+
+    async def subscription_role(self, user_id: int, subscription : Subscription, ajout:bool):
+        guild_object = self.bot.guilds[0]
+        user_guild = self.bot.get_member(user_id, self.bot.guilds[0])
+        if ajout:
+            match subscription:
+                case Subscription.DAILY:
+                    if not user_guild.has_role(self.get_roles(guild_object)[subscription]):
+                        await user_guild.add_role(self.get_roles(guild_object)[subscription])
+                case Subscription.WEEKLY:
+                    if not user_guild.has_role(self.get_roles(guild_object)[subscription]):
+                        await user_guild.add_role(self.get_roles(guild_object)[subscription])
+                case Subscription.BOTH:
+                    if not user_guild.has_role(self.get_roles(guild_object)[Subscription.DAILY]):
+                        await user_guild.add_role(self.get_roles(guild_object)[Subscription.DAILY])
+                    if not user_guild.has_role(self.get_roles(guild_object)[Subscription.WEEKLY]):
+                        await user_guild.add_role(self.get_roles(guild_object)[Subscription.WEEKLY])
+
+                case Subscription.DAILY_ICS:
+                    await self.subscription_role(user_id, Subscription.DAILY, ajout)
+                    if not user_guild.has_role(self.get_roles(guild_object)[subscription]):
+                        await user_guild.add_role(self.get_roles(guild_object)[subscription])
+                case Subscription.WEEKLY_ICS:
+                    await self.subscription_role(user_id, Subscription.WEEKLY, ajout)
+                    if not user_guild.has_role(self.get_roles(guild_object)[subscription]):
+                        await user_guild.add_role(self.get_roles(guild_object)[subscription])
+                case Subscription.BOTH_ICS:
+                    await self.subscription_role(user_id, Subscription.BOTH, ajout)
+                    if not user_guild.has_role(self.get_roles(guild_object)[Subscription.DAILY_ICS]):
+                        await user_guild.add_role(self.get_roles(guild_object)[Subscription.DAILY_ICS])
+                    if not user_guild.has_role(self.get_roles(guild_object)[Subscription.WEEKLY_ICS]):
+                        await user_guild.add_role(self.get_roles(guild_object)[Subscription.WEEKLY_ICS])
+        else:
+            match subscription:
+                case Subscription.DAILY:
+                    await self.subscription_role(user_id, Subscription.DAILY_ICS, ajout)
+                    if user_guild.has_role(self.get_roles(guild_object)[subscription]):
+                        await user_guild.remove_role(self.get_roles(guild_object)[subscription])
+                case Subscription.WEEKLY:
+                    await self.subscription_role(user_id, Subscription.WEEKLY_ICS, ajout)
+                    if user_guild.has_role(self.get_roles(guild_object)[subscription]):
+                        await user_guild.remove_role(self.get_roles(guild_object)[subscription])
+                case Subscription.BOTH:
+                    await self.subscription_role(user_id, Subscription.BOTH_ICS, ajout)
+                    if user_guild.has_role(self.get_roles(guild_object)[Subscription.DAILY]):
+                        await user_guild.remove_role(self.get_roles(guild_object)[Subscription.DAILY])
+                    if user_guild.has_role(self.get_roles(guild_object)[Subscription.WEEKLY]):
+                        await user_guild.remove_role(self.get_roles(guild_object)[Subscription.WEEKLY])
+
+                case Subscription.DAILY_ICS:
+                    if user_guild.has_role(self.get_roles(guild_object)[subscription]):
+                        await user_guild.remove_role(self.get_roles(guild_object)[subscription])
+                case Subscription.WEEKLY_ICS:
+                    if user_guild.has_role(self.get_roles(guild_object)[subscription]):
+                        await user_guild.remove_role(self.get_roles(guild_object)[subscription])
+                case Subscription.BOTH_ICS:
+                    if user_guild.has_role(self.get_roles(guild_object)[Subscription.DAILY_ICS]):
+                        await user_guild.remove_role(self.get_roles(guild_object)[Subscription.DAILY_ICS])
+                    if user_guild.has_role(self.get_roles(guild_object)[Subscription.WEEKLY_ICS]):
+                        await user_guild.remove_role(self.get_roles(guild_object)[Subscription.WEEKLY_ICS])
+
 
 
 

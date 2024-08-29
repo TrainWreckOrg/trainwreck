@@ -4,6 +4,7 @@ from Enums import Group, Filiere, Subscription
 
 
 class DBUser:
+    """Classe représentant un utilisateur dans la BD."""
     def __init__(self, id: int, groups: list[Group], filiere: Filiere) -> None:
         self.id         = id
         self.groups     = groups
@@ -17,6 +18,7 @@ class DBUser:
 
 
 class UserBase:
+    """Classe représentant la BD."""
     def __init__(self, users: dict[int:DBUser], daily_subscribed_users: set, weekly_subscribed_users: set, daily_subscribed_users_ics: set, weekly_subscribed_users_ics: set) -> None:
         self.users                      = users
         self.daily_subscribed_users     = daily_subscribed_users
@@ -33,6 +35,7 @@ class UserBase:
         return id in self.users.keys()
 
     def is_user_subscribed(self, id: int, subscription: Subscription) -> bool:
+        """Permet de savoir si un utilisateur est abonée à une certaine subscription."""
         if self.has_user(id):
             is_daily = id in self.daily_subscribed_users
             is_weekly = id in self.weekly_subscribed_users
@@ -47,17 +50,18 @@ class UserBase:
                     return (not is_daily) and (not is_weekly)
 
     def is_user_subscribed_ics(self, id: int, subscription: Subscription) -> bool:
+        """Permet de savoir si un utilisateur est abonée aux ics à une certaine subscription."""
         if self.has_user(id):
             is_daily = id in self.daily_subscribed_users_ics
             is_weekly = id in self.weekly_subscribed_users_ics
             match subscription:
-                case Subscription.DAILY:
+                case Subscription.DAILY_ICS:
                     return is_daily
-                case Subscription.WEEKLY:
+                case Subscription.WEEKLY_ICS:
                     return is_weekly
-                case Subscription.BOTH:
+                case Subscription.BOTH_ICS:
                     return is_daily and is_weekly
-                case Subscription.NONE:
+                case Subscription.NONE_ICS:
                     return (not is_daily) and (not is_weekly)
 
     def add_user(self, id: int, groups: list[Group], filiere: Filiere) -> None:
@@ -87,15 +91,18 @@ class UserBase:
             dump_user_base(self)
 
     def user_unsubscribe(self, id: int, subscription: Subscription) -> None:
-        """Désabonne un utilisateur à une ou plusieurs des listes"""
+        """Désabonne un utilisateur à une ou plusieurs des listes
+        (si l'utilisateur est abonnée à l'ICS, il est aussi désactivée)."""
         if self.has_user(id):
-            self.user_unsubscribe_ics(id, subscription)
             match subscription:
                 case Subscription.DAILY if self.is_user_subscribed(id, subscription):
                     self.daily_subscribed_users.remove(id)
+                    self.user_unsubscribe_ics(id, Subscription.DAILY_ICS)
                 case Subscription.WEEKLY if self.is_user_subscribed(id, subscription):
                     self.weekly_subscribed_users.remove(id)
+                    self.user_unsubscribe_ics(id, Subscription.WEEKLY_ICS)
                 case Subscription.BOTH:
+                    self.user_unsubscribe_ics(id, Subscription.BOTH_ICS)
                     if self.is_user_subscribed(id, Subscription.DAILY):
                         self.daily_subscribed_users.remove(id)
                     if self.is_user_subscribed(id, Subscription.WEEKLY):
@@ -103,31 +110,34 @@ class UserBase:
             dump_user_base(self)
 
     def user_subscribe_ics(self, id: int, subscription: Subscription) -> None:
-        """Abonne un utilisateur à une ou plusieurs des listes"""
+        """Abonne un utilisateur à une ou plusieurs des listes d'ICS
+        (si l'utilisateur n'est pas abonnée à l'envoyer classique, il est aussi activée)."""
         if self.has_user(id):
-            self.user_subscribe(id, subscription)
             match subscription:
-                case Subscription.DAILY:
-                        self.daily_subscribed_users_ics.add(id)
-                case Subscription.WEEKLY:
-                        self.weekly_subscribed_users_ics.add(id)
-                case Subscription.BOTH:
-                        self.daily_subscribed_users_ics.add(id)
-                        self.weekly_subscribed_users_ics.add(id)
+                case Subscription.DAILY_ICS:
+                    self.user_subscribe(id, Subscription.DAILY)
+                    self.daily_subscribed_users_ics.add(id)
+                case Subscription.WEEKLY_ICS:
+                    self.user_subscribe(id, Subscription.WEEKLY)
+                    self.weekly_subscribed_users_ics.add(id)
+                case Subscription.BOTH_ICS:
+                    self.user_subscribe(id, Subscription.BOTH)
+                    self.daily_subscribed_users_ics.add(id)
+                    self.weekly_subscribed_users_ics.add(id)
             dump_user_base(self)
 
     def user_unsubscribe_ics(self, id: int, subscription: Subscription) -> None:
-        """Désabonne un utilisateur à une ou plusieurs des listes"""
+        """Désabonne un utilisateur à une ou plusieurs des listes d'ICS."""
         if self.has_user(id):
             match subscription:
-                case Subscription.DAILY if self.is_user_subscribed_ics(id, subscription):
+                case Subscription.DAILY_ICS if self.is_user_subscribed_ics(id, subscription):
                     self.daily_subscribed_users_ics.remove(id)
-                case Subscription.WEEKLY if self.is_user_subscribed_ics(id, subscription):
+                case Subscription.WEEKLY_ICS if self.is_user_subscribed_ics(id, subscription):
                     self.weekly_subscribed_users_ics.remove(id)
-                case Subscription.BOTH:
-                    if self.is_user_subscribed_ics(id, Subscription.DAILY):
+                case Subscription.BOTH_ICS:
+                    if self.is_user_subscribed_ics(id, Subscription.DAILY_ICS):
                         self.daily_subscribed_users_ics.remove(id)
-                    if self.is_user_subscribed_ics(id, Subscription.WEEKLY):
+                    if self.is_user_subscribed_ics(id, Subscription.WEEKLY_ICS):
                         self.weekly_subscribed_users_ics.remove(id)
             dump_user_base(self)
 
@@ -160,11 +170,13 @@ def dump_user_base(user_base: UserBase):
 # user_base : UserBase = UserBase({}, set(), set(), set(), set())
 
 def get_user_base() -> UserBase:
+    """Permet d'obtenir la BD"""
     global user_base
     user_base = load_user_base()
     return user_base
 
 def nuke():
+    """Permet d'effacer la BD."""
     global user_base
     user_base = UserBase({}, set(), set(), set(), set())
     dump_user_base(user_base)

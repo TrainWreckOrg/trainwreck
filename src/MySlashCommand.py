@@ -81,6 +81,18 @@ class MySlashCommand(Extension):
                 user_base.add_user(user.id, self.tool.get_groupes_as_list(user), self.tool.get_filiere_as_filiere(user))
             else:
                 user_base.update_user(user.id, self.tool.get_groupes_as_list(user), self.tool.get_filiere_as_filiere(user))
+
+            for sub in self.tool.get_subscription(user):
+                match sub:
+                    case Subscription.DAILY:
+                        user_base.user_subscribe(user.id, Subscription.DAILY)
+                    case Subscription.WEEKLY:
+                        user_base.user_subscribe(user.id, Subscription.WEEKLY)
+                    case Subscription.DAILY_ICS:
+                        user_base.user_subscribe_ics(user.id, Subscription.DAILY_ICS)
+                    case Subscription.WEEKLY_ICS:
+                        user_base.user_subscribe_ics(user.id, Subscription.WEEKLY_ICS)
+
         await ctx.send("Les membres du serveur ont été ajoutée et mit à jour.", ephemeral=True)
 
     @slash_command(name="nuke", description="Permet de nuke la BD.",
@@ -95,7 +107,7 @@ class MySlashCommand(Extension):
                    default_member_permissions=Permissions.ADMINISTRATOR)
     @contexts(guild=True, bot_dm=False)
     async def bd(self, ctx: SlashContext) -> None:
-        """Permet de scanner tous les membres du serveur et de mettre à jour la BD."""
+        """Permet d'obtenir la BD."""
         await ctx.send("Voici la BD.", file="data/UserBase.pkl", ephemeral=False)
 
     @slash_command(name="help", description="Affiche la page d'Aide.")
@@ -111,7 +123,7 @@ class MySlashCommand(Extension):
         repo = Button(
             style=ButtonStyle.URL,
             label="Repository bot",
-            url="https://github.com/Kaawan-d20/trainwreck"
+            url="https://github.com/TrainWreckOrg/trainwreck"
         )
 
         vincent = Button(
@@ -123,7 +135,7 @@ class MySlashCommand(Extension):
         action_row = ActionRow(repo, vincent)
         ephemeral = False
         if self.tool.is_guild_chan(ctx.author):
-            ephemeral = not ctx.author.has_role(self.tool.get_roles(ctx.guild)[RoleEnum.ADMIN]) # Permanent pour les admins, mais pas pour les autres
+            ephemeral = not ctx.author.has_role(self.tool.get_roles(ctx.guild)[RoleEnum.PERMA]) # Permanent si la personne à le rôle
         await ctx.send(embed=embed, components=action_row, ephemeral=ephemeral)
 
     @slash_command(name="ics", description="Envoie un fichier ICS importable dans la plupart des applications de calendrier.")
@@ -150,7 +162,12 @@ class MySlashCommand(Extension):
                                    self.tool.get_filiere(ctx.author), self.tool.get_groupes(ctx.author)]),
                     filename=filename
                     )
-            await ctx.send("Voici votre fichier ics (:warning: : Le calendrier n'est pas mis a jour dynamiquement)", files=[f"{filename}.ics"], ephemeral=self.tool.is_guild_chan(ctx.author))
+
+            ephemeral = False
+            if self.tool.is_guild_chan(ctx.author):
+                ephemeral = not ctx.author.has_role(self.tool.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
+
+            await ctx.send("Voici votre fichier ics (:warning: : Le calendrier n'est pas mis a jour dynamiquement)", files=[f"{filename}.ics"], ephemeral=ephemeral)
             os.remove(f"{filename}.ics")
         except ValueError:
             await ctx.send(embeds=[self.tool.create_error_embed(f"La valeur `{debut}` ou `{fin}` ne correspond pas à une date.")], ephemeral=True)
@@ -188,18 +205,24 @@ class MySlashCommand(Extension):
         match service:
             case "DAILY":
                 user_base.user_subscribe(id, Subscription.DAILY)
+                await self.tool.subscription_role(id, Subscription.DAILY, True)
             case "WEEKLY":
                 user_base.user_subscribe(id, Subscription.WEEKLY)
+                await self.tool.subscription_role(id, Subscription.WEEKLY, True)
             case "BOTH":
                 user_base.user_subscribe(id, Subscription.BOTH)
+                await self.tool.subscription_role(id, Subscription.BOTH, True)
 
         match ics:
             case "DAILY":
-                user_base.user_subscribe_ics(id, Subscription.DAILY)
+                user_base.user_subscribe_ics(id, Subscription.DAILY_ICS)
+                await self.tool.subscription_role(id, Subscription.DAILY_ICS, True)
             case "WEEKLY":
-                user_base.user_subscribe_ics(id, Subscription.WEEKLY)
+                await self.tool.subscription_role(id, Subscription.WEEKLY_ICS, True)
+                user_base.user_subscribe_ics(id, Subscription.WEEKLY_ICS)
             case "BOTH":
-                user_base.user_subscribe_ics(id, Subscription.BOTH)
+                await self.tool.subscription_role(id, Subscription.BOTH_ICS, True)
+                user_base.user_subscribe_ics(id, Subscription.BOTH_ICS)
 
         await self.tool.check_subscription(ctx)
 
@@ -235,18 +258,24 @@ class MySlashCommand(Extension):
         match service:
             case "DAILY":
                 user_base.user_unsubscribe(id, Subscription.DAILY)
+                await self.tool.subscription_role(id, Subscription.DAILY, False)
             case "WEEKLY":
                 user_base.user_unsubscribe(id, Subscription.WEEKLY)
+                await self.tool.subscription_role(id, Subscription.WEEKLY, False)
             case "BOTH":
                 user_base.user_unsubscribe(id, Subscription.BOTH)
+                await self.tool.subscription_role(id, Subscription.BOTH, False)
 
         match ics:
             case "DAILY":
-                user_base.user_unsubscribe_ics(id, Subscription.DAILY)
+                user_base.user_unsubscribe_ics(id, Subscription.DAILY_ICS)
+                await self.tool.subscription_role(id, Subscription.DAILY_ICS, False)
             case "WEEKLY":
-                user_base.user_unsubscribe_ics(id, Subscription.WEEKLY)
+                user_base.user_unsubscribe_ics(id, Subscription.WEEKLY_ICS)
+                await self.tool.subscription_role(id, Subscription.WEEKLY_ICS, False)
             case "BOTH":
-                user_base.user_unsubscribe_ics(id, Subscription.BOTH)
+                user_base.user_unsubscribe_ics(id, Subscription.BOTH_ICS)
+                await self.tool.subscription_role(id, Subscription.BOTH_ICS, False)
         await self.tool.check_subscription(ctx)
 
     @slash_command(name="check_subscription",
@@ -269,4 +298,7 @@ class MySlashCommand(Extension):
             url="https://www.univ-orleans.fr/fr/sciences-techniques/etudiant/examens-reglementationrse/examens-20232024"
         )
 
-        await ctx.send(embeds=embeds, components=universite, ephemeral=self.tool.is_guild_chan(ctx.author))
+        ephemeral = False
+        if self.tool.is_guild_chan(ctx.author):
+            ephemeral = not ctx.author.has_role( self.tool.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
+        await ctx.send(embeds=embeds, components=universite, ephemeral=ephemeral)

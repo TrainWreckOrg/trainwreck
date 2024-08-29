@@ -43,7 +43,7 @@ class Event:
 
 
     def str_day(self, autre: 'Event' = None) -> str:
-        """Permet d'avoir une str pour représenter l'Event."""
+        """Permet de comparer deux Event et de renvoyer une str de l'événement self avec les éléments changant en gars."""
 
         if autre is None:
             if self.isEXAM:
