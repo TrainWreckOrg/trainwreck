@@ -96,6 +96,10 @@ class Subscription(Enum):
     WEEKLY = "WEEKLY"
     BOTH   = "BOTH"
     NONE   = "NONE"
+    DAILY_ICS = "DAILY_ICS"
+    WEEKLY_ICS = "WEEKLY_ICS"
+    BOTH_ICS = "BOTH_ICS"
+    NONE_ICS = "NONE_ICS"
 
     def __str__(self):
         return self.value

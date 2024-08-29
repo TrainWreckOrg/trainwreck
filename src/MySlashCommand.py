@@ -81,6 +81,18 @@ class MySlashCommand(Extension):
                 user_base.add_user(user.id, self.tool.get_groupes_as_list(user), self.tool.get_filiere_as_filiere(user))
             else:
                 user_base.update_user(user.id, self.tool.get_groupes_as_list(user), self.tool.get_filiere_as_filiere(user))
+
+            for sub in self.tool.get_subscription(user):
+                match sub:
+                    case Subscription.DAILY:
+                        user_base.user_subscribe(user.id, Subscription.DAILY)
+                    case Subscription.WEEKLY:
+                        user_base.user_subscribe(user.id, Subscription.WEEKLY)
+                    case Subscription.DAILY_ICS:
+                        user_base.user_subscribe_ics(user.id, Subscription.DAILY_ICS)
+                    case Subscription.WEEKLY_ICS:
+                        user_base.user_subscribe_ics(user.id, Subscription.WEEKLY_ICS)
+
         await ctx.send("Les membres du serveur ont été ajoutée et mit à jour.", ephemeral=True)
 
     @slash_command(name="nuke", description="Permet de nuke la BD.",
@@ -193,18 +205,24 @@ class MySlashCommand(Extension):
         match service:
             case "DAILY":
                 user_base.user_subscribe(id, Subscription.DAILY)
+                await self.tool.subscription_role(id, Subscription.DAILY, True)
             case "WEEKLY":
                 user_base.user_subscribe(id, Subscription.WEEKLY)
+                await self.tool.subscription_role(id, Subscription.WEEKLY, True)
             case "BOTH":
                 user_base.user_subscribe(id, Subscription.BOTH)
+                await self.tool.subscription_role(id, Subscription.BOTH, True)
 
         match ics:
             case "DAILY":
-                user_base.user_subscribe_ics(id, Subscription.DAILY)
+                user_base.user_subscribe_ics(id, Subscription.DAILY_ICS)
+                await self.tool.subscription_role(id, Subscription.DAILY_ICS, True)
             case "WEEKLY":
-                user_base.user_subscribe_ics(id, Subscription.WEEKLY)
+                await self.tool.subscription_role(id, Subscription.WEEKLY_ICS, True)
+                user_base.user_subscribe_ics(id, Subscription.WEEKLY_ICS)
             case "BOTH":
-                user_base.user_subscribe_ics(id, Subscription.BOTH)
+                await self.tool.subscription_role(id, Subscription.BOTH_ICS, True)
+                user_base.user_subscribe_ics(id, Subscription.BOTH_ICS)
 
         await self.tool.check_subscription(ctx)
 
@@ -240,18 +258,24 @@ class MySlashCommand(Extension):
         match service:
             case "DAILY":
                 user_base.user_unsubscribe(id, Subscription.DAILY)
+                await self.tool.subscription_role(id, Subscription.DAILY, False)
             case "WEEKLY":
                 user_base.user_unsubscribe(id, Subscription.WEEKLY)
+                await self.tool.subscription_role(id, Subscription.WEEKLY, False)
             case "BOTH":
                 user_base.user_unsubscribe(id, Subscription.BOTH)
+                await self.tool.subscription_role(id, Subscription.BOTH, False)
 
         match ics:
             case "DAILY":
-                user_base.user_unsubscribe_ics(id, Subscription.DAILY)
+                user_base.user_unsubscribe_ics(id, Subscription.DAILY_ICS)
+                await self.tool.subscription_role(id, Subscription.DAILY_ICS, False)
             case "WEEKLY":
-                user_base.user_unsubscribe_ics(id, Subscription.WEEKLY)
+                user_base.user_unsubscribe_ics(id, Subscription.WEEKLY_ICS)
+                await self.tool.subscription_role(id, Subscription.WEEKLY_ICS, False)
             case "BOTH":
-                user_base.user_unsubscribe_ics(id, Subscription.BOTH)
+                user_base.user_unsubscribe_ics(id, Subscription.BOTH_ICS)
+                await self.tool.subscription_role(id, Subscription.BOTH_ICS, False)
         await self.tool.check_subscription(ctx)
 
     @slash_command(name="check_subscription",
