@@ -44,7 +44,6 @@ class Tool:
                             self.roles[int(guild.id)][roleEnum] = role
         return self.roles.get(int(guild.id))
 
-
     def get_subscription(self, author: User | Member) -> list[Subscription]:
         """Fonction qui permet d'avoir la liste de subscription."""
         sub = []
@@ -70,8 +69,6 @@ class Tool:
 
         return sub
 
-
-
     def get_filiere_as_filiere(self, author: User | Member) -> Filiere:
         """Fonction qui permet d'avoir la filière d'un utilisateur, renvoie UKNW si pas définie."""
         if self.is_guild_chan(author):
@@ -93,7 +90,6 @@ class Tool:
             case _:
                 return Filter()
 
-
     def get_groupes_as_list(self, author: User | Member) -> list[Group]:
         """Fonction qui renvoie la liste des groupes d'un utilisateur."""
         out = [Group.CM]
@@ -108,17 +104,13 @@ class Tool:
         else :
             return out
 
-
     def get_groupes(self, author: User | Member) -> Filter | GroupFilter:
         """Fonction qui renvoie un filtre des groupes d'un utilisateur."""
         groups = self.get_groupes_as_list(author)
         if groups == [Group.CM]:
             return Filter()
-        else :
+        else:
             return GroupFilter(groups)
-
-
-
 
     def is_guild_chan(self, author: User | Member) -> bool:
         """Permet de savoir si l'auteur est un member (si l'action a été fait dans un serveur ou en MP)."""
@@ -257,7 +249,6 @@ class Tool:
         else:
             await user.send("Bonjour voici votre EDT pour aujourd'hui.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, ephemeral=False)
 
-
     async def send_weekly_update(self, user: User, ics: bool):
         """Permet d'envoyer les EDT automatiquement pour la semaine."""
         days_since_monday = date.today().weekday()
@@ -273,7 +264,6 @@ class Tool:
             os.remove(f"{filename}.ics")
         else:
             await user.send("Bonjour voici votre EDT pour la semaine.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, ephemeral=False)
-
 
     async def check_subscription(self, ctx: SlashContext) -> None:
         """Permet d'afficher quel sont les abonnements d'un utilisateur."""
@@ -353,10 +343,6 @@ class Tool:
                         await user_guild.remove_role(self.get_roles(guild_object)[Subscription.DAILY_ICS])
                     if user_guild.has_role(self.get_roles(guild_object)[Subscription.WEEKLY_ICS]):
                         await user_guild.remove_role(self.get_roles(guild_object)[Subscription.WEEKLY_ICS])
-
-
-
-
 
 
 tool: Tool | None = None

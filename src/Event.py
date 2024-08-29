@@ -4,6 +4,7 @@ import sentry_sdk
 
 from Enums import Group, subjects_table
 
+
 class Event:
     """Classe utilisée pour gérer les objets événements"""
     def __init__(self, start:datetime, end:datetime, subject:str, group:Group, location:str, teacher:str, isINGE:bool, isMIAGE:bool, uid:str, isEXAM:bool=False) -> None:
@@ -40,7 +41,6 @@ class Event:
             return ":warning: " + (f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.subject} - {f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.location} - {self.teacher}".upper()) + " :warning:"
         else:
             return f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
-
 
     def str_day(self, autre: 'Event' = None) -> str:
         """Permet de comparer deux Event et de renvoyer une str de l'événement self avec les éléments changant en gars."""
@@ -97,10 +97,6 @@ class Event:
             return ":warning: " + (texte.upper()) + " :warning:"
         else:
             return texte
-
-
-
-
 
     def ics(self) -> str:
         """Permet d'avoir l'Event au format ICS."""
@@ -191,8 +187,6 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
                         print(exception)
                         sentry_sdk.capture_exception(exception)
 
-
-
     else:
         if "L3 INFO - INGENIERIE" in descsplit and "Pro. Pro. Per." not in sum and "MIAGE" not in sum:
             isINGE = True
@@ -223,7 +217,6 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
                         except BaseException as exception:
                             print(exception)
                             sentry_sdk.capture_exception(exception)
-
 
             else:
                 match descsplit[2][3:]:
