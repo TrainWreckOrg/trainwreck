@@ -304,3 +304,16 @@ class MySlashCommand(Extension):
     async def bd(self, ctx: SlashContext) -> None:
         """Permet d'obtenir la BD."""
         await ctx.send("Voici la BD.", file="data/UserBase.pkl", ephemeral=False)
+
+    @slash_command(name="test_change", description="Permet de modifier le ics.",
+                   default_member_permissions=Permissions.ADMINISTRATOR)
+    @contexts(guild=True, bot_dm=False)
+    async def test_change(self, ctx: SlashContext) -> None:
+        """Permet d'obtenir la BD."""
+        with open("data/INGE_OLD.ics", "r") as file_source:
+            content = file_source.read()
+
+        with open("data/INGE.ics", "w") as file_prod:
+            file_prod.write(content)
+
+        await ctx.send("Le fichier ics à été modifier.", ephemeral=False)
