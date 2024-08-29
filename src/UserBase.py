@@ -161,14 +161,6 @@ def dump_user_base(user_base: UserBase):
         pickle.dump(user_base, f, pickle.HIGHEST_PROTOCOL)
 
 
-# Pour nuke la DB décommenter la ligne ci-dessous,
-# commenter la ligne (`user_base = load_user_base()`),
-# exécuter la commande /userscan,
-# puis arrêter le bot,
-# ensuite inverser les commentaires.
-
-# user_base : UserBase = UserBase({}, set(), set(), set(), set())
-
 def get_user_base() -> UserBase:
     """Permet d'obtenir la BD"""
     global user_base

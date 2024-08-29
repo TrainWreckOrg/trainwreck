@@ -17,11 +17,6 @@ class MySlashCommand(Extension):
         self.bot = bot
         self.tool = get_tool(bot)
 
-    @slash_command(name="wipe", description="Enlève tout les rôles.", default_member_permissions=Permissions.ADMINISTRATOR, contexts=[ContextType.GUILD])
-    async def wipe(self, ctx: SlashContext) -> None:
-        """Fonction qui permet d'enlever tous les attribués"""
-        await ctx.send(":warning: Vous êtes sur le point de supprimer les rôles est vous sûr", components=Button(style=ButtonStyle.BLURPLE, custom_id="delete-role", label="OUI"),  ephemeral=True)
-
     @slash_command(name="get_day", description="Envoie votre EDT pour un jour donné. Si une personne est donnée, donne le sien.")
     @slash_option(
         name="jour",
@@ -70,45 +65,6 @@ class MySlashCommand(Extension):
     async def week(self, ctx: SlashContext) -> None:
         """Fonction qui permet d'obtenir l'EDT de cette semaine."""
         await self.tool.get_week_bt(ctx, date.today().strftime("%d-%m-%Y"), False)
-
-    @slash_command(name="userscan", description="Permet d'ajouter tout les membres dans la BD.", default_member_permissions=Permissions.ADMINISTRATOR)
-    @contexts(guild=True, bot_dm=False)
-    async def userscan(self, ctx: SlashContext) -> None:
-        """Permet de scanner tous les membres du serveur et de mettre à jour la BD."""
-        user_base = get_user_base()
-        for user in ctx.guild.members:
-            if not user_base.has_user(user.id):
-                user_base.add_user(user.id, self.tool.get_groupes_as_list(user), self.tool.get_filiere_as_filiere(user))
-            else:
-                user_base.update_user(user.id, self.tool.get_groupes_as_list(user), self.tool.get_filiere_as_filiere(user))
-
-            for sub in self.tool.get_subscription(user):
-                match sub:
-                    case Subscription.DAILY:
-                        user_base.user_subscribe(user.id, Subscription.DAILY)
-                    case Subscription.WEEKLY:
-                        user_base.user_subscribe(user.id, Subscription.WEEKLY)
-                    case Subscription.DAILY_ICS:
-                        user_base.user_subscribe_ics(user.id, Subscription.DAILY_ICS)
-                    case Subscription.WEEKLY_ICS:
-                        user_base.user_subscribe_ics(user.id, Subscription.WEEKLY_ICS)
-
-        await ctx.send("Les membres du serveur ont été ajoutée et mit à jour.", ephemeral=True)
-
-    @slash_command(name="nuke", description="Permet de nuke la BD.",
-                   default_member_permissions=Permissions.ADMINISTRATOR)
-    @contexts(guild=True, bot_dm=False)
-    async def nuke(self, ctx: SlashContext) -> None:
-        """Permet de scanner tous les membres du serveur et de mettre à jour la BD."""
-        nuke()
-        await ctx.send("La BD à été nuke.", ephemeral=True)
-
-    @slash_command(name="bd", description="Permet d'obtenir' BD.",
-                   default_member_permissions=Permissions.ADMINISTRATOR)
-    @contexts(guild=True, bot_dm=False)
-    async def bd(self, ctx: SlashContext) -> None:
-        """Permet d'obtenir la BD."""
-        await ctx.send("Voici la BD.", file="data/UserBase.pkl", ephemeral=False)
 
     @slash_command(name="help", description="Affiche la page d'Aide.")
     async def help(self, ctx: SlashContext) -> None:
@@ -302,3 +258,49 @@ class MySlashCommand(Extension):
         if self.tool.is_guild_chan(ctx.author):
             ephemeral = not ctx.author.has_role( self.tool.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
         await ctx.send(embeds=embeds, components=universite, ephemeral=ephemeral)
+
+    @slash_command(name="wipe", description="Enlève tout les rôles.", default_member_permissions=Permissions.ADMINISTRATOR, contexts=[ContextType.GUILD])
+    async def wipe(self, ctx: SlashContext) -> None:
+        """Fonction qui permet d'enlever tous les attribués"""
+        await ctx.send(":warning: Vous êtes sur le point de supprimer les rôles est vous sûr", components=Button(style=ButtonStyle.BLURPLE, custom_id="delete-role", label="OUI"),  ephemeral=True)
+
+    @slash_command(name="userscan", description="Permet d'ajouter tout les membres dans la BD.",
+                   default_member_permissions=Permissions.ADMINISTRATOR)
+    @contexts(guild=True, bot_dm=False)
+    async def userscan(self, ctx: SlashContext) -> None:
+        """Permet de scanner tous les membres du serveur et de mettre à jour la BD."""
+        user_base = get_user_base()
+        for user in ctx.guild.members:
+            if not user_base.has_user(user.id):
+                user_base.add_user(user.id, self.tool.get_groupes_as_list(user), self.tool.get_filiere_as_filiere(user))
+            else:
+                user_base.update_user(user.id, self.tool.get_groupes_as_list(user),
+                                      self.tool.get_filiere_as_filiere(user))
+
+            for sub in self.tool.get_subscription(user):
+                match sub:
+                    case Subscription.DAILY:
+                        user_base.user_subscribe(user.id, Subscription.DAILY)
+                    case Subscription.WEEKLY:
+                        user_base.user_subscribe(user.id, Subscription.WEEKLY)
+                    case Subscription.DAILY_ICS:
+                        user_base.user_subscribe_ics(user.id, Subscription.DAILY_ICS)
+                    case Subscription.WEEKLY_ICS:
+                        user_base.user_subscribe_ics(user.id, Subscription.WEEKLY_ICS)
+
+        await ctx.send("Les membres du serveur ont été ajoutée et mit à jour.", ephemeral=True)
+
+    @slash_command(name="nuke", description="Permet de nuke la BD.",
+                   default_member_permissions=Permissions.ADMINISTRATOR)
+    @contexts(guild=True, bot_dm=False)
+    async def nuke(self, ctx: SlashContext) -> None:
+        """Permet de scanner tous les membres du serveur et de mettre à jour la BD."""
+        nuke()
+        await ctx.send("La BD à été nuke.", ephemeral=True)
+
+    @slash_command(name="bd", description="Permet d'obtenir' BD.",
+                   default_member_permissions=Permissions.ADMINISTRATOR)
+    @contexts(guild=True, bot_dm=False)
+    async def bd(self, ctx: SlashContext) -> None:
+        """Permet d'obtenir la BD."""
+        await ctx.send("Voici la BD.", file="data/UserBase.pkl", ephemeral=False)
