@@ -62,7 +62,7 @@ class MyTask(Extension):
                 ping = self.tool.ping_liste(old, serveur)
                 if old.group != new.group:
                     ping += f" {self.tool.ping_liste(new, serveur)}"
-                descstr += f"- {ping} {old.str_day(new)} → {new.str_day(old)}\n"
+                descstr += f"- {ping}\n\t- {old.str_day(new)}\n - ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ⇓\n - {new.str_day(old)}\n"
             embeds.append(Embed(title="Événements modifiés :", description=descstr, color=0x5865f2))
 
         if len(embeds):
@@ -77,8 +77,8 @@ class MyTask(Extension):
         # Pour l'envoi hebdomadaire.
         if datetime.today().weekday() == 0:
             for id in user_base.weekly_subscribed_users:
-                await self.tool.send_weekly_update(self.bot.get_user(id), user_base.is_user_subscribed_ics(id, Subscription.WEEKLY))
+                await self.tool.send_weekly_update(self.bot.get_user(id), user_base.is_user_subscribed_ics(id, Subscription.WEEKLY_ICS))
         # Pour l'envoi quotidien.
         if datetime.today().weekday() <= 4:  # Si on est le week end
             for id in user_base.daily_subscribed_users:
-                await self.tool.send_daily_update(self.bot.get_user(id), user_base.is_user_subscribed_ics(id, Subscription.DAILY))
+                await self.tool.send_daily_update(self.bot.get_user(id), user_base.is_user_subscribed_ics(id, Subscription.DAILY_ICS))
