@@ -188,7 +188,7 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
                         sentry_sdk.capture_exception(exception)
 
     else:
-        if "L3 INFO - INGENIERIE" in descsplit and "Pro. Pro. Per." not in sum and "MIAGE" not in sum:
+        if "L3 INFO - INGENIERIE" in descsplit and "MIAGE" not in sum:
             isINGE = True
         if "L3 INFORMATIQUE - MIAGE" in descsplit or "MIAGE" in sum:
             isMIAGE = True
