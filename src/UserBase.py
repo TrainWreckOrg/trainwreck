@@ -73,8 +73,8 @@ class UserBase:
     def update_user(self, id: int, new_groups: list[Group], new_filiere: Filiere = Filiere.UKNW) -> None:
         """Remplace les groupes de l'utilisateur par une ceux de `new_groups`"""
         if self.has_user(id):
+            self.users[id].filiere = new_filiere
             self.users[id].groups = new_groups
-            self.users[id].groups = new_filiere
             dump_user_base(self)
 
     def user_subscribe(self, id: int, subscription: Subscription) -> None:
