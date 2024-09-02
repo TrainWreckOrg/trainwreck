@@ -1,6 +1,7 @@
 import asyncio
 
-from interactions import Client, Task, TimeTrigger, OrTrigger, Embed, Extension
+from interactions import Client, Task, TimeTrigger, OrTrigger, Embed, Extension, slash_command, SlashContext, \
+    Permissions
 from datetime import datetime
 from dotenv import load_dotenv
 import os
@@ -8,7 +9,7 @@ import os
 from Calendar import Calendar, changed_events
 from UserBase import get_user_base
 from Tool import get_tool
-from Enums import Subscription
+from Enums import Subscription, RoleEnum
 
 load_dotenv("keys.env")
 
@@ -82,3 +83,14 @@ class MyTask(Extension):
         if datetime.today().weekday() <= 4:  # Si on est le week end
             for id in user_base.daily_subscribed_users:
                 await self.tool.send_daily_update(self.bot.get_user(id), user_base.is_user_subscribed_ics(id, Subscription.DAILY_ICS))
+
+    @slash_command(name="send_daily", description="Envoie les messages daily",
+                   default_member_permissions=Permissions.ADMINISTRATOR)
+    async def send_daily(self, ctx: SlashContext):
+        """Fonction qui permet d'afficher le nom, la filière et les groupes de la personne"""
+        ephemeral = False
+        if self.tool.is_guild_chan(ctx.author):
+            ephemeral = not ctx.author.has_role(
+                self.tool.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
+        await ctx.send("envoie des messages daily", ephemeral=ephemeral)
+        await self.daily_morning_update()
