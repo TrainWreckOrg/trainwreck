@@ -317,3 +317,21 @@ class MySlashCommand(Extension):
             file_prod.write(content)
 
         await ctx.send("Le fichier ics à été modifier.", ephemeral=False)
+
+    @slash_command(name="info", description="Envoie des infos sur vos groupes, et filière. Si une personne est donnée, donne ses informations", default_member_permissions=Permissions.ADMINISTRATOR)
+    @slash_option(
+        name="personne",
+        description="Quel utilisateur ?",
+        required=False,
+        opt_type=OptionType.USER
+    )
+    async def info(self, ctx: SlashContext, personne: User = None):
+        """Fonction qui permet d'afficher le nom, la filière et les groupes de la personne"""
+        author = ctx.author if (personne is None) else personne
+        you_are = personne is None
+        str_role = ""
+        for groupe in self.tool.get_groupes_as_list(author):
+            str_role += groupe.value + ", "
+        str_role = str_role.removesuffix(", ")
+        await ctx.send(
+            f"{"Vous êtes" if you_are else "Informations sur"} {author.display_name}!\n{"Votre" if you_are else "Sa"} filière est {self.tool.get_filiere_as_filiere(ctx.author).value} et {"vos" if you_are else "ses"} groupes {"sont" if len(self.tool.get_groupes_as_list(ctx.author)) > 1 else "est"} {str_role}.")

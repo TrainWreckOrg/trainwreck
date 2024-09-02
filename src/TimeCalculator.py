@@ -15,7 +15,7 @@ class TimeCalculator:
         """Permet d'enregistrer le temps de fin."""
         self._end = datetime.now()
 
-    def delta(self):
+    def delta(self, message = ""):
         """Permet de calculer le delta entre start et end puis l'affiche."""
         delta = self._end - self._start
-        print(delta)
+        print(str(message)+" "+str(delta))
