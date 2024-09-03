@@ -1,7 +1,7 @@
 import asyncio
 
 from interactions import Client, Task, TimeTrigger, OrTrigger, Embed, Extension, slash_command, SlashContext, \
-    Permissions
+    Permissions, AllowedMentions
 from datetime import datetime
 from dotenv import load_dotenv
 import os
@@ -42,19 +42,24 @@ class MyTask(Extension):
 
         sup, add, mod = changed_events(old_calendar, new_calendar)
         embeds: list[Embed] = []
+        ping_liste = ""
 
         serveur = self.bot.user.guilds[0]
 
         if len(sup) > 0:
             descstr = ""
             for event in sup:
-                descstr += f"- {self.tool.ping_liste(event, serveur)} {event.str_day()}\n"
+                ping = self.tool.ping_liste(event, serveur)
+                ping_liste += ping
+                descstr += f"- {ping} {event.str_day()}\n"
             embeds.append(Embed(title="Événements supprimés :", description=descstr, color=0xEd4245))
 
         if len(add) > 0:
             descstr = ""
             for event in add:
-                descstr += f"- {self.tool.ping_liste(event, serveur)} {event.str_day()}\n"
+                ping = self.tool.ping_liste(event, serveur)
+                ping_liste += ping
+                descstr += f"- {ping} {event.str_day()}\n"
             embeds.append(Embed(title="Événements ajoutés :", description=descstr, color=0x57f287))
 
         if len(mod) > 0:
@@ -63,12 +68,14 @@ class MyTask(Extension):
                 ping = self.tool.ping_liste(old, serveur)
                 if old.group != new.group:
                     ping += f" {self.tool.ping_liste(new, serveur)}"
+                ping_liste += ping
                 descstr += f"- {ping}\n\t- {old.str_day(new)}\n - ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ⇓\n - {new.str_day(old)}\n"
             embeds.append(Embed(title="Événements modifiés :", description=descstr, color=0x5865f2))
 
         if len(embeds):
             ping_chan = self.bot.get_channel(os.getenv("PING_CHANGE_CHANNEL_ID"))
-            await ping_chan.send(embeds=embeds, ephemeral=False)
+            ping_liste = f"Il y a eu des modification dans l'EDT ||{ping_liste}||"
+            await ping_chan.send(ping_liste, embeds=embeds, ephemeral=False, allowed_mentions=AllowedMentions(roles=serveur.roles))
 
     @Task.create(TimeTrigger(hour=6, minute=0, seconds=0, utc=False))
     async def daily_morning_update(self) -> None:
