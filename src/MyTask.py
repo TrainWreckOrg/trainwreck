@@ -1,5 +1,3 @@
-import asyncio
-
 from interactions import Client, Task, TimeTrigger, OrTrigger, Embed, Extension, slash_command, SlashContext, \
     Permissions, AllowedMentions
 from datetime import datetime
@@ -94,10 +92,23 @@ class MyTask(Extension):
     @slash_command(name="send_daily", description="Envoie les messages daily",
                    default_member_permissions=Permissions.ADMINISTRATOR)
     async def send_daily(self, ctx: SlashContext):
-        """Fonction qui permet d'afficher le nom, la filière et les groupes de la personne"""
+        """Fonction qui permet d'envoyer le message automatique."""
+        # Elle est ici parce que ailleurs, il y aurait des problèmes d'import circulaire (je pense).
         ephemeral = False
         if self.tool.is_guild_chan(ctx.author):
             ephemeral = not ctx.author.has_role(
                 self.tool.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
-        await ctx.send("envoie des messages daily", ephemeral=ephemeral)
+        await ctx.send("Envoie des messages automatique.", ephemeral=ephemeral)
         await self.daily_morning_update()
+
+    @slash_command(name="update_force", description="Force la mise à jour du calendrier",
+                   default_member_permissions=Permissions.ADMINISTRATOR)
+    async def update_force(self, ctx: SlashContext):
+        """Fonction qui permet de forcer la mise à jour du calendrier."""
+        # Elle est ici parce que ailleurs, il y aurait des problèmes d'import circulaire (je pense).
+        ephemeral = False
+        if self.tool.is_guild_chan(ctx.author):
+            ephemeral = not ctx.author.has_role(
+                self.tool.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
+        await ctx.send("Mise à jour du calendrier.", ephemeral=ephemeral)
+        await self.update_calendar()

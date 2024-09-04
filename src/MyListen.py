@@ -35,8 +35,10 @@ class MyListen(Extension):
         await self.bot.synchronise_interactions()
         if not MyTask.daily_morning_update.running:
             MyTask.daily_morning_update.start()
+            await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Démarrage de la Task `daily_morning_update`")
         if not MyTask.update_calendar.running:
             MyTask.update_calendar.start()
+            await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Démarrage de la Task `update_calendar`")
         await MyTask.update_calendar()
         print(f"Ready\nThis bot is owned by {self.bot.owner}")
         await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Démarrage du bot v1")
@@ -84,6 +86,7 @@ class MyListen(Extension):
 
     @component_callback(re.compile("delete-role"))
     async def wipe_bt(self, ctx: ComponentContext):
+        """Permet d'enlever les rôles de Filière et de Groupe à tout le monde"""
         for user in ctx.guild.members:
             for filiere in Filiere:
                 if filiere in [Filiere.UKNW]:

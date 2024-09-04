@@ -242,6 +242,7 @@ class MySlashCommand(Extension):
 
     @slash_command(name="exam", description="Vous permet de consulter la liste des exams.")
     async def exam(self, ctx: SlashContext) -> None:
+        """Permet d'obtenir la liste des exams."""
         exams = get_calendar().get_exams()
         embeds = get_embeds(exams, ctx.author)
         if not exams:
@@ -294,7 +295,7 @@ class MySlashCommand(Extension):
                    default_member_permissions=Permissions.ADMINISTRATOR)
     @contexts(guild=True, bot_dm=False)
     async def nuke(self, ctx: SlashContext) -> None:
-        """Permet de scanner tous les membres du serveur et de mettre à jour la BD."""
+        """Permet de vider la BD."""
         nuke()
         await ctx.send("La BD à été nuke.", ephemeral=True)
 

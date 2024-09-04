@@ -45,7 +45,7 @@ class Tool:
         return self.roles.get(int(guild.id))
 
     def get_subscription(self, author: User | Member) -> list[Subscription]:
-        """Fonction qui permet d'avoir la liste de subscription."""
+        """Fonction qui permet d'avoir la liste de subscription d'un utilisateur."""
         sub = []
         if self.is_guild_chan(author):
             if author.has_role(self.get_roles(author.guild)[Subscription.DAILY]):
@@ -285,6 +285,7 @@ class Tool:
         )
 
     async def subscription_role(self, user_id: int, subscription : Subscription, ajout:bool):
+        """Permet d'ajouter / supprimer le role de la subscription à un utilisateur."""
         guild_object = self.bot.guilds[0]
         user_guild = self.bot.get_member(user_id, self.bot.guilds[0])
         if ajout:
@@ -353,10 +354,4 @@ def get_tool(bot : Client) -> Tool:
     global tool
     if tool is None:
         tool = Tool(bot)
-    return tool
-
-
-def get_tool_sans_bot() -> Tool | None:
-    """Permet d'obtenir un objet Tool."""
-    global tool
     return tool

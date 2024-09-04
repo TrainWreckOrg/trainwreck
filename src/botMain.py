@@ -35,6 +35,7 @@ bot.load_extension("Onboard")
 
 
 async def log(ctx: SlashContext | ModalContext | ContextMenuContext | ComponentContext, **kwargs):
+    """Fonction qui permet de logger toutes les actions."""
     if isinstance(ctx, ComponentContext):
         ctx_bt : ComponentContext = ctx
         await bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(
@@ -46,8 +47,8 @@ async def log(ctx: SlashContext | ModalContext | ContextMenuContext | ComponentC
     else:
         await bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(f"{ctx.author.display_name} ({ctx.author.id}) à utilise {ctx.command.name} {kwargs}, le {datetime.datetime.now()}")
 
-
+# Définition d'une action avant une action
 bot.pre_run_callback = log
 
-
+# Démarrage du bot
 bot.start()

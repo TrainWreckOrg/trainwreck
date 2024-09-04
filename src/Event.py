@@ -28,12 +28,13 @@ class Event:
             return (self.uid == other.uid and self.start_timestamp == other.start_timestamp and
                     self.end_timestamp == other.end_timestamp and self.location == other.location and
                     self.teacher == other.teacher and self.subject == other.subject and self.group == other.group and
-                    self.isMIAGE == other.isMIAGE and self.isINGE == other.isINGE)
+                    self.isMIAGE == other.isMIAGE and self.isINGE == other.isINGE and self.isEXAM == other.isEXAM and
+                    self.duree == other.duree)
         return False
 
     def __hash__(self) -> int:
         """Permet d'avoir un hash de l'Event."""
-        return hash(self.uid + str(self.start_timestamp) + str(self.end_timestamp) + self.location + self.teacher + self.subject + str(self.group) + str(self.isMIAGE) + str(self.isINGE))
+        return hash(self.uid + str(self.start_timestamp) + str(self.end_timestamp) + self.location + self.teacher + self.subject + str(self.group) + str(self.isMIAGE) + str(self.isINGE) + str(self.isEXAM) + str(self.duree))
 
     def __str__(self) -> str:
         """Permet d'avoir une str pour représenter l'Event."""
@@ -43,7 +44,7 @@ class Event:
             return f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
 
     def str_day(self, autre: 'Event' = None) -> str:
-        """Permet de comparer deux Event et de renvoyer une str de l'événement self avec les éléments changant en gars."""
+        """Permet de comparer deux Event et de renvoyer une str de l'événement self avec les éléments qui changent en gars."""
 
         if autre is None:
             if self.isEXAM:
