@@ -8,6 +8,7 @@ from Event import *
 
 def get_embeds(events: list[Event], user: User | Member, jour: date = date(year=2077, month=7, day=7), jour2: date = None) -> list[Embed]:
     """Permet de générer une liste d'Embed à partir d'une liste d'Event."""
+    # Cette fonction est une usine à gaz évité de la modifier !
     icon = user.avatar_url
     if len(events) == 0:
         return [Embed(title=f"{weekday[jour.weekday()]} {jour.day} {month[jour.month - 1]} {jour.year}{f" - {weekday[jour2.weekday()]} {jour2.day} {month[jour2.month - 1]} {jour2.year}" if (jour2 is not None) else ""}:", description="Aucun Cours", footer=EmbedFooter(f"Emploi du Temps de @{user.display_name}\nLes emploi du temps sont fournis a titre informatif uniquement,\n -> Veuillez vous référer à votre page personnelle sur l'ENT", icon))]

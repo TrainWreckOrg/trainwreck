@@ -31,7 +31,7 @@ class UserBase:
         return f"<users:{[str(x) for x in self.users.values()]}, daily:{self.daily_subscribed_users}, weekly:{self.weekly_subscribed_users}>"
 
     def has_user(self, id: int) -> bool:
-        """Vérifie si l'utilisateur est déjà enregistré"""
+        """Vérifie si l'utilisateur est déjà enregistré."""
         return id in self.users.keys()
 
     def is_user_subscribed(self, id: int, subscription: Subscription) -> bool:
@@ -50,7 +50,7 @@ class UserBase:
                     return (not is_daily) and (not is_weekly)
 
     def is_user_subscribed_ics(self, id: int, subscription: Subscription) -> bool:
-        """Permet de savoir si un utilisateur est abonée aux ics à une certaine subscription."""
+        """Permet de savoir si un utilisateur est abonée aux ics d'une certaine subscription."""
         if self.has_user(id):
             is_daily = id in self.daily_subscribed_users_ics
             is_weekly = id in self.weekly_subscribed_users_ics
@@ -65,20 +65,20 @@ class UserBase:
                     return (not is_daily) and (not is_weekly)
 
     def add_user(self, id: int, groups: list[Group], filiere: Filiere) -> None:
-        """Enregistre l'utilisateur s'il n'est pas déjà enregistré, sinon ne fait rien"""
+        """Enregistre l'utilisateur s'il n'est pas déjà enregistré, sinon ne fait rien."""
         if not self.has_user(id):
             self.users[id] = DBUser(id, groups, filiere)
             dump_user_base(self)
 
     def update_user(self, id: int, new_groups: list[Group], new_filiere: Filiere = Filiere.UKNW) -> None:
-        """Remplace les groupes de l'utilisateur par une ceux de `new_groups`"""
+        """Remplace les groupes de l'utilisateur par une ceux de `new_groups`."""
         if self.has_user(id):
             self.users[id].filiere = new_filiere
             self.users[id].groups = new_groups
             dump_user_base(self)
 
     def user_subscribe(self, id: int, subscription: Subscription) -> None:
-        """Abonne un utilisateur à une ou plusieurs des listes"""
+        """Abonne un utilisateur à une ou plusieurs des listes."""
         if self.has_user(id):
             match subscription:
                 case Subscription.DAILY:
@@ -142,7 +142,7 @@ class UserBase:
             dump_user_base(self)
 
     def get_user(self, id: int) -> DBUser | None:
-        """Retourne un Objet utilisateur s'il est présent dans la base de donnée, None sinon"""
+        """Retourne un Objet utilisateur s'il est présent dans la base de donnée, None sinon."""
         if self.has_user(id):
             return self.users[id]
         else:
@@ -150,19 +150,19 @@ class UserBase:
 
 
 def load_user_base():
-    """Récupère la base d'utilisateur depuis le fichier UserBase.pkl"""
+    """Récupère la base d'utilisateur depuis le fichier UserBase.pkl."""
     with open("data/UserBase.pkl", "rb") as f:
         return pickle.load(f)
 
 
 def dump_user_base(user_base: UserBase):
-    """Charge la base d'utilisateur dans le fichier UserBase.pkl"""
+    """Charge la base d'utilisateur dans le fichier UserBase.pkl."""
     with open("data/UserBase.pkl", "wb") as f:
         pickle.dump(user_base, f, pickle.HIGHEST_PROTOCOL)
 
 
 def get_user_base() -> UserBase:
-    """Permet d'obtenir la BD"""
+    """Permet d'obtenir la BD."""
     global user_base
     user_base = load_user_base()
     return user_base

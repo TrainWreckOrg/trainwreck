@@ -40,7 +40,6 @@ class MyContextMenus(Extension):
             ShortText(label="Jour ? (DD-MM-YYYY)", custom_id="date_user"),
             title=f"EDT de {ctx.target} ?",
             custom_id="day_user",
-
         )
         # Envoie du modal.
         await ctx.send_modal(modal=my_modal)

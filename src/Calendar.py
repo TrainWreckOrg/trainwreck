@@ -158,7 +158,7 @@ def changed_events(old: Calendar, new: Calendar, filters: list[Filter] = [TimeFi
     
     return sup, add, mod
 
-calendar: Calendar = None
+calendar: Calendar | None = None
 
 def get_calendar() -> Calendar:
     """Permet d'obtenir l'objet Calendar."""

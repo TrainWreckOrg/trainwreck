@@ -1,3 +1,5 @@
+from http.client import HTTPException
+
 import sentry_sdk
 from interactions import Client, ActionRow, Button, ButtonStyle, SlashContext, Guild, Role, Embed, User, Member, \
     ModalContext, ContextMenuContext, ComponentContext
@@ -45,7 +47,7 @@ class Tool:
         return self.roles.get(int(guild.id))
 
     def get_subscription(self, author: User | Member) -> list[Subscription]:
-        """Fonction qui permet d'avoir la liste de subscription."""
+        """Fonction qui permet d'avoir la liste de subscription d'un utilisateur."""
         sub = []
         if self.is_guild_chan(author):
             if author.has_role(self.get_roles(author.guild)[Subscription.DAILY]):
@@ -239,31 +241,39 @@ class Tool:
 
     async def send_daily_update(self, user: User, ics: bool):
         """Permet d'envoyer les EDT automatiquement pour le jour."""
-        events = filter_events(get_calendar().get_events(), [TimeFilter(date.today(), Timing.DURING), self.get_filiere(user), self.get_groupes(user)] )
-        embeds = get_embeds(events, user, date.today())
-        if ics:
-            filename = str(user.id)
-            get_ics(events, filename=filename)
-            await user.send("Bonjour voici votre EDT pour aujourd'hui.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, files=[f"{filename}.ics"], ephemeral=False)
-            os.remove(f"{filename}.ics")
-        else:
-            await user.send("Bonjour voici votre EDT pour aujourd'hui.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, ephemeral=False)
+        try:
+            events = filter_events(get_calendar().get_events(), [TimeFilter(date.today(), Timing.DURING), self.get_filiere(user), self.get_groupes(user)] )
+            embeds = get_embeds(events, user, date.today())
+            if ics:
+                filename = str(user.id)
+                get_ics(events, filename=filename)
+                await user.send("Bonjour voici votre EDT pour aujourd'hui.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, files=[f"{filename}.ics"], ephemeral=False)
+                os.remove(f"{filename}.ics")
+            else:
+                await user.send("Bonjour voici votre EDT pour aujourd'hui.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, ephemeral=False)
+        except HTTPException as exception:
+            await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(
+                f"Problème d'envoie avec `{user.id}` -> {exception}")
 
     async def send_weekly_update(self, user: User, ics: bool):
         """Permet d'envoyer les EDT automatiquement pour la semaine."""
-        days_since_monday = date.today().weekday()
-        monday_date = date.today() - timedelta(days=days_since_monday)
-        sunday_date = monday_date + timedelta(days=6)
-        events = filter_events (get_calendar().get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), self.get_filiere(user), self.get_groupes(user)])
-        embeds = get_embeds(events, user, monday_date, sunday_date)
+        try:
+            days_since_monday = date.today().weekday()
+            monday_date = date.today() - timedelta(days=days_since_monday)
+            sunday_date = monday_date + timedelta(days=6)
+            events = filter_events (get_calendar().get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), self.get_filiere(user), self.get_groupes(user)])
+            embeds = get_embeds(events, user, monday_date, sunday_date)
 
-        if ics:
-            filename = str(user.id)
-            get_ics(events, filename=filename)
-            await user.send("Bonjour voici votre EDT pour la semaine.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, files=[f"{filename}.ics"], ephemeral=False)
-            os.remove(f"{filename}.ics")
-        else:
-            await user.send("Bonjour voici votre EDT pour la semaine.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, ephemeral=False)
+            if ics:
+                filename = str(user.id)
+                get_ics(events, filename=filename)
+                await user.send("Bonjour voici votre EDT pour la semaine.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, files=[f"{filename}.ics"], ephemeral=False)
+                os.remove(f"{filename}.ics")
+            else:
+                await user.send("Bonjour voici votre EDT pour la semaine.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, ephemeral=False)
+        except HTTPException as exception:
+            await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(
+                f"Problème d'envoie avec `{user.id}` -> {exception}")
 
     async def check_subscription(self, ctx: SlashContext) -> None:
         """Permet d'afficher quel sont les abonnements d'un utilisateur."""
@@ -280,11 +290,13 @@ class Tool:
                 f"- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}\n"
                 f"- Mise à Jour Quotidienne ICS: {'✅' if (user_base.is_user_subscribed_ics(id, Subscription.DAILY_ICS)) else '❌'}\n"
                 f"- Mise à Jour Hebdomadaire ICS: {'✅' if (user_base.is_user_subscribed_ics(id, Subscription.WEEKLY_ICS)) else '❌'}\n"
+                f":warning: vous devez avoir vous mp ouvert ou déjà avoir mp le bot. "
                 ),
             ephemeral=ephemeral
         )
 
     async def subscription_role(self, user_id: int, subscription : Subscription, ajout:bool):
+        """Permet d'ajouter / supprimer le role de la subscription à un utilisateur."""
         guild_object = self.bot.guilds[0]
         user_guild = self.bot.get_member(user_id, self.bot.guilds[0])
         if ajout:
@@ -353,10 +365,4 @@ def get_tool(bot : Client) -> Tool:
     global tool
     if tool is None:
         tool = Tool(bot)
-    return tool
-
-
-def get_tool_sans_bot() -> Tool | None:
-    """Permet d'obtenir un objet Tool."""
-    global tool
     return tool
