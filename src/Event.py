@@ -2,8 +2,7 @@ from datetime import datetime
 from pytz import timezone
 import sentry_sdk
 
-from Enums import Group, subjects_table
-from src.Enums import Annee
+from Enums import Group, GroupL2, GroupL3, Annee, subjects_table
 
 
 class Event:
@@ -38,18 +37,18 @@ class Event:
     def __str__(self) -> str:
         """Permet d'avoir une str pour représenter l'Event."""
         if self.isEXAM:
-            return ":warning: " + (f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.subject} - {f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.location} - {self.teacher}".upper()) + " :warning:"
+            return ":warning: " + (f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.subject} - {self.location} - {self.teacher}".upper()) + " :warning:"
         else:
-            return f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
+            return f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value} - {self.subject} - {self.location} - {self.teacher}"
 
     def str_day(self, autre: 'Event' = None) -> str:
         """Permet de comparer deux Event et de renvoyer une str de l'événement self avec les éléments qui changent en gars."""
 
         if autre is None:
             if self.isEXAM:
-                return ":warning: " + (f"{self.start_timestamp.strftime("%d-%m-%Y")} {self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.subject} - {f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.location} - {self.teacher}".upper()) + " :warning:"
+                return ":warning: " + (f"{self.start_timestamp.strftime("%d-%m-%Y")} {self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.subject} - {self.location} - {self.teacher}".upper()) + " :warning:"
             else:
-                return f"{self.start_timestamp.strftime("%d-%m-%Y")} {self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
+                return f"{self.start_timestamp.strftime("%d-%m-%Y")} {self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value} - {self.subject} - {self.location} - {self.teacher}"
 
         texte = ""
 
@@ -65,8 +64,8 @@ class Event:
 
         texte += " : "
 
-        self_groupe = f"{self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""}"
-        autre_groupe = f"{autre.group.value}{f" {"INGE" if autre.isINGE else ""}{"-" if autre.isINGE and autre.isMIAGE else ""}{"MIAGE" if autre.isMIAGE else ""}" if autre.group.value == "CM" else ""}"
+        self_groupe = f"{self.group.value}"
+        autre_groupe = f"{autre.group.value}"
         if (self_groupe) != (autre_groupe):
             texte += f"**{self_groupe}**"
         else:
@@ -109,27 +108,13 @@ class Event:
         ics += "DTEND:" + end + "\n"
         ics += "SUMMARY:" + self.subject + "\n"
         ics += "LOCATION:" + self.location + "\n"
-        ics += f"DESCRIPTION:Groupe : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group == Group.CM else ""}\\nDurée : {str(self.duree).split(":")[0]}h{str(self.duree).split(":")[1]}\\nEnseignant : {self.teacher}\\nExporté le {datetime.now().strftime("%d/%m/%Y à %Hh%M")}, via EDT Bot\n"
+        ics += f"DESCRIPTION:Groupe : {self.group.value}\\nDurée : {str(self.duree).split(":")[0]}h{str(self.duree).split(":")[1]}\\nEnseignant : {self.teacher}\\nExporté le {datetime.now().strftime("%d/%m/%Y à %Hh%M")}, via EDT Bot\n"
         ics += "UID:" + self.uid + "\n"
         ics += "CREATED:19700101T000000Z" + "\n"
         ics += "LAST-MODIFIED:" + stamp + "\n"
         ics += "SEQUENCE:" + str(datetime.now(tz=timezone("UTC")).timestamp())[:10] + "\n"
         ics += "END:VEVENT" + "\n"
         return ics
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 class EventL3(Event):
     """Classe utilisée pour gérer les objets événements"""
@@ -243,15 +228,15 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
     elif "L2" in sum:
         return get_event_L3_from_data(start, end, sum, loc, desc, uid)
 
-def get_event_L3_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str) -> Event:
+def get_event_L3_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str) -> EventL3:
     """Permet d'extraire les informations des données parsées."""
     # Événements spéciaux.
     if sum == "Réunion rentrée - L3 INGENIERIE INFORMATIQUE":
-        return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", True, False,"ADE60323032342d323032352d31323639382d302d30")
+        return Event(start, end, sum, GroupL3.CM, loc, "Équipe Enseignante", True, False,"ADE60323032342d323032352d31323639382d302d30")
     elif sum == "HAPPY CAMPUS DAY":
-        return Event(start, end, sum, Group.CM, "Campus", "Équipe Enseignante", True, True,"ADE60323032342d323032352d32323835332d302d30")
+        return Event(start, end, sum, GroupL3.CM, "Campus", "Équipe Enseignante", True, True,"ADE60323032342d323032352d32323835332d302d30")
     elif sum == "Réunion rentrée - L3 MIAGE":
-        return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", False, True,"ADE60323032342d323032352d31333132352d302d30")
+        return Event(start, end, sum, GroupL3.CM, loc, "Équipe Enseignante", False, True,"ADE60323032342d323032352d31333132352d302d30")
 
     # Descsplit contient les informations correspondant à la description de l'événement, séparé par lignes.
     # Ex : ['', '', 'Gr TPC', 'Con. Ana. Algo', 'Con. Ana. Algo', 'L3 INFO - INGENIERIE', 'L3 INFORMAT-UPEX MINERVE', 'LIEDLOFF', '(Exporté le : 27/07/2024 20:20)', '\n\n']
@@ -269,7 +254,7 @@ def get_event_L3_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:
     # Valeur par défaut.
     isMIAGE = False
     isINGE  = False
-    group   = Group.CM
+    group   = GroupL3.CM
 
     if subject == "Anglais":
         if "MIAGE" in sum :
@@ -277,11 +262,11 @@ def get_event_L3_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:
             isMIAGE = True
             match sum[12]:
                 case "1":
-                    group = Group.TDA1M
+                    group = GroupL3.TDA1M
                 case "2":
-                    group = Group.TDA2M
+                    group = GroupL3.TDA2M
                 case "3":
-                    group = Group.TDA3M
+                    group = GroupL3.TDA3M
                 case _:
                     # Ce cas ne devrait pas arriver et devrait être fix rapidement.
                     group = Group.UKNW
@@ -296,13 +281,13 @@ def get_event_L3_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:
             isINGE = True
             match sum[13]:
                 case "1":
-                    group = Group.TDA1I
+                    group = GroupL3.TDA1I
                 case "2":
-                    group = Group.TDA2I
+                    group = GroupL3.TDA2I
                 case "3":
-                    group = Group.TDA3I
+                    group = GroupL3.TDA3I
                 case "4":
-                    group = Group.TDA4I
+                    group = GroupL3.TDA4I
                 case _:
                     # Ce cas ne devrait pas arriver et devrait être fix rapidement.
                     group = Group.UKNW
@@ -323,15 +308,15 @@ def get_event_L3_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:
                 isMIAGE = False
                 match descsplit[2][3:]:
                     case "TD1":
-                        group = Group.TD1I
+                        group = GroupL3.TD1I
                     case "TD2":
-                        group = Group.TD2I
+                        group = GroupL3.TD2I
                     case "TPA":
-                        group = Group.TPAI
+                        group = GroupL3.TPAI
                     case "TPB":
-                        group = Group.TPBI
+                        group = GroupL3.TPBI
                     case "TPC":
-                        group = Group.TPCI
+                        group = GroupL3.TPCI
                     case "TPD":
                         group = Group.TPDI
                     case _:
@@ -346,15 +331,15 @@ def get_event_L3_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:
             else:
                 match descsplit[2][3:]:
                     case "TD1":
-                        group = Group.TD1M
+                        group = GroupL3.TD1M
                     case "TD2":
-                        group = Group.TD2M
+                        group = GroupL3.TD2M
                     case "TP1":
-                        group = Group.TP1M
+                        group = GroupL3.TP1M
                     case "TP2":
-                        group = Group.TP2M
+                        group = GroupL3.TP2M
                     case "TP3":
-                        group = Group.TP3M
+                        group = GroupL3.TP3M
                     case _:
                         # Ce cas ne devrait pas arriver et devrait être fix rapidement.
                         group = Group.UKNW
@@ -367,15 +352,14 @@ def get_event_L3_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:
     # Crée un nouvel Objet Event à partir des infos calculées.
     return Event(start, end, subject, group, location, teacher, isINGE, isMIAGE, uid)
 
-def get_event_L2_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str) -> Event:
+def get_event_L2_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str) -> EventL2:
     """Permet d'extraire les informations des données parsées."""
     # Événements spéciaux.
     if sum == "HAPPY CAMPUS DAY":
-        return Event(start, end, sum, Group.CM, "Campus", "Équipe Enseignante", True, True,"ADE60323032342d323032352d32323835332d302d30")
+        return Event(start, end, sum, GroupL2.CM, "Campus", "Équipe Enseignante", True, True,"ADE60323032342d323032352d32323835332d302d30")
 
     # Descsplit contient les informations correspondant à la description de l'événement, séparé par lignes.
     # Ex : ["","","Gr TPA","Syst. Mono Tâche","Syst. Mono Tâche","L2 INFORMAT- UPEX MINERVE","L2 INFO - INGENIERIE INFO","COUVREUR","(Exporté le:05/09/202 4 11:24)"\n]
-    #      ["","",Anglais\nAnglais\nL2 INFORMAT- UPEX MINERVE\nL2 INFO - INGENIERIE INFO\nMOREAU-WINSWORTH\n(Exporté le:05/09/2024 11:24)\n
     descsplit = desc.split("\\n")
     sumsplit = sum.split(" - ")
 
@@ -387,28 +371,28 @@ def get_event_L2_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:
     location = loc if not loc == "" else "Salle ?"
 
     # Valeur par défaut.
-    group   = Group.CM
+    group   = GroupL2.CM
 
     match sumsplit[1]:
         case 'TD1':
-            pass
+            group = GroupL2.TD1
         case 'TD2':
-            pass
+            group = GroupL2.TD2
         case 'TD3':
-            pass
+            group = GroupL2.TD3
 
         case 'TP1':
-            pass
+            group = GroupL2.TP1
         case 'TP2':
-            pass
+            group = GroupL2.TP2
         case 'TP3':
-            pass
+            group = GroupL2.TP3
         case 'TP4':
-            pass
+            group = GroupL2.TP4
         case 'TP5':
-            pass
+            group = GroupL2.TP5
         case 'TP6':
-            pass
+            group = GroupL2.TP6
         
 
     # Crée un nouvel Objet Event à partir des infos calculées.
