@@ -1,7 +1,10 @@
 from datetime import datetime, timedelta, date
 from urllib.error import URLError
 from urllib.request import urlretrieve
+
+from interactions import Guild
 from pytz import timezone
+from abc import ABC, abstractmethod
 
 from Filter import Filter, TimeFilter, filter_events
 from Enums import url, Timing
@@ -9,14 +12,14 @@ from Event import *
 
 import os
 
-class Calendar:
+class Calendar(ABC):
     """Classe utilisée pour stocker une liste d'objet Event."""
     def __init__(self, update : bool) -> None:
         """ Update : Si l'on doit télécharger les fichiers ics."""
         # Dictionnaire qui stock les Event associé à l'UID.
-        self.events_dict : dict[str:Event]
-        self.events_list : list[Event]
-        self.exams_list : list[Event]
+        self.events_dict : dict[str:Event] = {}
+        self.events_list : list[Event] = []
+        self.exams_list : list[Event] = []
 
         self.update_events(update)
 
@@ -37,30 +40,6 @@ class Calendar:
         # 20241105T143000Z -> 2024-11-05T14:30:00Z
         iso_date = f"{input[0:4]}-{input[4:6]}-{input[6:11]}:{input[11:13]}:{input[13:]}"
         return datetime.fromisoformat(iso_date).astimezone(timezone("Europe/Paris"))
-
-    def update_events(self, update: bool) -> None:
-        """Met à jour la liste d'événements en mêlant les événements issus des deux .ics.
-        Update : Si l'on doit télécharger les fichiers ics.
-        """
-        output = {}
-        filenameINGE = "data/INGE.ics"
-        filenameMIAGE = "data/MIAGE.ics"
-        
-        if not (os.path.exists(filenameINGE) and os.path.exists(filenameMIAGE)):
-            update = True
-
-        if update:
-            self.fetch_calendar(url["INGE"], filenameINGE)
-            self.fetch_calendar(url["MIAGE"], filenameMIAGE)
-
-        self.exam_list = []
-        # | sert à concaténer deux dictionnaires.
-        output = self.parse_calendar(filenameINGE) | self.parse_calendar(filenameMIAGE)
-
-
-        self.events_dict = output
-        # Tri les événements par ordre croissant en fonction de leur date.
-        self.events_list = sorted(list(self.events_dict.values()),key=lambda event: event.start_timestamp)
 
     def parse_calendar(self, filename:str) -> dict[str:Event]:
         """Extrait les données du fichier .ics passé dans filename.
@@ -99,20 +78,8 @@ class Calendar:
                         event[prefix.removesuffix(":")] = line.removeprefix(prefix).removesuffix("\n")
                         break
 
-        # Exam list.
-
-        exams = [
-            # Event(
-            # start=datetime(day=3, month=6, year=2024, hour=13, minute=30, second=0, microsecond=0, tzinfo=timezone("Europe/Paris")),
-            # end=datetime(day=3, month=6, year=2024, hour=13, minute=30, second=0, microsecond=0, tzinfo=timezone("Europe/Paris")),
-            # subject="Exam Anglais", group=Group.CM, location="S103", teacher="Anne-Cécile Alzy", isINGE=True, isMIAGE=True, uid="EXAM01",
-            # isEXAM=True)
-        ]
-
-        self.exams_list = exams
-
-        for exam in exams:
-            events[exam.uid] = exam
+        # Concaténation du dico des exams et des cours
+        events |= self.create_exam()
 
         return events
 
@@ -123,6 +90,17 @@ class Calendar:
     def get_exams(self) -> list[Event]:
         """Retourne la liste des exams."""
         return self.exams_list
+
+    @abstractmethod
+    def update_events(self, update: bool) -> None:
+        """Met à jour la liste d'événements en mêlant les événements issus des deux .ics.
+        Update : Si l'on doit télécharger les fichiers ics.
+        """
+        pass
+
+    @abstractmethod
+    def create_exam(self):
+        pass
 
 
 class CalendarL3(Calendar):
@@ -142,20 +120,41 @@ class CalendarL3(Calendar):
         filenameINGE = "data/INGE.ics"
         filenameMIAGE = "data/MIAGE.ics"
 
-        if not (os.path.exists(filenameINGE) and os.path.exists(filenameMIAGE)):
-            update = True
+        if not (os.path.exists(filenameINGE)):
+            with open(filenameINGE, 'w', encoding='utf-8') as file:
+                file.write("")
+
+        if not (os.path.exists(filenameMIAGE)):
+            with open(filenameMIAGE, 'w', encoding='utf-8') as file:
+                file.write("")
 
         if update:
             self.fetch_calendar(url["INGE"], filenameINGE)
             self.fetch_calendar(url["MIAGE"], filenameMIAGE)
 
-        self.exam_list = []
         # | sert à concaténer deux dictionnaires.
         output = self.parse_calendar(filenameINGE) | self.parse_calendar(filenameMIAGE)
 
         self.events_dict = output
         # Tri les événements par ordre croissant en fonction de leur date.
         self.events_list = sorted(list(self.events_dict.values()), key=lambda event: event.start_timestamp)
+
+
+    def create_exam(self):
+        exams = [
+            # EventL3(
+            # start=datetime(day=3, month=6, year=2024, hour=13, minute=30, second=0, microsecond=0, tzinfo=timezone("Europe/Paris")),
+            # end=datetime(day=3, month=6, year=2024, hour=13, minute=30, second=0, microsecond=0, tzinfo=timezone("Europe/Paris")),
+            # subject="Exam Anglais", group=GroupL3.CM, location="S103", teacher="Anne-Cécile Alzy", isINGE=True, isMIAGE=True, uid="EXAM01",
+            # isEXAM=True)
+        ]
+
+        self.exams_list = exams
+        exams_list_local = {}
+        for exam in exams:
+            exams_list_local[exam.uid] = exam
+
+        return exams_list_local
 
 
 class CalendarL2(Calendar):
@@ -172,22 +171,37 @@ class CalendarL2(Calendar):
         Update : Si l'on doit télécharger les fichiers ics.
         """
         output = {}
-        filename = "data/INGE.ics"
-
+        filename = "data/L2.ics"
 
         if not (os.path.exists(filename)):
-            update = True
+            with open(filename, 'w', encoding='utf-8') as file:
+                file.write("")
 
         if update:
             self.fetch_calendar(url["L2"], filename)
 
-        self.exam_list = []
         # | sert à concaténer deux dictionnaires.
         output = self.parse_calendar(filename)
 
         self.events_dict = output
         # Tri les événements par ordre croissant en fonction de leur date.
         self.events_list = sorted(list(self.events_dict.values()), key=lambda event: event.start_timestamp)
+
+    def create_exam(self):
+        exams = [
+            # EventL2(
+            # start=datetime(day=3, month=6, year=2024, hour=13, minute=30, second=0, microsecond=0, tzinfo=timezone("Europe/Paris")),
+            # end=datetime(day=3, month=6, year=2024, hour=13, minute=30, second=0, microsecond=0, tzinfo=timezone("Europe/Paris")),
+            # subject="Exam Anglais", group=GroupL2.CM, location="S103", teacher="Anne-Cécile Alzy", uid="EXAM01",
+            # isEXAM=True)
+        ]
+
+        self.exams_list = exams
+        exams_list_local = {}
+        for exam in exams:
+            exams_list_local[exam.uid] = exam
+
+        return exams_list_local
 
 
 
@@ -224,9 +238,9 @@ def changed_events(old: Calendar, new: Calendar, filters: list[Filter] = [TimeFi
     
     return sup, add, mod
 
-calendar: Calendar | None = None
+calendar: dict[int,Calendar] = dict[int, Calendar]()
 
-def get_calendar() -> Calendar:
+def get_calendar(guild : Guild) -> Calendar:
     """Permet d'obtenir l'objet Calendar."""
     global calendar
-    return calendar
+    return calendar.get(int(guild.id))

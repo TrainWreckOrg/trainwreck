@@ -3,6 +3,7 @@ import sentry_sdk
 
 from Enums import Timing, Filiere, Group
 from Event import Event
+from src.Event import EventL3
 
 
 class Filter:
@@ -45,8 +46,10 @@ class FiliereFilter(Filter):
     def filter(self, e: Event) -> bool:
         """Permet de savoir si l'Event passe le filtre."""
         if self.filiere == Filiere.INGE:
+            e : EventL3
             return e.isINGE
         elif self.filiere == Filiere.MIAGE:
+            e : EventL3
             return e.isMIAGE
         else:
             return True
