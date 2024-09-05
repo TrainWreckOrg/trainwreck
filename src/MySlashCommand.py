@@ -328,6 +328,12 @@ class MySlashCommand(Extension):
     )
     async def info(self, ctx: SlashContext, personne: User = None):
         """Fonction qui permet d'afficher le nom, la filière et les groupes de la personne"""
+        channel = None
+        for chan in ctx.guild.channels:
+            if chan.name == "error-log":
+                channel = chan
+                break
+
         author = ctx.author if (personne is None) else personne
         you_are = personne is None
         str_role = ""
