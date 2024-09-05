@@ -118,8 +118,13 @@ class Event:
         ics += "END:VEVENT" + "\n"
         return ics
 
-
 def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str) -> Event:
+    if "L3" in sum:
+        return get_event_L3_from_data(start, end, sum, loc, desc, uid)
+    elif "L2" in sum:
+        return get_event_L3_from_data(start, end, sum, loc, desc, uid)
+
+def get_event_L3_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str) -> Event:
     """Permet d'extraire les informations des données parsées."""
     # Événements spéciaux.
     if sum == "Réunion rentrée - L3 INGENIERIE INFORMATIQUE":
@@ -242,3 +247,51 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
 
     # Crée un nouvel Objet Event à partir des infos calculées.
     return Event(start, end, subject, group, location, teacher, isINGE, isMIAGE, uid)
+
+def get_event_L2_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str) -> Event:
+    """Permet d'extraire les informations des données parsées."""
+    # Événements spéciaux.
+    if sum == "HAPPY CAMPUS DAY":
+        return Event(start, end, sum, Group.CM, "Campus", "Équipe Enseignante", True, True,"ADE60323032342d323032352d32323835332d302d30")
+
+    # Descsplit contient les informations correspondant à la description de l'événement, séparé par lignes.
+    # Ex : ["","","Gr TPA","Syst. Mono Tâche","Syst. Mono Tâche","L2 INFORMAT- UPEX MINERVE","L2 INFO - INGENIERIE INFO","COUVREUR","(Exporté le:05/09/202 4 11:24)"\n]
+    #      ["","",Anglais\nAnglais\nL2 INFORMAT- UPEX MINERVE\nL2 INFO - INGENIERIE INFO\nMOREAU-WINSWORTH\n(Exporté le:05/09/2024 11:24)\n
+    descsplit = desc.split("\\n")
+    sumsplit = sum.split(" - ")
+
+    # Si la Matière (4eme element) est une abbrev connu dans la subjects_table, remplacer par le nom complet.
+    subject = subjects_table[sumsplit[0]] if sumsplit[0] in subjects_table.keys() else sumsplit[0]
+
+    # Nettoie le nom du professeur (antépénultième élément), et inclus un fallback si le nom n'est pas renseigné.
+    teacher = descsplit[-3].replace("\n", "").removeprefix(" ") if descsplit[-3] != "L3 INFORMAT-UPEX MINERVE" else "Enseignant ?"
+    location = loc if not loc == "" else "Salle ?"
+
+    # Valeur par défaut.
+    group   = Group.CM
+
+    match sumsplit[1]:
+        case 'TD1':
+            pass
+        case 'TD2':
+            pass
+        case 'TD3':
+            pass
+
+        case 'TP1':
+            pass
+        case 'TP2':
+            pass
+        case 'TP3':
+            pass
+        case 'TP4':
+            pass
+        case 'TP5':
+            pass
+        case 'TP6':
+            pass
+        
+
+    # Crée un nouvel Objet Event à partir des infos calculées.
+    return Event(start, end, subject, group, location, teacher, False, False, uid)
+
