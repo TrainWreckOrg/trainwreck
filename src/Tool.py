@@ -1,4 +1,5 @@
 from http.client import HTTPException
+from abc import ABC, abstractmethod
 
 import sentry_sdk
 from interactions import Client, ActionRow, Button, ButtonStyle, SlashContext, Guild, Role, Embed, User, Member, \
@@ -15,47 +16,102 @@ from datetime import datetime, date, timedelta
 from enum import Enum
 import os
 
+from src.Enums import Annee
+from src.UserBase import DBUser
 
-class Tool:
+
+class Serveur:
+    def __init__(self, guild : Guild):
+        self.guild = guild
+        self.annee = None
+
+        if guild.name == "L3 Informatique":
+            self.annee = Annee.L3
+
+        if guild.name == "L2 Informatique":
+            self.annee = Annee.L2
+
+        self.roles = {}
+        for role in self.guild.roles:
+            if role.name in Group:
+                for groupe in Group:
+                    if groupe.value == role.name:
+                        self.roles[groupe] = role
+            if role.name in Filiere:
+                for filiere in Filiere:
+                    if filiere.value == role.name:
+                        self.roles[filiere] = role
+            if role.name in Subscription:
+                for sub in Subscription:
+                    if sub.value == role.name:
+                        self.roles[sub] = role
+            if role.name in RoleEnum:
+                for roleEnum in RoleEnum:
+                    if roleEnum.value == role.name:
+                        self.roles[roleEnum] = role
+
+        for channel in self.guild.channels:
+            if channel.name == "changement-edt":
+                self.channel_changement_edt = channel
+
+
+
+class BDServeur:
+    def __init__(self, bot: Client):
+        self.bot = bot
+        self.serveur_list = []
+        self.annee: dict[Annee, list[Serveur]] = {}
+        self.guild : dict[Guild, Serveur] = {}
+
+        for guild in bot.guilds:
+            serveur = Serveur(guild)
+            self.serveur_list.append(serveur)
+            self.annee[serveur.annee].append(serveur)
+            self.guild[guild] = serveur
+
+    def get_annee(self, annee_demand : Annee) -> list[Serveur]:
+        return self.annee.get(annee_demand)
+
+    def get_serveur(self, guild : Guild) -> Serveur:
+        return self.guild.get(guild)
+
+    def get_roles(self, guild : Guild) -> dict[Enum, Role]:
+        return self.guild.get(guild).roles
+
+    def get_master_serveur(self) -> Serveur:
+        return self.get_serveur(self.bot.get_guild(os.getenv("SERVEUR_ID")))
+
+
+
+bd_serveur : BDServeur
+
+def get_bd_serveur(bot: Client) -> BDServeur:
+    global bd_serveur
+    if bd_serveur is None:
+        bd_serveur = BDServeur(bot)
+    return bd_serveur
+
+
+
+
+
+class Tool(ABC):
     """Classe regroupant plusieurs méthodes utiles."""
     def __init__(self, bot: Client):
         self.bot = bot
-        self.roles: dict[int, dict[Enum:Role]] = {}
-
-    def get_roles(self, guild: Guild) -> dict[Enum:Role]:
-        """Permet d'obtenir le dictionnaire des Role discord associé aux Enum."""
-        if self.roles.get(int(guild.id)) is None:
-            self.roles[int(guild.id)] = {}
-            for role in guild.roles:
-                if role.name in Group:
-                    for groupe in Group:
-                        if groupe.value == role.name:
-                            self.roles[int(guild.id)][groupe] = role
-                if role.name in Filiere:
-                    for filiere in Filiere:
-                        if filiere.value == role.name:
-                            self.roles[int(guild.id)][filiere] = role
-                if role.name in Subscription:
-                    for sub in Subscription:
-                        if sub.value == role.name:
-                            self.roles[int(guild.id)][sub] = role
-                if role.name in RoleEnum:
-                    for roleEnum in RoleEnum:
-                        if roleEnum.value == role.name:
-                            self.roles[int(guild.id)][roleEnum] = role
-        return self.roles.get(int(guild.id))
+        self.serveur = get_bd_serveur(bot)
 
     def get_subscription(self, author: User | Member) -> list[Subscription]:
         """Fonction qui permet d'avoir la liste de subscription d'un utilisateur."""
         sub = []
         if self.is_guild_chan(author):
-            if author.has_role(self.get_roles(author.guild)[Subscription.DAILY]):
+            if author.has_role(self.serveur.get_roles(author.guild)[Subscription.DAILY]):
                 sub.append(Subscription.DAILY)
-            if author.has_role(self.get_roles(author.guild)[Subscription.WEEKLY]):
+            if author.has_role(self.serveur.get_roles(author.guild)[Subscription.WEEKLY]):
                 sub.append(Subscription.WEEKLY)
-            if author.has_role(self.get_roles(author.guild)[Subscription.DAILY_ICS]):
+            if author.has_role(self.serveur.get_roles(author.guild)[Subscription.DAILY_ICS]):
                 sub.append(Subscription.DAILY_ICS)
-            if author.has_role(self.get_roles(author.guild)[Subscription.WEEKLY_ICS]):
+            if author.has_role(self.serveur.get_roles(author.guild)[Subscription.WEEKLY_ICS]):
                 sub.append(Subscription.WEEKLY_ICS)
 
         elif get_user_base().has_user(author.id):
@@ -73,9 +129,9 @@ class Tool:
     def get_filiere_as_filiere(self, author: User | Member) -> Filiere:
         """Fonction qui permet d'avoir la filière d'un utilisateur, renvoie UKNW si pas définie."""
         if self.is_guild_chan(author):
-            if author.has_role(self.get_roles(author.guild)[Filiere.INGE]):
+            if author.has_role(self.serveur.get_roles(author.guild)[Filiere.INGE]):
                 return Filiere.INGE
-            if author.has_role(self.get_roles(author.guild)[Filiere.MIAGE]):
+            if author.has_role(self.serveur.get_roles(author.guild)[Filiere.MIAGE]):
                 return Filiere.MIAGE
         elif get_user_base().has_user(author.id):
             return get_user_base().get_user(author.id).filiere
@@ -127,20 +183,7 @@ class Tool:
         print(exception)
         sentry_sdk.capture_exception(exception)
         await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(
-            f"{(self.get_roles(guild)[RoleEnum.ADMIN]).mention} {exception}")
-
-    def ping_liste(self, event: Event, guild: Guild) -> str:
-        """Permet d'avoir une liste de mention pour un Event."""
-        roles = self.get_roles(guild)
-        if event.group == Group.CM:
-            if event.isINGE and event.isMIAGE:
-                return f"{roles[Filiere.INGE].mention} {roles[Filiere.MIAGE].mention}"
-            elif event.isINGE:
-                return f"{roles[Filiere.INGE].mention}"
-            else:
-                return f"{roles[Filiere.MIAGE].mention}"
-        else:
-            return f"{roles.get(event.group).mention}"
+            f"{(self.serveur.get_roles(guild)[RoleEnum.ADMIN]).mention} {exception}")
 
     async def get_day_bt(self, ctx: SlashContext | ModalContext | ContextMenuContext | ComponentContext, jour: str, modifier: bool, personne: User = None) -> None:
         """Fonction qui permet d'obtenir l'EDT d'une journée spécifique.
@@ -155,7 +198,7 @@ class Tool:
             filiere = self.get_filiere(author)
             groupe = self.get_groupes(author)
 
-            events: list[Event] = filter_events(get_calendar().get_events(),
+            events: list[Event] = filter_events(get_calendar(self.serveur.get_serveur(ctx.guild).annee).get_events(),
                                        [TimeFilter(date_formater, Timing.DURING), filiere,
                                         groupe])
             embeds = get_embeds(events, author, date_formater)
@@ -174,7 +217,7 @@ class Tool:
 
             ephemeral = False
             if self.is_guild_chan(ctx.author):
-                ephemeral = not ctx.author.has_role(self.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
+                ephemeral = not ctx.author.has_role(self.serveur.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
 
             if personne is None:
                 action_row = ActionRow(precedent, suivant)
@@ -203,7 +246,7 @@ class Tool:
             days_since_monday = date_formater.weekday()
             monday_date = date_formater - timedelta(days=days_since_monday)
             sunday_date = monday_date + timedelta(days=6)
-            events: list[Event] = filter_events(get_calendar().get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), self.get_filiere(author), self.get_groupes(author)])
+            events: list[Event] = filter_events(get_calendar(self.serveur.get_serveur(ctx.guild).annee).get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), self.get_filiere(author), self.get_groupes(author)])
 
             embeds = get_embeds(events, author, monday_date, sunday_date)
 
@@ -222,7 +265,7 @@ class Tool:
             ephemeral = False
             if self.is_guild_chan(ctx.author):
                 ephemeral = not ctx.author.has_role(
-                    self.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
+                    self.serveur.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
 
             if personne is None:
                 action_row = ActionRow(precedent, suivant)
@@ -238,10 +281,11 @@ class Tool:
         except ValueError:
             await ctx.send(embeds=[self.create_error_embed(f"La valeur `{semaine}` ne correspond pas à une date au format DD-MM-YYYY")], ephemeral=True)
 
-    async def send_daily_update(self, user: User, ics: bool):
+    async def send_daily_update(self, bd_user: DBUser, ics: bool):
         """Permet d'envoyer les EDT automatiquement pour le jour."""
         try:
-            events = filter_events(get_calendar().get_events(), [TimeFilter(date.today(), Timing.DURING), self.get_filiere(user), self.get_groupes(user)] )
+            user : User = self.bot.get_user(bd_user.id)
+            events = filter_events(get_calendar(bd_user.annee).get_events(), [TimeFilter(date.today(), Timing.DURING), self.get_filiere(user), self.get_groupes(user)])
             embeds = get_embeds(events, user, date.today())
             if ics:
                 filename = str(user.id)
@@ -252,15 +296,16 @@ class Tool:
                 await user.send("Bonjour voici votre EDT pour aujourd'hui.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, ephemeral=False)
         except HTTPException as exception:
             await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(
-                f"Problème d'envoie avec `{user.id}` -> {exception}")
+                f"Problème d'envoie avec `{bd_user.id}` -> {exception}")
 
-    async def send_weekly_update(self, user: User, ics: bool):
+    async def send_weekly_update(self, db_user: DBUser, ics: bool):
         """Permet d'envoyer les EDT automatiquement pour la semaine."""
         try:
+            user : User = self.bot.get_user(db_user.id)
             days_since_monday = date.today().weekday()
             monday_date = date.today() - timedelta(days=days_since_monday)
             sunday_date = monday_date + timedelta(days=6)
-            events = filter_events (get_calendar().get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), self.get_filiere(user), self.get_groupes(user)])
+            events = filter_events (get_calendar(db_user.annee).get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), self.get_filiere(user), self.get_groupes(user)])
             embeds = get_embeds(events, user, monday_date, sunday_date)
 
             if ics:
@@ -272,7 +317,7 @@ class Tool:
                 await user.send("Bonjour voici votre EDT pour la semaine.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, ephemeral=False)
         except HTTPException as exception:
             await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(
-                f"Problème d'envoie avec `{user.id}` -> {exception}")
+                f"Problème d'envoie avec `{db_user.id}` -> {exception}")
 
     async def check_subscription(self, ctx: SlashContext) -> None:
         """Permet d'afficher quel sont les abonnements d'un utilisateur."""
@@ -281,7 +326,7 @@ class Tool:
 
         ephemeral = False
         if self.is_guild_chan(ctx.author):
-            ephemeral = not ctx.author.has_role(self.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
+            ephemeral = not ctx.author.has_role(self.serveur.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
 
         await ctx.send(
             embed=Embed(f"Abonnements de {ctx.author.display_name}",
@@ -301,59 +346,59 @@ class Tool:
         if ajout:
             match subscription:
                 case Subscription.DAILY:
-                    if not user_guild.has_role(self.get_roles(guild_object)[subscription]):
-                        await user_guild.add_role(self.get_roles(guild_object)[subscription])
+                    if not user_guild.has_role(self.serveur.get_roles(guild_object)[subscription]):
+                        await user_guild.add_role(self.serveur.get_roles(guild_object)[subscription])
                 case Subscription.WEEKLY:
-                    if not user_guild.has_role(self.get_roles(guild_object)[subscription]):
-                        await user_guild.add_role(self.get_roles(guild_object)[subscription])
+                    if not user_guild.has_role(self.serveur.get_roles(guild_object)[subscription]):
+                        await user_guild.add_role(self.serveur.get_roles(guild_object)[subscription])
                 case Subscription.BOTH:
-                    if not user_guild.has_role(self.get_roles(guild_object)[Subscription.DAILY]):
-                        await user_guild.add_role(self.get_roles(guild_object)[Subscription.DAILY])
-                    if not user_guild.has_role(self.get_roles(guild_object)[Subscription.WEEKLY]):
-                        await user_guild.add_role(self.get_roles(guild_object)[Subscription.WEEKLY])
+                    if not user_guild.has_role(self.serveur.get_roles(guild_object)[Subscription.DAILY]):
+                        await user_guild.add_role(self.serveur.get_roles(guild_object)[Subscription.DAILY])
+                    if not user_guild.has_role(self.serveur.get_roles(guild_object)[Subscription.WEEKLY]):
+                        await user_guild.add_role(self.serveur.get_roles(guild_object)[Subscription.WEEKLY])
 
                 case Subscription.DAILY_ICS:
                     await self.subscription_role(user_id, Subscription.DAILY, ajout)
-                    if not user_guild.has_role(self.get_roles(guild_object)[subscription]):
-                        await user_guild.add_role(self.get_roles(guild_object)[subscription])
+                    if not user_guild.has_role(self.serveur.get_roles(guild_object)[subscription]):
+                        await user_guild.add_role(self.serveur.get_roles(guild_object)[subscription])
                 case Subscription.WEEKLY_ICS:
                     await self.subscription_role(user_id, Subscription.WEEKLY, ajout)
-                    if not user_guild.has_role(self.get_roles(guild_object)[subscription]):
-                        await user_guild.add_role(self.get_roles(guild_object)[subscription])
+                    if not user_guild.has_role(self.serveur.get_roles(guild_object)[subscription]):
+                        await user_guild.add_role(self.serveur.get_roles(guild_object)[subscription])
                 case Subscription.BOTH_ICS:
                     await self.subscription_role(user_id, Subscription.BOTH, ajout)
-                    if not user_guild.has_role(self.get_roles(guild_object)[Subscription.DAILY_ICS]):
-                        await user_guild.add_role(self.get_roles(guild_object)[Subscription.DAILY_ICS])
-                    if not user_guild.has_role(self.get_roles(guild_object)[Subscription.WEEKLY_ICS]):
-                        await user_guild.add_role(self.get_roles(guild_object)[Subscription.WEEKLY_ICS])
+                    if not user_guild.has_role(self.serveur.get_roles(guild_object)[Subscription.DAILY_ICS]):
+                        await user_guild.add_role(self.serveur.get_roles(guild_object)[Subscription.DAILY_ICS])
+                    if not user_guild.has_role(self.serveur.get_roles(guild_object)[Subscription.WEEKLY_ICS]):
+                        await user_guild.add_role(self.serveur.get_roles(guild_object)[Subscription.WEEKLY_ICS])
         else:
             match subscription:
                 case Subscription.DAILY:
                     await self.subscription_role(user_id, Subscription.DAILY_ICS, ajout)
-                    if user_guild.has_role(self.get_roles(guild_object)[subscription]):
-                        await user_guild.remove_role(self.get_roles(guild_object)[subscription])
+                    if user_guild.has_role(self.serveur.get_roles(guild_object)[subscription]):
+                        await user_guild.remove_role(self.serveur.get_roles(guild_object)[subscription])
                 case Subscription.WEEKLY:
                     await self.subscription_role(user_id, Subscription.WEEKLY_ICS, ajout)
-                    if user_guild.has_role(self.get_roles(guild_object)[subscription]):
-                        await user_guild.remove_role(self.get_roles(guild_object)[subscription])
+                    if user_guild.has_role(self.serveur.get_roles(guild_object)[subscription]):
+                        await user_guild.remove_role(self.serveur.get_roles(guild_object)[subscription])
                 case Subscription.BOTH:
                     await self.subscription_role(user_id, Subscription.BOTH_ICS, ajout)
-                    if user_guild.has_role(self.get_roles(guild_object)[Subscription.DAILY]):
-                        await user_guild.remove_role(self.get_roles(guild_object)[Subscription.DAILY])
-                    if user_guild.has_role(self.get_roles(guild_object)[Subscription.WEEKLY]):
-                        await user_guild.remove_role(self.get_roles(guild_object)[Subscription.WEEKLY])
+                    if user_guild.has_role(self.serveur.get_roles(guild_object)[Subscription.DAILY]):
+                        await user_guild.remove_role(self.serveur.get_roles(guild_object)[Subscription.DAILY])
+                    if user_guild.has_role(self.serveur.get_roles(guild_object)[Subscription.WEEKLY]):
+                        await user_guild.remove_role(self.serveur.get_roles(guild_object)[Subscription.WEEKLY])
 
                 case Subscription.DAILY_ICS:
-                    if user_guild.has_role(self.get_roles(guild_object)[subscription]):
-                        await user_guild.remove_role(self.get_roles(guild_object)[subscription])
+                    if user_guild.has_role(self.serveur.get_roles(guild_object)[subscription]):
+                        await user_guild.remove_role(self.serveur.get_roles(guild_object)[subscription])
                 case Subscription.WEEKLY_ICS:
-                    if user_guild.has_role(self.get_roles(guild_object)[subscription]):
-                        await user_guild.remove_role(self.get_roles(guild_object)[subscription])
+                    if user_guild.has_role(self.serveur.get_roles(guild_object)[subscription]):
+                        await user_guild.remove_role(self.serveur.get_roles(guild_object)[subscription])
                 case Subscription.BOTH_ICS:
-                    if user_guild.has_role(self.get_roles(guild_object)[Subscription.DAILY_ICS]):
-                        await user_guild.remove_role(self.get_roles(guild_object)[Subscription.DAILY_ICS])
-                    if user_guild.has_role(self.get_roles(guild_object)[Subscription.WEEKLY_ICS]):
-                        await user_guild.remove_role(self.get_roles(guild_object)[Subscription.WEEKLY_ICS])
+                    if user_guild.has_role(self.serveur.get_roles(guild_object)[Subscription.DAILY_ICS]):
+                        await user_guild.remove_role(self.serveur.get_roles(guild_object)[Subscription.DAILY_ICS])
+                    if user_guild.has_role(self.serveur.get_roles(guild_object)[Subscription.WEEKLY_ICS]):
+                        await user_guild.remove_role(self.serveur.get_roles(guild_object)[Subscription.WEEKLY_ICS])
 
     def get_chan_error_log(self, ctx) -> GuildText | None:
         """Permet d'avoir le chan d'erreur/log"""
@@ -364,13 +409,65 @@ class Tool:
         return self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID"))
 
 
+    @abstractmethod
+    def ping_liste(self, event: Event, guild: Guild) -> str:
+        pass
 
-tool: Tool | None = None
 
 
-def get_tool(bot : Client) -> Tool:
+
+
+class ToolL3(Tool):
+    def __init__(self, bot: Client):
+        super().__init__(bot)
+
+    def ping_liste(self, event: Event, guild: Guild) -> str:
+        """Permet d'avoir une liste de mention pour un Event."""
+        roles = self.serveur.get_roles(guild)
+        if event.group == Group.CM:
+            event : EventL3
+            if event.isINGE and event.isMIAGE:
+                return f"{roles[Filiere.INGE].mention} {roles[Filiere.MIAGE].mention}"
+            elif event.isINGE:
+                return f"{roles[Filiere.INGE].mention}"
+            else:
+                return f"{roles[Filiere.MIAGE].mention}"
+        else:
+            return f"{roles.get(event.group).mention}"
+
+
+
+
+
+class ToolL2(Tool):
+    def __init__(self, bot: Client):
+        super().__init__(bot)
+
+    def ping_liste(self, event: Event, guild: Guild) -> str:
+        """Permet d'avoir une liste de mention pour un Event."""
+        roles = self.serveur.get_roles(guild)
+        if event.group == Group.CM:
+            return "@everyone"
+        else:
+            return f"{roles.get(event.group).mention}"
+
+
+
+tool : dict[Annee | None : Tool] = {}
+
+def get_tool(bot : Client, guild:Guild) -> Tool:
     """Permet d'obtenir un objet Tool."""
     global tool
-    if tool is None:
-        tool = Tool(bot)
-    return tool
+
+    annee = get_bd_serveur(bot).get_serveur(guild).annee
+
+    if tool.get(annee) is None:
+        match annee:
+            case Annee.L3:
+                tool[annee] = ToolL3(bot)
+            case Annee.L2:
+                tool[annee] = ToolL2(bot)
+            case Annee.UKNW:
+                tool[None] = Tool(bot)
+
+    return tool[Annee]

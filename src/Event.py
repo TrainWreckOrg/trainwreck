@@ -238,11 +238,11 @@ def get_event_L3_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:
     """Permet d'extraire les informations des données parsées."""
     # Événements spéciaux.
     if sum == "Réunion rentrée - L3 INGENIERIE INFORMATIQUE":
-        return EventL3(start, end, sum, GroupL3.CM, loc, "Équipe Enseignante", True, False,"ADE60323032342d323032352d31323639382d302d30")
+        return EventL3(start, end, sum, Group.CM, loc, "Équipe Enseignante", True, False,"ADE60323032342d323032352d31323639382d302d30")
     elif sum == "HAPPY CAMPUS DAY":
-        return EventL3(start, end, sum, GroupL3.CM, "Campus", "Équipe Enseignante", True, True,"ADE60323032342d323032352d32323835332d302d30")
+        return EventL3(start, end, sum, Group.CM, "Campus", "Équipe Enseignante", True, True,"ADE60323032342d323032352d32323835332d302d30")
     elif sum == "Réunion rentrée - L3 MIAGE":
-        return EventL3(start, end, sum, GroupL3.CM, loc, "Équipe Enseignante", False, True,"ADE60323032342d323032352d31333132352d302d30")
+        return EventL3(start, end, sum, Group.CM, loc, "Équipe Enseignante", False, True,"ADE60323032342d323032352d31333132352d302d30")
 
     # Descsplit contient les informations correspondant à la description de l'événement, séparé par lignes.
     # Ex : ['', '', 'Gr TPC', 'Con. Ana. Algo', 'Con. Ana. Algo', 'L3 INFO - INGENIERIE', 'L3 INFORMAT-UPEX MINERVE', 'LIEDLOFF', '(Exporté le : 27/07/2024 20:20)', '\n\n']
@@ -260,7 +260,7 @@ def get_event_L3_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:
     # Valeur par défaut.
     isMIAGE = False
     isINGE  = False
-    group   = GroupL3.CM
+    group   = Group.CM
 
     if subject == "Anglais":
         if "MIAGE" in sum :
@@ -362,7 +362,7 @@ def get_event_L2_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:
     """Permet d'extraire les informations des données parsées."""
     # Événements spéciaux.
     if sum == "HAPPY CAMPUS DAY":
-        return EventL2(start, end, sum, GroupL2.CM, "Campus", "Équipe Enseignante", "ADE60323032342d323032352d32323835332d302d30")
+        return EventL2(start, end, sum, Group.CM, "Campus", "Équipe Enseignante", "ADE60323032342d323032352d32323835332d302d30")
 
     # Descsplit contient les informations correspondant à la description de l'événement, séparé par lignes.
     # Ex : ["","","Gr TPA","Syst. Mono Tâche","Syst. Mono Tâche","L2 INFORMAT- UPEX MINERVE","L2 INFO - INGENIERIE INFO","COUVREUR","(Exporté le:05/09/202 4 11:24)"\n]
@@ -377,7 +377,7 @@ def get_event_L2_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:
     location = loc if not loc == "" else "Salle ?"
 
     # Valeur par défaut.
-    group   = GroupL2.CM
+    group   = Group.CM
 
     match sumsplit[1]:
         case 'TD1':

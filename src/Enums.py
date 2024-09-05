@@ -63,6 +63,7 @@ class Filiere(Enum):
 class Group(Enum):
     """Représent les différents groupes (TD, TP, TD Anglais, CM, UKNW)."""
     UKNW    = "UKNW"
+    CM      = "CM"
 
     def __str__(self):
         return self.value
@@ -88,7 +89,6 @@ class GroupL3(Group):
     TDA1M   = "TD 1 Miage Anglais"
     TDA2M   = "TD 2 Miage Anglais"
     TDA3M   = "TD 3 Miage Anglais"
-    CM      = "CM"
 
     def __str__(self):
         return self.value
@@ -104,7 +104,6 @@ class GroupL2(Group):
     TP4 = "TP4"
     TP5 = "TP5"
     TP6 = "TP6"
-    CM      = "CM"
 
     def __str__(self):
         return self.value

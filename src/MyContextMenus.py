@@ -1,7 +1,6 @@
 import os
 
-from interactions import Extension, Client, ContextMenuContext, user_context_menu, ModalContext
-from interactions import Modal, ShortText
+from interactions import Extension, Client, ContextMenuContext, user_context_menu, ModalContext, Modal, ShortText
 from datetime import date, timedelta, datetime
 
 from Tool import get_tool
@@ -11,22 +10,22 @@ class MyContextMenus(Extension):
     """Classe contenant les Context Menu."""
     def __init__(self, bot : Client):
         self.bot = bot
-        self.tool = get_tool(bot)
+
 
     @user_context_menu(name="today_user")
     async def today_user(self, ctx: ContextMenuContext) -> None:
         """Permet de savoir l'EDT d'une personne pour aujourd'hui."""
-        await self.tool.get_day_bt(ctx, date.today().strftime("%d-%m-%Y"), False, personne=ctx.target)
+        await get_tool(self.bot, ctx.guild).get_day_bt(ctx, date.today().strftime("%d-%m-%Y"), False, personne=ctx.target)
 
     @user_context_menu(name="tomorrow_user")
     async def tomorrow_user(self, ctx: ContextMenuContext) -> None:
         """Permet de savoir l'EDT d'une personne pour demain."""
-        await self.tool.get_day_bt(ctx, (date.today()+timedelta(days=1)).strftime("%d-%m-%Y"), False, personne=ctx.target)
+        await get_tool(self.bot, ctx.guild).get_day_bt(ctx, (date.today()+timedelta(days=1)).strftime("%d-%m-%Y"), False, personne=ctx.target)
 
     @user_context_menu(name="this_week_user")
     async def this_week_user(self, ctx: ContextMenuContext) -> None:
         """Permet de savoir l'EDT d'une personne pour cette semaine."""
-        await self.tool.get_week_bt(ctx, date.today().strftime("%d-%m-%Y"), False, personne=ctx.target)
+        await get_tool(self.bot, ctx.guild).get_week_bt(ctx, date.today().strftime("%d-%m-%Y"), False, personne=ctx.target)
 
     @user_context_menu(name="day_user")
     async def day_user(self, ctx: ContextMenuContext) -> None:
@@ -49,7 +48,7 @@ class MyContextMenus(Extension):
         jour = modal_ctx.responses["date_user"]
         await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(
             f"{ctx.author.display_name} ({ctx.author.id}) à utilise {ctx.command.name} sur {ctx.target} ({ctx.target_id}) pour avoir le jour {jour}, le {datetime.now()}")
-        await self.tool.get_day_bt(ctx=modal_ctx, jour=jour, modifier=False, personne=ctx.target)
+        await get_tool(self.bot, ctx.guild).get_day_bt(ctx=modal_ctx, jour=jour, modifier=False, personne=ctx.target)
 
     @user_context_menu(name="week_user")
     async def week_user(self, ctx: ContextMenuContext) -> None:
@@ -72,4 +71,4 @@ class MyContextMenus(Extension):
         semaine = modal_ctx.responses["semaine_user"]
         await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(
             f"{ctx.author.display_name} ({ctx.author.id}) à utilise {ctx.command.name} sur {ctx.target} ({ctx.target_id}) pour avoir la semaine du {semaine}, le {datetime.now()}")
-        await self.tool.get_week_bt(ctx=modal_ctx, semaine=semaine, modifier=False, personne=ctx.target)
+        await get_tool(self.bot, ctx.guild).get_week_bt(ctx=modal_ctx, semaine=semaine, modifier=False, personne=ctx.target)

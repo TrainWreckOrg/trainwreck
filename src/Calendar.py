@@ -145,7 +145,7 @@ class CalendarL3(Calendar):
             # EventL3(
             # start=datetime(day=3, month=6, year=2024, hour=13, minute=30, second=0, microsecond=0, tzinfo=timezone("Europe/Paris")),
             # end=datetime(day=3, month=6, year=2024, hour=13, minute=30, second=0, microsecond=0, tzinfo=timezone("Europe/Paris")),
-            # subject="Exam Anglais", group=GroupL3.CM, location="S103", teacher="Anne-Cécile Alzy", isINGE=True, isMIAGE=True, uid="EXAM01",
+            # subject="Exam Anglais", group=Group.CM, location="S103", teacher="Anne-Cécile Alzy", isINGE=True, isMIAGE=True, uid="EXAM01",
             # isEXAM=True)
         ]
 
@@ -192,7 +192,7 @@ class CalendarL2(Calendar):
             # EventL2(
             # start=datetime(day=3, month=6, year=2024, hour=13, minute=30, second=0, microsecond=0, tzinfo=timezone("Europe/Paris")),
             # end=datetime(day=3, month=6, year=2024, hour=13, minute=30, second=0, microsecond=0, tzinfo=timezone("Europe/Paris")),
-            # subject="Exam Anglais", group=GroupL2.CM, location="S103", teacher="Anne-Cécile Alzy", uid="EXAM01",
+            # subject="Exam Anglais", group=Group.CM, location="S103", teacher="Anne-Cécile Alzy", uid="EXAM01",
             # isEXAM=True)
         ]
 
@@ -206,10 +206,10 @@ class CalendarL2(Calendar):
 
 
 
-def changed_events(old: Calendar, new: Calendar, filters: list[Filter] = [TimeFilter(date.today(), Timing.AFTER), TimeFilter((date.today() + timedelta(days=14)), Timing.BEFORE)]):
+def changed_events(old: Calendar, new: Calendar, annee: Annee, filters: list[Filter] = [TimeFilter(date.today(), Timing.AFTER), TimeFilter((date.today() + timedelta(days=14)), Timing.BEFORE)]):
     """Permet de vérifier si des événements ont été supprimer, ajouter ou modifier compris dans les filtres (défaut 14 jour)."""
     global calendar
-    calendar = new
+    calendar[annee] = new
     
     old_events : list[Event] = filter_events(old.get_events(), filters)
     new_events : list[Event] = filter_events(new.get_events(), filters)
@@ -238,9 +238,17 @@ def changed_events(old: Calendar, new: Calendar, filters: list[Filter] = [TimeFi
     
     return sup, add, mod
 
-calendar: dict[int,Calendar] = dict[int, Calendar]()
+calendar: dict[Annee,Calendar] = dict[Annee, Calendar]()
 
-def get_calendar(guild : Guild) -> Calendar:
+def get_calendar(annee : Annee) -> Calendar:
     """Permet d'obtenir l'objet Calendar."""
     global calendar
-    return calendar.get(int(guild.id))
+    return calendar.get(annee)
+
+def create_calendar(annee : Annee, update: bool) -> Calendar:
+    global calendar
+    match annee:
+        case Annee.L3:
+            return CalendarL3(update)
+        case Annee.L2:
+            return CalendarL2(update)

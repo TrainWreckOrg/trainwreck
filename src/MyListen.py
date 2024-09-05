@@ -9,6 +9,7 @@ from UserBase import get_user_base
 from MyTask import MyTask
 from Tool import get_tool
 from Enums import RoleEnum, Filiere, Group
+from src.Tool import get_bd_serveur
 
 load_dotenv("keys.env")
 
@@ -17,7 +18,6 @@ class MyListen(Extension):
     """Classe contenant les Listen."""
     def __init__(self, bot: Client):
         self.bot = bot
-        self.tool = get_tool(bot)
 
     @listen(Startup)
     async def on_ready(self) -> None:
@@ -33,6 +33,7 @@ class MyListen(Extension):
             """
         )
         await self.bot.synchronise_interactions()
+        get_bd_serveur(self.bot)
         if not MyTask.daily_morning_update.running:
             MyTask.daily_morning_update.start()
             await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Démarrage de la Task `daily_morning_update`")
@@ -49,9 +50,9 @@ class MyListen(Extension):
         pattern_day = re.compile("day-")
         pattern_week = re.compile("week-")
         if pattern_day.search(ctx.custom_id):
-            await self.tool.get_day_bt(ctx=ctx, jour=ctx.custom_id[4:], modifier=True)
+            await get_tool(self.bot, ctx.guild).get_day_bt(ctx=ctx, jour=ctx.custom_id[4:], modifier=True)
         elif pattern_week.search(ctx.custom_id):
-            await self.tool.get_week_bt(ctx, ctx.custom_id[5:], True)
+            await get_tool(self.bot, ctx.guild).get_week_bt(ctx, ctx.custom_id[5:], True)
         else:
             await ctx.send("Bouton cliqué mais aucune action définie", ephemeral=True)
             raise ValueError("Bouton cliqué mais aucune action définie (on_component)")
@@ -62,15 +63,15 @@ class MyListen(Extension):
         user_base = get_user_base()
         user = event.after
         if not user_base.has_user(user.id):
-            user_base.add_user(user.id, self.tool.get_groupes_as_list(user), self.tool.get_filiere_as_filiere(user))
+            user_base.add_user(user.id, get_tool(self.bot, event.guild).get_groupes_as_list(user), get_tool(self.bot, event.guild).get_filiere_as_filiere(user))
         else:
-            user_base.update_user(user.id, self.tool.get_groupes_as_list(user), self.tool.get_filiere_as_filiere(user))
+            user_base.update_user(user.id, get_tool(self.bot, event.guild).get_groupes_as_list(user), get_tool(self.bot, event.guild).get_filiere_as_filiere(user))
 
     @listen(Error)
     async def on_error(self, error: Error) -> None:
         """Permet de faire la gestion des erreurs pour l'ensemble du bot, envoie un message aux admins et prévient l'utilisateur de l'erreur."""
         await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(
-            f"{(self.tool.get_roles(error.ctx.guild)[RoleEnum.ADMIN]).mention}"
+            f"{(get_bd_serveur(self.bot).get_master_serveur().roles[RoleEnum.ADMIN]).mention}"
             f"```ERREUR dans : {error.source} - {datetime.now()}\n"
             f"Erreur de type : {type(error.error)}\n"
             f"Argument de l'erreur : {error.error.args}\n"
@@ -91,11 +92,11 @@ class MyListen(Extension):
             for filiere in Filiere:
                 if filiere in [Filiere.UKNW]:
                     continue
-                if user.has_role(self.tool.get_roles(ctx.guild)[filiere]):
-                    await user.remove_role(self.tool.get_roles(ctx.guild)[filiere])
+                if user.has_role(get_bd_serveur(self.bot).get_roles(ctx.guild)[filiere]):
+                    await user.remove_role(get_bd_serveur(self.bot).get_roles(ctx.guild)[filiere])
             for group in Group:
                 if group in [Group.CM, Group.UKNW]:
                     continue
-                if user.has_role(self.tool.get_roles(ctx.guild)[group]):
-                    await user.remove_role(self.tool.get_roles(ctx.guild)[group])
+                if user.has_role(get_bd_serveur(self.bot).get_roles(ctx.guild)[group]):
+                    await user.remove_role(get_bd_serveur(self.bot).get_roles(ctx.guild)[group])
         await ctx.send("Les membres du serveur n'ont plus de rôle.", ephemeral=False)
