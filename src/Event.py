@@ -3,20 +3,19 @@ from pytz import timezone
 import sentry_sdk
 
 from Enums import Group, subjects_table
+from src.Enums import Annee
 
 
 class Event:
     """Classe utilisée pour gérer les objets événements"""
-    def __init__(self, start:datetime, end:datetime, subject:str, group:Group, location:str, teacher:str, isINGE:bool, isMIAGE:bool, uid:str, isEXAM:bool=False) -> None:
+    def __init__(self, start:datetime, end:datetime, subject:str, group:Group, location:str, teacher:str, annee:Annee, uid:str, isEXAM:bool=False) -> None:
         self.start_timestamp = start
         self.end_timestamp = end
         self.location = location
         self.teacher = teacher
+        self.annee = annee
         self.subject = subject
         self.group = group
-        # Note : isMIAGE and isINGE are NOT mutually exclusive
-        self.isMIAGE = isMIAGE
-        self.isINGE  = isINGE
         self.uid = uid
         self.isEXAM = isEXAM
 
@@ -28,13 +27,133 @@ class Event:
             return (self.uid == other.uid and self.start_timestamp == other.start_timestamp and
                     self.end_timestamp == other.end_timestamp and self.location == other.location and
                     self.teacher == other.teacher and self.subject == other.subject and self.group == other.group and
-                    self.isMIAGE == other.isMIAGE and self.isINGE == other.isINGE and self.isEXAM == other.isEXAM and
+                    self.annee == other.annee and self.isEXAM == other.isEXAM and
                     self.duree == other.duree)
         return False
 
     def __hash__(self) -> int:
         """Permet d'avoir un hash de l'Event."""
-        return hash(self.uid + str(self.start_timestamp) + str(self.end_timestamp) + self.location + self.teacher + self.subject + str(self.group) + str(self.isMIAGE) + str(self.isINGE) + str(self.isEXAM) + str(self.duree))
+        return hash(self.uid + str(self.start_timestamp) + str(self.end_timestamp) + self.location + self.teacher + self.subject + str(self.group) + str(self.annee) + str(self.isEXAM) + str(self.duree))
+
+    def __str__(self) -> str:
+        """Permet d'avoir une str pour représenter l'Event."""
+        if self.isEXAM:
+            return ":warning: " + (f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.subject} - {f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.location} - {self.teacher}".upper()) + " :warning:"
+        else:
+            return f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
+
+    def str_day(self, autre: 'Event' = None) -> str:
+        """Permet de comparer deux Event et de renvoyer une str de l'événement self avec les éléments qui changent en gars."""
+
+        if autre is None:
+            if self.isEXAM:
+                return ":warning: " + (f"{self.start_timestamp.strftime("%d-%m-%Y")} {self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.subject} - {f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.location} - {self.teacher}".upper()) + " :warning:"
+            else:
+                return f"{self.start_timestamp.strftime("%d-%m-%Y")} {self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
+
+        texte = ""
+
+        if(self.start_timestamp.strftime("%d-%m-%Y")) != (autre.start_timestamp.strftime("%d-%m-%Y")):
+            texte += f"**{self.start_timestamp.strftime("%d-%m-%Y")}** "
+        else:
+            texte += f"{self.start_timestamp.strftime("%d-%m-%Y")} "
+
+        if (self.start_timestamp.strftime("%Hh%M")) != (autre.start_timestamp.strftime("%Hh%M")):
+            texte += f"**{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")}**"
+        else:
+            texte += f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")}"
+
+        texte += " : "
+
+        self_groupe = f"{self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""}"
+        autre_groupe = f"{autre.group.value}{f" {"INGE" if autre.isINGE else ""}{"-" if autre.isINGE and autre.isMIAGE else ""}{"MIAGE" if autre.isMIAGE else ""}" if autre.group.value == "CM" else ""}"
+        if (self_groupe) != (autre_groupe):
+            texte += f"**{self_groupe}**"
+        else:
+            texte += self_groupe
+
+        texte += " - "
+
+        if (self.subject) != (autre.subject):
+            texte += f"**{self.subject}**"
+        else:
+            texte += self.subject
+
+        texte += " - "
+
+        if (self.location) != (autre.location):
+            texte += f"**{self.location}**"
+        else:
+            texte += self.location
+
+        texte += " - "
+
+        if (self.teacher) != (autre.teacher):
+            texte += f"**{self.teacher}**"
+        else:
+            texte += self.teacher
+
+        if self.isEXAM:
+            return ":warning: " + (texte.upper()) + " :warning:"
+        else:
+            return texte
+
+    def ics(self) -> str:
+        """Permet d'avoir l'Event au format ICS."""
+        ics = "BEGIN:VEVENT\n"
+        stamp = str(datetime.now().replace(microsecond=0).astimezone(timezone("UTC")).isoformat()).replace("-", "").replace(":", "").replace("+0000","Z")
+        ics += "DTSTAMP:" + stamp + "\n"
+        start = str(self.start_timestamp.astimezone(timezone("UTC")).isoformat()).replace("-", "").replace(":", "").replace("+0000","Z")
+        ics += "DTSTART:" + start + "\n"
+        end = str(self.end_timestamp.astimezone(timezone("UTC")).isoformat()).replace("-", "").replace(":", "").replace("+0000","Z")
+        ics += "DTEND:" + end + "\n"
+        ics += "SUMMARY:" + self.subject + "\n"
+        ics += "LOCATION:" + self.location + "\n"
+        ics += f"DESCRIPTION:Groupe : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group == Group.CM else ""}\\nDurée : {str(self.duree).split(":")[0]}h{str(self.duree).split(":")[1]}\\nEnseignant : {self.teacher}\\nExporté le {datetime.now().strftime("%d/%m/%Y à %Hh%M")}, via EDT Bot\n"
+        ics += "UID:" + self.uid + "\n"
+        ics += "CREATED:19700101T000000Z" + "\n"
+        ics += "LAST-MODIFIED:" + stamp + "\n"
+        ics += "SEQUENCE:" + str(datetime.now(tz=timezone("UTC")).timestamp())[:10] + "\n"
+        ics += "END:VEVENT" + "\n"
+        return ics
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class EventL3(Event):
+    """Classe utilisée pour gérer les objets événements"""
+    def __init__(self, start: datetime, end: datetime, subject: str, group: Group, location: str, teacher: str,
+                 isINGE: bool, isMIAGE: bool, uid: str, isEXAM: bool = False, annee: Annee = Annee.L3) -> None:
+
+        # Note : isMIAGE and isINGE are NOT mutually exclusive
+        super().__init__(start, end, subject, group, location, teacher, annee, uid, isEXAM)
+        self.isMIAGE = isMIAGE
+        self.isINGE  = isINGE
+
+    def __eq__(self, other: object) -> bool:
+        """Permet de vérifier l'égalité avec un autre objet."""
+        if isinstance(other, Event):
+            return (self.uid == other.uid and self.start_timestamp == other.start_timestamp and
+                    self.end_timestamp == other.end_timestamp and self.location == other.location and
+                    self.teacher == other.teacher and self.subject == other.subject and self.group == other.group and
+                    self.isMIAGE == other.isMIAGE and self.isINGE == other.isINGE and self.isEXAM == other.isEXAM and
+                    self.duree == other.duree and self.annee == other.annee)
+        return False
+
+    def __hash__(self) -> int:
+        """Permet d'avoir un hash de l'Event."""
+        return hash(self.uid + str(self.start_timestamp) + str(self.end_timestamp) + self.location + self.teacher + self.subject + str(self.group) + str(self.isMIAGE) + str(self.isINGE) + str(self.isEXAM) + str(self.duree) + str(self.annee))
 
     def __str__(self) -> str:
         """Permet d'avoir une str pour représenter l'Event."""

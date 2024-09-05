@@ -125,6 +125,72 @@ class Calendar:
         return self.exams_list
 
 
+class CalendarL3(Calendar):
+    """Classe utilisée pour stocker une liste d'objet Event."""
+
+    def __init__(self, update: bool) -> None:
+        """ Update : Si l'on doit télécharger les fichiers ics."""
+        # Dictionnaire qui stock les Event associé à l'UID.
+        super().__init__(update)
+
+
+    def update_events(self, update: bool) -> None:
+        """Met à jour la liste d'événements en mêlant les événements issus des deux .ics.
+        Update : Si l'on doit télécharger les fichiers ics.
+        """
+        output = {}
+        filenameINGE = "data/INGE.ics"
+        filenameMIAGE = "data/MIAGE.ics"
+
+        if not (os.path.exists(filenameINGE) and os.path.exists(filenameMIAGE)):
+            update = True
+
+        if update:
+            self.fetch_calendar(url["INGE"], filenameINGE)
+            self.fetch_calendar(url["MIAGE"], filenameMIAGE)
+
+        self.exam_list = []
+        # | sert à concaténer deux dictionnaires.
+        output = self.parse_calendar(filenameINGE) | self.parse_calendar(filenameMIAGE)
+
+        self.events_dict = output
+        # Tri les événements par ordre croissant en fonction de leur date.
+        self.events_list = sorted(list(self.events_dict.values()), key=lambda event: event.start_timestamp)
+
+
+class CalendarL2(Calendar):
+    """Classe utilisée pour stocker une liste d'objet Event."""
+
+    def __init__(self, update: bool) -> None:
+        """ Update : Si l'on doit télécharger les fichiers ics."""
+        # Dictionnaire qui stock les Event associé à l'UID.
+        super().__init__(update)
+
+
+    def update_events(self, update: bool) -> None:
+        """Met à jour la liste d'événements en mêlant les événements issus des deux .ics.
+        Update : Si l'on doit télécharger les fichiers ics.
+        """
+        output = {}
+        filename = "data/INGE.ics"
+
+
+        if not (os.path.exists(filename)):
+            update = True
+
+        if update:
+            self.fetch_calendar(url["L2"], filename)
+
+        self.exam_list = []
+        # | sert à concaténer deux dictionnaires.
+        output = self.parse_calendar(filename)
+
+        self.events_dict = output
+        # Tri les événements par ordre croissant en fonction de leur date.
+        self.events_list = sorted(list(self.events_dict.values()), key=lambda event: event.start_timestamp)
+
+
+
 
 def changed_events(old: Calendar, new: Calendar, filters: list[Filter] = [TimeFilter(date.today(), Timing.AFTER), TimeFilter((date.today() + timedelta(days=14)), Timing.BEFORE)]):
     """Permet de vérifier si des événements ont été supprimer, ajouter ou modifier compris dans les filtres (défaut 14 jour)."""

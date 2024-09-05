@@ -2,7 +2,7 @@ from http.client import HTTPException
 
 import sentry_sdk
 from interactions import Client, ActionRow, Button, ButtonStyle, SlashContext, Guild, Role, Embed, User, Member, \
-    ModalContext, ContextMenuContext, ComponentContext
+    ModalContext, ContextMenuContext, ComponentContext, GuildText
 
 from TrainWreck import get_embeds, get_ics
 from UserBase import get_user_base
@@ -19,7 +19,6 @@ import os
 class Tool:
     """Classe regroupant plusieurs méthodes utiles."""
     def __init__(self, bot: Client):
-        self.guild = None
         self.bot = bot
         self.roles: dict[int, dict[Enum:Role]] = {}
 
@@ -355,6 +354,15 @@ class Tool:
                         await user_guild.remove_role(self.get_roles(guild_object)[Subscription.DAILY_ICS])
                     if user_guild.has_role(self.get_roles(guild_object)[Subscription.WEEKLY_ICS]):
                         await user_guild.remove_role(self.get_roles(guild_object)[Subscription.WEEKLY_ICS])
+
+    def get_chan_error_log(self, ctx) -> GuildText | None:
+        """Permet d'avoir le chan d'erreur/log"""
+        if self.is_guild_chan(ctx.author):
+            for chan in ctx.guild.channels:
+                if chan.name == "error-log":
+                    return chan
+        return self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID"))
+
 
 
 tool: Tool | None = None

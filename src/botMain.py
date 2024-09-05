@@ -4,6 +4,7 @@ from interactions import Client, Intents, SlashContext, ModalContext, ContextMen
 from dotenv import load_dotenv
 import sentry_sdk
 import os
+from Tool import get_tool
 
 
 # Charge le fichier env
@@ -36,6 +37,7 @@ bot.load_extension("Onboard")
 
 async def log(ctx: SlashContext | ModalContext | ContextMenuContext | ComponentContext, **kwargs):
     """Fonction qui permet de logger toutes les actions."""
+    get_tool(bot)
     if isinstance(ctx, ComponentContext):
         ctx_bt : ComponentContext = ctx
         await bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(
