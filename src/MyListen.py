@@ -5,7 +5,7 @@ from datetime import datetime
 import os
 import re
 
-from UserBase import get_user_base
+from UserBase import get_user_base, nuke
 from MyTask import MyTask
 from Tool import get_tool
 from Enums import RoleEnum, Filiere, Group
@@ -33,6 +33,8 @@ class MyListen(Extension):
             """
         )
         await self.bot.synchronise_interactions()
+        nuke()
+        await self.tool.userscan(self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")))
         if not MyTask.daily_morning_update.running:
             MyTask.daily_morning_update.start()
             await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Démarrage de la Task `daily_morning_update`")

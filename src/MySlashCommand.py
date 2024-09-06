@@ -270,26 +270,7 @@ class MySlashCommand(Extension):
     @contexts(guild=True, bot_dm=False)
     async def userscan(self, ctx: SlashContext) -> None:
         """Permet de scanner tous les membres du serveur et de mettre à jour la BD."""
-        user_base = get_user_base()
-        for user in ctx.guild.members:
-            if not user_base.has_user(user.id):
-                user_base.add_user(user.id, self.tool.get_groupes_as_list(user), self.tool.get_filiere_as_filiere(user))
-            else:
-                user_base.update_user(user.id, self.tool.get_groupes_as_list(user),
-                                      self.tool.get_filiere_as_filiere(user))
-
-            for sub in self.tool.get_subscription(user):
-                match sub:
-                    case Subscription.DAILY:
-                        user_base.user_subscribe(user.id, Subscription.DAILY)
-                    case Subscription.WEEKLY:
-                        user_base.user_subscribe(user.id, Subscription.WEEKLY)
-                    case Subscription.DAILY_ICS:
-                        user_base.user_subscribe_ics(user.id, Subscription.DAILY_ICS)
-                    case Subscription.WEEKLY_ICS:
-                        user_base.user_subscribe_ics(user.id, Subscription.WEEKLY_ICS)
-
-        await ctx.send("Les membres du serveur ont été ajoutée et mit à jour.", ephemeral=True)
+        await self.tool.userscan(ctx)
 
     @slash_command(name="nuke", description="Permet de nuke la BD.",
                    default_member_permissions=Permissions.ADMINISTRATOR)
