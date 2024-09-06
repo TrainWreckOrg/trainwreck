@@ -9,6 +9,8 @@ from UserBase import get_user_base, nuke
 from Calendar import get_calendar
 from Tool import get_tool, get_bd_serveur
 from Filter import *
+from src.Enums import Annee
+
 
 class MySlashCommand(Extension):
     """Classe contenant les commandes."""
@@ -62,7 +64,15 @@ class MySlashCommand(Extension):
     @slash_command(name="week", description="Envoie votre EDT de la semaine.")
     async def week(self, ctx: SlashContext) -> None:
         """Fonction qui permet d'obtenir l'EDT de cette semaine."""
-        await get_tool(self.bot, ctx.guild).get_week_bt(ctx, date.today().strftime("%d-%m-%Y"), False)
+        if get_tool(self.bot, annee=Annee.L3).is_guild_chan(ctx.author):
+            await get_tool(self.bot, ctx.guild).get_week_bt(ctx, date.today().strftime("%d-%m-%Y"), False)
+        else:
+            user_id = ctx.author.id
+            bd = get_user_base()
+            bd_user = bd.get_user(user_id)
+            annee = bd_user.annee
+            await get_tool(self.bot, annee=annee).get_week_bt(ctx, date.today().strftime("%d-%m-%Y"), False)
+
 
     @slash_command(name="help", description="Affiche la page d'Aide.")
     async def help(self, ctx: SlashContext) -> None:

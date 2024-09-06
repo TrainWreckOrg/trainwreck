@@ -444,66 +444,49 @@ class Tool(ABC):
     def ping_liste(self, event: Event, guild: Guild) -> str:
         pass
 
-    # async def userscan(self, ctx: SlashContext) -> None:
-    #     """Permet de scanner tous les membres du serveur et de mettre à jour la BD."""
-    #     user_base = get_user_base()
-    #     for user in ctx.guild.members:
-    #         if not user_base.has_user(user.id):
-    #             user_base.add_user(user.id, get_tool(self.bot, ctx.guild).get_groupes_as_list(user), get_tool(self.bot, ctx.guild).get_filiere_as_filiere(user))
-    #         else:
-    #             user_base.update_user(user.id, get_tool(self.bot, ctx.guild).get_groupes_as_list(user),
-    #                                   get_tool(self.bot, ctx.guild).get_filiere_as_filiere(user))
-
-    #         for sub in get_tool(self.bot, ctx.guild).get_subscription(user):
-    #             match sub:
-    #                 case Subscription.DAILY:
-    #                     user_base.user_subscribe(user.id, Subscription.DAILY)
-    #                 case Subscription.WEEKLY:
-    #                     user_base.user_subscribe(user.id, Subscription.WEEKLY)
-    #                 case Subscription.DAILY_ICS:
-    #                     user_base.user_subscribe_ics(user.id, Subscription.DAILY_ICS)
-    #                 case Subscription.WEEKLY_ICS:
-    #                     user_base.user_subscribe_ics(user.id, Subscription.WEEKLY_ICS)
-
-    #     await ctx.send("Les membres du serveur ont été ajoutée et mit à jour.", ephemeral=True)
 
     async def userscan(self) -> None:
         """Permet de scanner tous les membres de tous les serveurs et de mettre à jour la BD."""
         guilds = self.bot.guilds
         user_base = get_user_base()
-        for guild in guilds:
-            if guild.name == "Serveur de test":
+        for annee in Annee:
+            if annee == Annee.UKNW:
                 continue
 
-            annee = get_bd_serveur(self.bot).get_serveur(guild).annee
+            for serveur in get_bd_serveur(self.bot).get_annee(annee):
+                # if guild.name == "Serveur de test":
+                #     continue
+                guild = serveur.guild
 
-            for user in guild.members:
-                # Si l'utilisateur n'est pas dans la base de donnée, on lui crée un profil
-                if not user_base.has_user(user.id):
-                    user_base.add_user(
-                        user.id,
-                        get_tool(self.bot, guild).get_groupes_as_list(user),
-                        get_tool(self.bot, guild).get_filiere_as_filiere(user),
-                        annee
-                    )
-                # Si l'utilisateur y est, et que l'année est correcte, on le met a jour
-                elif annee == user_base.get_user(user.id).annee:
-                    user_base.update_user(
-                        user.id, 
-                        get_tool(self.bot, guild).get_groupes_as_list(user),
-                        get_tool(self.bot, guild).get_filiere_as_filiere(user)
-                    )
+                annee = get_bd_serveur(self.bot).get_serveur(guild).annee
 
-                for sub in self.get_subscription(user):
-                    match sub:
-                        case Subscription.DAILY:
-                            user_base.user_subscribe(user.id, Subscription.DAILY)
-                        case Subscription.WEEKLY:
-                            user_base.user_subscribe(user.id, Subscription.WEEKLY)
-                        case Subscription.DAILY_ICS:
-                            user_base.user_subscribe_ics(user.id, Subscription.DAILY_ICS)
-                        case Subscription.WEEKLY_ICS:
-                            user_base.user_subscribe_ics(user.id, Subscription.WEEKLY_ICS)
+                for user in guild.members:
+                    # Si l'utilisateur n'est pas dans la base de donnée, on lui crée un profil
+                    if not user_base.has_user(user.id):
+                        user_base.add_user(
+                            user.id,
+                            get_tool(self.bot, guild).get_groupes_as_list(user),
+                            get_tool(self.bot, guild).get_filiere_as_filiere(user),
+                            annee
+                        )
+                    # Si l'utilisateur y est, et que l'année est correcte, on le met a jour
+                    elif annee == user_base.get_user(user.id).annee:
+                        user_base.update_user(
+                            user.id,
+                            get_tool(self.bot, guild).get_groupes_as_list(user),
+                            get_tool(self.bot, guild).get_filiere_as_filiere(user)
+                        )
+
+                    for sub in self.get_subscription(user):
+                        match sub:
+                            case Subscription.DAILY:
+                                user_base.user_subscribe(user.id, Subscription.DAILY)
+                            case Subscription.WEEKLY:
+                                user_base.user_subscribe(user.id, Subscription.WEEKLY)
+                            case Subscription.DAILY_ICS:
+                                user_base.user_subscribe_ics(user.id, Subscription.DAILY_ICS)
+                            case Subscription.WEEKLY_ICS:
+                                user_base.user_subscribe_ics(user.id, Subscription.WEEKLY_ICS)
 
         # await ctx.send("Les membres du serveur ont été ajoutée et mit à jour.", ephemeral=True)
 
@@ -543,21 +526,16 @@ class ToolL2(Tool):
 
 
 
-tool : dict[Annee | None : Tool] = {}
+tool : dict[Annee: Tool] = {}
 
 def get_tool(bot : Client, guild:Guild | None = None, annee: Annee|None = None) -> Tool:
     """Permet d'obtenir un objet Tool."""
-    global tool
     if annee is None:
         annee = get_bd_serveur(bot).get_serveur(guild).annee
+    if annee == Annee.L3:
+            return ToolL3(bot)
+    elif annee == Annee.L2:
+            return ToolL2(bot)
 
-    if tool.get(annee) is None:
-        match annee:
-            case Annee.L3:
-                tool[annee] = ToolL3(bot)
-            case Annee.L2:
-                tool[annee] = ToolL2(bot)
-            case Annee.UKNW:
-                tool[None] = Tool(bot)
 
-    return tool[annee]
+

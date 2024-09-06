@@ -61,7 +61,15 @@ class Filiere(Enum):
 
 
 class BaseGroup(Enum):
-    pass
+
+    def __eq__(self, other):
+        if isinstance(self, other):
+            other : BaseGroup
+            return self.name == other.name
+        return False
+
+    def __hash__(self):
+        return hash(self.value)
 
 class Group(BaseGroup, Enum):
     """Représent les différents groupes (TD, TP, TD Anglais, CM, UKNW)."""

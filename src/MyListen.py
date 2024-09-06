@@ -9,6 +9,7 @@ from UserBase import get_user_base, nuke
 from MyTask import MyTask
 from Tool import get_tool, get_bd_serveur
 from Enums import RoleEnum, Filiere, Group
+from src.Enums import Annee
 
 load_dotenv("keys.env")
 
@@ -34,7 +35,7 @@ class MyListen(Extension):
         await self.bot.synchronise_interactions()
         bdserveur = get_bd_serveur(self.bot)
         nuke()
-
+        await get_tool(self.bot, annee=Annee.L3).userscan()
         if not MyTask.daily_morning_update.running:
             MyTask.daily_morning_update.start()
             await bdserveur.get_master_serveur().channel_error_log.send("Démarrage de la Task `daily_morning_update`")
