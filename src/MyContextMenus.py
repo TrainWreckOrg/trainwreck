@@ -3,9 +3,7 @@ import os
 from interactions import Extension, Client, ContextMenuContext, user_context_menu, ModalContext, Modal, ShortText
 from datetime import date, timedelta, datetime
 
-from Tool import get_tool
-from src.Tool import get_bd_serveur
-
+from Tool import get_tool, get_bd_serveur
 
 class MyContextMenus(Extension):
     """Classe contenant les Context Menu."""

@@ -7,10 +7,8 @@ from TrainWreck import get_ics, get_embeds
 from Enums import Subscription, RoleEnum, colors
 from UserBase import get_user_base, nuke
 from Calendar import get_calendar
-from Tool import get_tool
+from Tool import get_tool, get_bd_serveur
 from Filter import *
-from src.Tool import get_bd_serveur
-
 
 class MySlashCommand(Extension):
     """Classe contenant les commandes."""

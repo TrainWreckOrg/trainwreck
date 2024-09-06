@@ -6,18 +6,15 @@ from interactions import Client, ActionRow, Button, ButtonStyle, SlashContext, G
     ModalContext, ContextMenuContext, ComponentContext, GuildText
 
 from TrainWreck import get_embeds, get_ics
-from UserBase import get_user_base
+from UserBase import get_user_base, DBUser
+
 from Calendar import get_calendar
 from Filter import *
-from Enums import RoleEnum, Group, colors, Subscription, GroupL3, GroupL2
+from Enums import RoleEnum, Group, colors, Subscription, GroupL3, GroupL2, Annee, BaseGroup
 
 from datetime import datetime, date, timedelta
 from enum import Enum
 import os
-
-from src.Enums import Annee, BaseGroup
-from src.UserBase import DBUser
-
 
 class Serveur:
     def __init__(self, guild : Guild, group: BaseGroup = None, annee : Annee = None):
@@ -447,30 +444,68 @@ class Tool(ABC):
     def ping_liste(self, event: Event, guild: Guild) -> str:
         pass
 
-    async def userscan(self, ctx: SlashContext) -> None:
-        """Permet de scanner tous les membres du serveur et de mettre à jour la BD."""
+    # async def userscan(self, ctx: SlashContext) -> None:
+    #     """Permet de scanner tous les membres du serveur et de mettre à jour la BD."""
+    #     user_base = get_user_base()
+    #     for user in ctx.guild.members:
+    #         if not user_base.has_user(user.id):
+    #             user_base.add_user(user.id, get_tool(self.bot, ctx.guild).get_groupes_as_list(user), get_tool(self.bot, ctx.guild).get_filiere_as_filiere(user))
+    #         else:
+    #             user_base.update_user(user.id, get_tool(self.bot, ctx.guild).get_groupes_as_list(user),
+    #                                   get_tool(self.bot, ctx.guild).get_filiere_as_filiere(user))
+
+    #         for sub in get_tool(self.bot, ctx.guild).get_subscription(user):
+    #             match sub:
+    #                 case Subscription.DAILY:
+    #                     user_base.user_subscribe(user.id, Subscription.DAILY)
+    #                 case Subscription.WEEKLY:
+    #                     user_base.user_subscribe(user.id, Subscription.WEEKLY)
+    #                 case Subscription.DAILY_ICS:
+    #                     user_base.user_subscribe_ics(user.id, Subscription.DAILY_ICS)
+    #                 case Subscription.WEEKLY_ICS:
+    #                     user_base.user_subscribe_ics(user.id, Subscription.WEEKLY_ICS)
+
+    #     await ctx.send("Les membres du serveur ont été ajoutée et mit à jour.", ephemeral=True)
+
+    async def userscan(self) -> None:
+        """Permet de scanner tous les membres de tous les serveurs et de mettre à jour la BD."""
+        guilds = self.bot.guilds
         user_base = get_user_base()
-        for user in ctx.guild.members:
-            if not user_base.has_user(user.id):
-                user_base.add_user(user.id, get_tool(self.bot, ctx.guild).get_groupes_as_list(user), get_tool(self.bot, ctx.guild).get_filiere_as_filiere(user))
-            else:
-                user_base.update_user(user.id, get_tool(self.bot, ctx.guild).get_groupes_as_list(user),
-                                      get_tool(self.bot, ctx.guild).get_filiere_as_filiere(user))
+        for guild in guilds:
+            if guild.name == "Serveur de test":
+                continue
 
-            for sub in get_tool(self.bot, ctx.guild).get_subscription(user):
-                match sub:
-                    case Subscription.DAILY:
-                        user_base.user_subscribe(user.id, Subscription.DAILY)
-                    case Subscription.WEEKLY:
-                        user_base.user_subscribe(user.id, Subscription.WEEKLY)
-                    case Subscription.DAILY_ICS:
-                        user_base.user_subscribe_ics(user.id, Subscription.DAILY_ICS)
-                    case Subscription.WEEKLY_ICS:
-                        user_base.user_subscribe_ics(user.id, Subscription.WEEKLY_ICS)
+            annee = get_bd_serveur(self.bot).get_serveur(guild).annee
 
-        await ctx.send("Les membres du serveur ont été ajoutée et mit à jour.", ephemeral=True)
+            for user in guild.members:
+                # Si l'utilisateur n'est pas dans la base de donnée, on lui crée un profil
+                if not user_base.has_user(user.id):
+                    user_base.add_user(
+                        user.id,
+                        get_tool(self.bot, guild).get_groupes_as_list(user),
+                        get_tool(self.bot, guild).get_filiere_as_filiere(user),
+                        annee
+                    )
+                # Si l'utilisateur y est, et que l'année est correcte, on le met a jour
+                elif annee == user_base.get_user(user.id).annee:
+                    user_base.update_user(
+                        user.id, 
+                        get_tool(self.bot, guild).get_groupes_as_list(user),
+                        get_tool(self.bot, guild).get_filiere_as_filiere(user)
+                    )
 
+                for sub in self.get_subscription(user):
+                    match sub:
+                        case Subscription.DAILY:
+                            user_base.user_subscribe(user.id, Subscription.DAILY)
+                        case Subscription.WEEKLY:
+                            user_base.user_subscribe(user.id, Subscription.WEEKLY)
+                        case Subscription.DAILY_ICS:
+                            user_base.user_subscribe_ics(user.id, Subscription.DAILY_ICS)
+                        case Subscription.WEEKLY_ICS:
+                            user_base.user_subscribe_ics(user.id, Subscription.WEEKLY_ICS)
 
+        # await ctx.send("Les membres du serveur ont été ajoutée et mit à jour.", ephemeral=True)
 
 
 class ToolL3(Tool):

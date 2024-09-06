@@ -5,10 +5,7 @@ from dotenv import load_dotenv
 import sentry_sdk
 import os
 
-from tests.test_bot import channel
-
-from Tool import get_tool
-from src.Tool import get_bd_serveur
+from Tool import get_tool, get_bd_serveur
 
 # Charge le fichier env
 load_dotenv("keys.env")

@@ -4,13 +4,10 @@ from datetime import datetime
 from dotenv import load_dotenv
 import os
 
-from Calendar import Calendar, changed_events
+from Calendar import Calendar, changed_events, create_calendar
 from UserBase import get_user_base
-from Tool import get_tool
-from Enums import Subscription, RoleEnum
-from src.Calendar import create_calendar
-from src.Enums import Annee
-from src.Tool import get_bd_serveur
+from Tool import get_tool, get_bd_serveur
+from Enums import Subscription, RoleEnum, Annee
 
 load_dotenv("keys.env")
 

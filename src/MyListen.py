@@ -7,9 +7,8 @@ import re
 
 from UserBase import get_user_base, nuke
 from MyTask import MyTask
-from Tool import get_tool
+from Tool import get_tool, get_bd_serveur
 from Enums import RoleEnum, Filiere, Group
-from src.Tool import get_bd_serveur
 
 load_dotenv("keys.env")
 

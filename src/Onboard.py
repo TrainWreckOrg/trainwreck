@@ -2,12 +2,9 @@ from interactions import Client, slash_command, Permissions, Embed, Extension, B
     ContextType, component_callback, SlashContext, ComponentContext
 import re
 
-from Enums import RoleEnum
-from Tool import get_tool
+from Enums import RoleEnum, Annee
+from Tool import get_tool, get_bd_serveur
 from Filter import *
-from src.Enums import Annee
-from src.Tool import get_bd_serveur
-
 
 class Onboard(Extension):
     """Classe contenant le processus d'attribution des rôles."""
