@@ -1,11 +1,11 @@
 import datetime
 
-from interactions import Client, Intents, SlashContext, ModalContext, ContextMenuContext, ComponentContext
+from interactions import Client, Intents, SlashContext, ModalContext, ContextMenuContext, ComponentContext, Guild
 from dotenv import load_dotenv
 import sentry_sdk
 import os
 from Tool import get_tool
-
+from src.Tool import get_bd_serveur
 
 # Charge le fichier env
 load_dotenv("keys.env")
@@ -32,12 +32,13 @@ bot.load_extension('interactions.ext.sentry', dsn=str(os.getenv("SENTRY_DSN")))
 bot.load_extension("MyListen")
 bot.load_extension("MyContextMenus")
 bot.load_extension("MySlashCommand")
-bot.load_extension("Onboard")
+#bot.load_extension("Onboard")
 
 
 async def log(ctx: SlashContext | ModalContext | ContextMenuContext | ComponentContext, **kwargs):
     """Fonction qui permet de logger toutes les actions."""
-    channel = get_tool(bot).get_chan_error_log(ctx)
+    if get_tool(bot, None).is_guild_chan(ctx.author):
+        channel = get_tool(bot, ctx.guild).get_chan_error_log(ctx)
     if isinstance(ctx, ComponentContext):
         ctx_bt : ComponentContext = ctx
         await channel.send(

@@ -94,7 +94,7 @@ class MyListen(Extension):
                     continue
                 if user.has_role(get_bd_serveur(self.bot).get_roles(ctx.guild)[filiere]):
                     await user.remove_role(get_bd_serveur(self.bot).get_roles(ctx.guild)[filiere])
-            for group in Group:
+            for group in get_bd_serveur(self.bot).get_serveur(ctx.guild).group:
                 if group in [Group.CM, Group.UKNW]:
                     continue
                 if user.has_role(get_bd_serveur(self.bot).get_roles(ctx.guild)[group]):

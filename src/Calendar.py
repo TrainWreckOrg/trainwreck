@@ -2,7 +2,6 @@ from datetime import datetime, timedelta, date
 from urllib.error import URLError
 from urllib.request import urlretrieve
 
-from interactions import Guild
 from pytz import timezone
 from abc import ABC, abstractmethod
 
@@ -247,8 +246,8 @@ def get_calendar(annee : Annee) -> Calendar:
 
 def create_calendar(annee : Annee, update: bool) -> Calendar:
     global calendar
-    match annee:
-        case Annee.L3:
+    match annee.name:
+        case Annee.L3.name:
             return CalendarL3(update)
-        case Annee.L2:
+        case Annee.L2.name:
             return CalendarL2(update)

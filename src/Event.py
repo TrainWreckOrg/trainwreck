@@ -2,13 +2,12 @@ from datetime import datetime
 from pytz import timezone
 import sentry_sdk
 
-from Enums import Group, GroupL2, GroupL3, Annee, subjects_table
-from src.Calendar import Calendar
+from Enums import Group, GroupL2, GroupL3, Annee, subjects_table, BaseGroup
 
 
 class Event:
     """Classe utilisée pour gérer les objets événements"""
-    def __init__(self, start:datetime, end:datetime, subject:str, group:Group, location:str, teacher:str, annee:Annee, uid:str, isEXAM:bool=False) -> None:
+    def __init__(self, start:datetime, end:datetime, subject:str, group:BaseGroup, location:str, teacher:str, annee:Annee, uid:str, isEXAM:bool=False) -> None:
         self.start_timestamp = start
         self.end_timestamp = end
         self.location = location
@@ -119,7 +118,7 @@ class Event:
 
 class EventL3(Event):
     """Classe utilisée pour gérer les objets événements"""
-    def __init__(self, start: datetime, end: datetime, subject: str, group: Group, location: str, teacher: str,
+    def __init__(self, start: datetime, end: datetime, subject: str, group: BaseGroup, location: str, teacher: str,
                  isINGE: bool, isMIAGE: bool, uid: str, isEXAM: bool = False, annee: Annee = Annee.L3) -> None:
 
         # Note : isMIAGE and isINGE are NOT mutually exclusive
@@ -131,7 +130,7 @@ class EventL3(Event):
         """Permet de vérifier l'égalité avec un autre objet."""
         if isinstance(other, Event):
             other : EventL3
-            return (Calendar.__eq__(self, other) and self.isMIAGE == other.isMIAGE and self.isINGE == other.isINGE)
+            return (Event.__eq__(self, other) and self.isMIAGE == other.isMIAGE and self.isINGE == other.isINGE)
         return False
 
     def __hash__(self) -> int:
@@ -225,14 +224,14 @@ class EventL3(Event):
 
 class EventL2(Event):
     """Classe utilisée pour gérer les objets événements"""
-    def __init__(self, start: datetime, end: datetime, subject: str, group: Group, location: str, teacher: str, uid: str, isEXAM: bool = False, annee: Annee = Annee.L2) -> None:
+    def __init__(self, start: datetime, end: datetime, subject: str, group: BaseGroup, location: str, teacher: str, uid: str, isEXAM: bool = False, annee: Annee = Annee.L2) -> None:
         super().__init__(start, end, subject, group, location, teacher, annee, uid, isEXAM)
 
 def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str) -> Event:
-    if "L3" in sum:
+    if "L3" in desc:
         return get_event_L3_from_data(start, end, sum, loc, desc, uid)
-    elif "L2" in sum:
-        return get_event_L3_from_data(start, end, sum, loc, desc, uid)
+    elif "L2" in desc or uid == "ADE60323032342d323032352d32323835332d302d30":
+        return get_event_L2_from_data(start, end, sum, loc, desc, uid)
 
 def get_event_L3_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str) -> EventL3:
     """Permet d'extraire les informations des données parsées."""
@@ -363,6 +362,9 @@ def get_event_L2_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:
     # Événements spéciaux.
     if sum == "HAPPY CAMPUS DAY":
         return EventL2(start, end, sum, Group.CM, "Campus", "Équipe Enseignante", "ADE60323032342d323032352d32323835332d302d30")
+    if sum == "Transition écologique":
+        return EventL2(start, end, sum, Group.CM, "AMPHI 4. Sciences & AMPHI 3. Sciences", "Équipe Enseignante",
+                       "ADE60323032342d323032352d36353933302d312d30")
 
     # Descsplit contient les informations correspondant à la description de l'événement, séparé par lignes.
     # Ex : ["","","Gr TPA","Syst. Mono Tâche","Syst. Mono Tâche","L2 INFORMAT- UPEX MINERVE","L2 INFO - INGENIERIE INFO","COUVREUR","(Exporté le:05/09/202 4 11:24)"\n]

@@ -1,11 +1,11 @@
 import pickle
 
-from Enums import Group, Filiere, Subscription, Annee
+from Enums import Group, Filiere, Subscription, Annee, BaseGroup
 
 
 class DBUser:
     """Classe représentant un utilisateur dans la BD."""
-    def __init__(self, id: int, annee : Annee, filiere: Filiere, groups: list[Group]) -> None:
+    def __init__(self, id: int, annee : Annee, filiere: Filiere, groups: list[BaseGroup]) -> None:
         self.id         = id
         self.annee      = annee
         self.filiere    = filiere
@@ -66,13 +66,13 @@ class UserBase:
                 case Subscription.NONE_ICS:
                     return (not is_daily) and (not is_weekly)
 
-    def add_user(self, id: int, groups: list[Group], filiere: Filiere, annee : Annee = Annee.UKNW) -> None:
+    def add_user(self, id: int, groups: list[BaseGroup], filiere: Filiere, annee : Annee = Annee.UKNW) -> None:
         """Enregistre l'utilisateur s'il n'est pas déjà enregistré, sinon ne fait rien."""
         if not self.has_user(id):
             self.users[id] = DBUser(id, annee, filiere, groups)
             dump_user_base(self)
 
-    def update_user(self, id: int ,new_groups: list[Group], new_filiere: Filiere = Filiere.UKNW, new_annee: Annee = Annee.UKNW) -> None:
+    def update_user(self, id: int ,new_groups: list[BaseGroup], new_filiere: Filiere = Filiere.UKNW, new_annee: Annee = Annee.UKNW) -> None:
         """Remplace les groupes de l'utilisateur par une ceux de `new_groups`."""
         if self.has_user(id):
             self.users[id].annee = new_annee

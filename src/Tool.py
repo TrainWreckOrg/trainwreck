@@ -9,32 +9,35 @@ from TrainWreck import get_embeds, get_ics
 from UserBase import get_user_base
 from Calendar import get_calendar
 from Filter import *
-from Enums import RoleEnum, Group, colors, Subscription
-
+from Enums import RoleEnum, Group, colors, Subscription, GroupL3, GroupL2
 
 from datetime import datetime, date, timedelta
 from enum import Enum
 import os
 
-from src.Enums import Annee
+from src.Enums import Annee, BaseGroup
 from src.UserBase import DBUser
 
 
 class Serveur:
-    def __init__(self, guild : Guild):
+    def __init__(self, guild : Guild, group: BaseGroup = None, annee : Annee = None):
         self.guild = guild
-        self.annee = None
+        self.annee = annee
+        self.group = group
 
-        if guild.name == "L3 Informatique":
-            self.annee = Annee.L3
+        if self.annee is not None and self.group is not None:
+            if guild.name in ["L3 Informatique"]:
+                self.annee = Annee.L3
+                self.group = GroupL3
 
-        if guild.name == "L2 Informatique":
-            self.annee = Annee.L2
+            if guild.name in ["L2 Informatique"]:
+                self.annee = Annee.L2
+                self.group = GroupL2
 
         self.roles = {}
         for role in self.guild.roles:
-            if role.name in Group:
-                for groupe in Group:
+            if role.name in self.group:
+                for groupe in self.group:
                     if groupe.value == role.name:
                         self.roles[groupe] = role
             if role.name in Filiere:
@@ -61,13 +64,33 @@ class BDServeur:
         self.bot = bot
         self.serveur_list = []
         self.annee: dict[Annee, list[Serveur]] = {}
-        self.guild : dict[Guild, Serveur] = {}
+        self.guild : dict[Guild, list[Serveur]] = dict[Guild, list[Serveur]]()
+
+
 
         for guild in bot.guilds:
-            serveur = Serveur(guild)
-            self.serveur_list.append(serveur)
-            self.annee[serveur.annee].append(serveur)
-            self.guild[guild] = serveur
+            if guild.name != "Serveur de test":
+                serveur = Serveur(guild)
+                self.serveur_list.append(serveur)
+                if self.annee.get(serveur.annee) is None:
+                    self.annee[serveur.annee] = []
+                self.annee[serveur.annee].append(serveur)
+                if self.guild.get(serveur.guild) is None:
+                    self.guild[serveur.guild] = []
+                self.guild[guild].append(serveur)
+            else:
+                serveur_test = [Serveur(guild, annee=Annee.L3, group=GroupL3), Serveur(guild, annee=Annee.L2, group=GroupL2)]
+                for serveur in serveur_test:
+                    self.serveur_list.append(serveur)
+                    if self.annee.get(serveur.annee) is None:
+                        self.annee[serveur.annee] = []
+                    self.annee[serveur.annee].append(serveur)
+                    if self.guild.get(serveur.guild) is None:
+                        self.guild[serveur.guild] = []
+                    self.guild[guild].append(serveur)
+
+
+
 
     def get_annee(self, annee_demand : Annee) -> list[Serveur]:
         return self.annee.get(annee_demand)
@@ -83,10 +106,11 @@ class BDServeur:
 
 
 
-bd_serveur : BDServeur
+bd_serveur : BDServeur = None
 
 def get_bd_serveur(bot: Client) -> BDServeur:
     global bd_serveur
+    bd_serveur = bd_serveur
     if bd_serveur is None:
         bd_serveur = BDServeur(bot)
     return bd_serveur
@@ -147,12 +171,13 @@ class Tool(ABC):
             case _:
                 return Filter()
 
-    def get_groupes_as_list(self, author: User | Member) -> list[Group]:
+    def get_groupes_as_list(self, author: User | Member) -> list[BaseGroup]:
         """Fonction qui renvoie la liste des groupes d'un utilisateur."""
         out = [Group.CM]
         if self.is_guild_chan(author):
+            author : Member
             for role in author.roles:
-                for gr in Group:
+                for gr in get_bd_serveur(self.bot).get_serveur(author.guild).group:
                     if role.name == gr.value:
                         out.append(gr)
             return out
@@ -421,11 +446,10 @@ class ToolL3(Tool):
     def __init__(self, bot: Client):
         super().__init__(bot)
 
-    def ping_liste(self, event: Event, guild: Guild) -> str:
+    def ping_liste(self, event: EventL3, guild: Guild) -> str:
         """Permet d'avoir une liste de mention pour un Event."""
         roles = self.serveur.get_roles(guild)
         if event.group == Group.CM:
-            event : EventL3
             if event.isINGE and event.isMIAGE:
                 return f"{roles[Filiere.INGE].mention} {roles[Filiere.MIAGE].mention}"
             elif event.isINGE:
@@ -455,7 +479,7 @@ class ToolL2(Tool):
 
 tool : dict[Annee | None : Tool] = {}
 
-def get_tool(bot : Client, guild:Guild) -> Tool:
+def get_tool(bot : Client, guild:Guild | None) -> Tool:
     """Permet d'obtenir un objet Tool."""
     global tool
 

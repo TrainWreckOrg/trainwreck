@@ -1,9 +1,8 @@
 from datetime import date
 import sentry_sdk
 
-from Enums import Timing, Filiere, Group
-from Event import Event
-from src.Event import EventL3
+from Enums import Timing, Filiere, Group, BaseGroup
+from Event import Event, EventL3
 
 
 class Filter:
@@ -57,7 +56,7 @@ class FiliereFilter(Filter):
 
 class GroupFilter(Filter):
     """Classe pour les filtres de groupe."""
-    def __init__(self, groups:list[Group]) -> None:
+    def __init__(self, groups:list[BaseGroup]) -> None:
         self.groups = groups
 
     def filter(self, e: Event) -> bool:

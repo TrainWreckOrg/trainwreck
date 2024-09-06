@@ -5,13 +5,15 @@ import re
 from Enums import RoleEnum
 from Tool import get_tool
 from Filter import *
+from src.Enums import Annee
+from src.Tool import get_bd_serveur
 
 
 class Onboard(Extension):
     """Classe contenant le processus d'attribution des rôles."""
     def __init__(self, bot: Client):
         self.bot = bot
-        self.tool = get_tool(bot)
+        self.tool = get_tool(bot, get_bd_serveur(self.bot).get_annee(Annee.L3)[0].guild)
 
     @slash_command(name="onboard", description="Permet d'afficher le message d'onboard.", default_member_permissions=Permissions.ADMINISTRATOR, contexts=[ContextType.GUILD])
     async def onboard_embed(self, ctx: SlashContext) -> None:

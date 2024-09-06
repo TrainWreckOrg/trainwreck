@@ -60,7 +60,10 @@ class Filiere(Enum):
         return self.value
 
 
-class Group(Enum):
+class BaseGroup:
+    pass
+
+class Group(BaseGroup, Enum):
     """Représent les différents groupes (TD, TP, TD Anglais, CM, UKNW)."""
     UKNW    = "UKNW"
     CM      = "CM"
@@ -69,7 +72,7 @@ class Group(Enum):
         return self.value
 
 
-class GroupL3(Group):
+class GroupL3(BaseGroup, Enum):
     """Représent les différents groupes (TD, TP, TD Anglais, CM, UKNW)."""
     TD1I    = "TD 1 Inge"
     TD2I    = "TD 2 Inge"
@@ -93,7 +96,7 @@ class GroupL3(Group):
     def __str__(self):
         return self.value
 
-class GroupL2(Group):
+class GroupL2(BaseGroup, Enum):
     """Représent les différents groupes (TD, TP, TD Anglais, CM, UKNW)."""
     TD1 = "TD1"
     TD2 = "TD2"
