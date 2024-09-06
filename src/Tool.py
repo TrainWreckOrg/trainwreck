@@ -356,6 +356,28 @@ class Tool:
                     if user_guild.has_role(self.get_roles(guild_object)[Subscription.WEEKLY_ICS]):
                         await user_guild.remove_role(self.get_roles(guild_object)[Subscription.WEEKLY_ICS])
 
+    async def userscan(self, ctx: SlashContext) -> None:
+        """Permet de scanner tous les membres du serveur et de mettre à jour la BD."""
+        user_base = get_user_base()
+        for user in ctx.guild.members:
+            if not user_base.has_user(user.id):
+                user_base.add_user(user.id, self.get_groupes_as_list(user), self.get_filiere_as_filiere(user))
+            else:
+                user_base.update_user(user.id, self.get_groupes_as_list(user),
+                                      self.get_filiere_as_filiere(user))
+
+            for sub in self.get_subscription(user):
+                match sub:
+                    case Subscription.DAILY:
+                        user_base.user_subscribe(user.id, Subscription.DAILY)
+                    case Subscription.WEEKLY:
+                        user_base.user_subscribe(user.id, Subscription.WEEKLY)
+                    case Subscription.DAILY_ICS:
+                        user_base.user_subscribe_ics(user.id, Subscription.DAILY_ICS)
+                    case Subscription.WEEKLY_ICS:
+                        user_base.user_subscribe_ics(user.id, Subscription.WEEKLY_ICS)
+
+        await ctx.send("Les membres du serveur ont été ajoutée et mit à jour.", ephemeral=True)
 
 tool: Tool | None = None
 
