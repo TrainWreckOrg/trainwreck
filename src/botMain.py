@@ -4,6 +4,9 @@ from interactions import Client, Intents, SlashContext, ModalContext, ContextMen
 from dotenv import load_dotenv
 import sentry_sdk
 import os
+
+from tests.test_bot import channel
+
 from Tool import get_tool
 from src.Tool import get_bd_serveur
 
@@ -37,6 +40,7 @@ bot.load_extension("MySlashCommand")
 
 async def log(ctx: SlashContext | ModalContext | ContextMenuContext | ComponentContext, **kwargs):
     """Fonction qui permet de logger toutes les actions."""
+    channel = None
     if get_tool(bot, None).is_guild_chan(ctx.author):
         channel = get_tool(bot, ctx.guild).get_chan_error_log(ctx)
     if isinstance(ctx, ComponentContext):

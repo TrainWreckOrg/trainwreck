@@ -230,8 +230,11 @@ class EventL2(Event):
 def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str) -> Event:
     if "L3" in desc:
         return get_event_L3_from_data(start, end, sum, loc, desc, uid)
-    elif "L2" in desc or uid == "ADE60323032342d323032352d32323835332d302d30":
+    elif "L2" in desc:
         return get_event_L2_from_data(start, end, sum, loc, desc, uid)
+    elif sum == "HAPPY CAMPUS DAY":
+        return Event(start, end, sum, Group.CM, "Campus", "Équipe Enseignante", Annee.UKNW, "ADE60323032342d323032352d32323835332d302d30")
+
 
 def get_event_L3_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str) -> EventL3:
     """Permet d'extraire les informations des données parsées."""

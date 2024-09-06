@@ -24,6 +24,8 @@ class Serveur:
         self.guild = guild
         self.annee = annee
         self.group = group
+        self.channel_changement_edt = None
+        self.channel_error_log = None
 
         if self.annee is not None and self.group is not None:
             if guild.name in ["L3 Informatique"]:
@@ -56,6 +58,8 @@ class Serveur:
         for channel in self.guild.channels:
             if channel.name == "changement-edt":
                 self.channel_changement_edt = channel
+            if channel.name == "error-log":
+                self.channel_error_log = channel
 
 
 
@@ -95,11 +99,16 @@ class BDServeur:
     def get_annee(self, annee_demand : Annee) -> list[Serveur]:
         return self.annee.get(annee_demand)
 
-    def get_serveur(self, guild : Guild) -> Serveur:
-        return self.guild.get(guild)
+    def get_serveur(self, guild : Guild, annee:Annee = None) -> Serveur:
+        serv = self.guild.get(guild)
+        if len(serv) > 1:
+            for se in serv:
+                if se.annee == annee:
+                    return se
+        return serv[0]
 
-    def get_roles(self, guild : Guild) -> dict[Enum, Role]:
-        return self.guild.get(guild).roles
+    def get_roles(self, guild : Guild, annee:Annee = None) -> dict[Enum, Role]:
+        return self.get_serveur(guild, annee).roles
 
     def get_master_serveur(self) -> Serveur:
         return self.get_serveur(self.bot.get_guild(os.getenv("SERVEUR_ID")))
@@ -177,7 +186,7 @@ class Tool(ABC):
         if self.is_guild_chan(author):
             author : Member
             for role in author.roles:
-                for gr in get_bd_serveur(self.bot).get_serveur(author.guild).group:
+                for gr in self.serveur.get_serveur(author.guild).group:
                     if role.name == gr.value:
                         out.append(gr)
             return out
@@ -204,11 +213,11 @@ class Tool(ABC):
 
     async def send_error(self, exception: BaseException) -> None:
         """Permet de faire la gestion des erreurs pour l'ensemble du bot, envoie un message aux admins et prévient l'utilisateur de l'erreur."""
-        guild = self.bot.user.guilds[0]
+        guild = self.serveur.get_master_serveur()
         print(exception)
         sentry_sdk.capture_exception(exception)
-        await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(
-            f"{(self.serveur.get_roles(guild)[RoleEnum.ADMIN]).mention} {exception}")
+        await guild.channel_error_log.send(
+            f"{(self.serveur.get_roles(guild.guild)[RoleEnum.ADMIN]).mention} {exception}")
 
     async def get_day_bt(self, ctx: SlashContext | ModalContext | ContextMenuContext | ComponentContext, jour: str, modifier: bool, personne: User = None) -> None:
         """Fonction qui permet d'obtenir l'EDT d'une journée spécifique.
@@ -359,7 +368,7 @@ class Tool(ABC):
                 f"- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}\n"
                 f"- Mise à Jour Quotidienne ICS: {'✅' if (user_base.is_user_subscribed_ics(id, Subscription.DAILY_ICS)) else '❌'}\n"
                 f"- Mise à Jour Hebdomadaire ICS: {'✅' if (user_base.is_user_subscribed_ics(id, Subscription.WEEKLY_ICS)) else '❌'}\n"
-                f":warning: vous devez avoir vous mp ouvert ou déjà avoir mp le bot. "
+                f":warning: vous devez avoir vos mp ouvert ou déjà avoir mp le bot."
                 ),
             ephemeral=ephemeral
         )
@@ -438,6 +447,28 @@ class Tool(ABC):
     def ping_liste(self, event: Event, guild: Guild) -> str:
         pass
 
+    async def userscan(self, ctx: SlashContext) -> None:
+        """Permet de scanner tous les membres du serveur et de mettre à jour la BD."""
+        user_base = get_user_base()
+        for user in ctx.guild.members:
+            if not user_base.has_user(user.id):
+                user_base.add_user(user.id, get_tool(self.bot, ctx.guild).get_groupes_as_list(user), get_tool(self.bot, ctx.guild).get_filiere_as_filiere(user))
+            else:
+                user_base.update_user(user.id, get_tool(self.bot, ctx.guild).get_groupes_as_list(user),
+                                      get_tool(self.bot, ctx.guild).get_filiere_as_filiere(user))
+
+            for sub in get_tool(self.bot, ctx.guild).get_subscription(user):
+                match sub:
+                    case Subscription.DAILY:
+                        user_base.user_subscribe(user.id, Subscription.DAILY)
+                    case Subscription.WEEKLY:
+                        user_base.user_subscribe(user.id, Subscription.WEEKLY)
+                    case Subscription.DAILY_ICS:
+                        user_base.user_subscribe_ics(user.id, Subscription.DAILY_ICS)
+                    case Subscription.WEEKLY_ICS:
+                        user_base.user_subscribe_ics(user.id, Subscription.WEEKLY_ICS)
+
+        await ctx.send("Les membres du serveur ont été ajoutée et mit à jour.", ephemeral=True)
 
 
 
@@ -448,7 +479,7 @@ class ToolL3(Tool):
 
     def ping_liste(self, event: EventL3, guild: Guild) -> str:
         """Permet d'avoir une liste de mention pour un Event."""
-        roles = self.serveur.get_roles(guild)
+        roles = self.serveur.get_roles(guild, Annee.L3)
         if event.group == Group.CM:
             if event.isINGE and event.isMIAGE:
                 return f"{roles[Filiere.INGE].mention} {roles[Filiere.MIAGE].mention}"
@@ -469,7 +500,7 @@ class ToolL2(Tool):
 
     def ping_liste(self, event: Event, guild: Guild) -> str:
         """Permet d'avoir une liste de mention pour un Event."""
-        roles = self.serveur.get_roles(guild)
+        roles = self.serveur.get_roles(guild, Annee.L2)
         if event.group == Group.CM:
             return "@everyone"
         else:
@@ -479,11 +510,11 @@ class ToolL2(Tool):
 
 tool : dict[Annee | None : Tool] = {}
 
-def get_tool(bot : Client, guild:Guild | None) -> Tool:
+def get_tool(bot : Client, guild:Guild | None = None, annee: Annee|None = None) -> Tool:
     """Permet d'obtenir un objet Tool."""
     global tool
-
-    annee = get_bd_serveur(bot).get_serveur(guild).annee
+    if annee is None:
+        annee = get_bd_serveur(bot).get_serveur(guild).annee
 
     if tool.get(annee) is None:
         match annee:
@@ -494,4 +525,4 @@ def get_tool(bot : Client, guild:Guild | None) -> Tool:
             case Annee.UKNW:
                 tool[None] = Tool(bot)
 
-    return tool[Annee]
+    return tool[annee]

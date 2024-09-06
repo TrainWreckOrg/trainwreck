@@ -60,7 +60,7 @@ class Filiere(Enum):
         return self.value
 
 
-class BaseGroup:
+class BaseGroup(Enum):
     pass
 
 class Group(BaseGroup, Enum):

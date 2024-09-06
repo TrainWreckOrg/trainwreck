@@ -53,7 +53,7 @@ class MyTask(Extension):
                 if len(sup) > 0:
                     descstr = ""
                     for event in sup:
-                        ping = get_tool(self.bot, guild_object).ping_liste(event, guild_object)
+                        ping = get_tool(self.bot, guild_object, annee).ping_liste(event, guild_object)
                         ping_liste += ping
                         descstr += f"- {ping} {event.str_day()}\n"
                     embeds.append(Embed(title="Événements supprimés :", description=descstr, color=0xEd4245))
@@ -61,7 +61,7 @@ class MyTask(Extension):
                 if len(add) > 0:
                     descstr = ""
                     for event in add:
-                        ping = get_tool(self.bot, guild_object).ping_liste(event, guild_object)
+                        ping = get_tool(self.bot, guild_object, annee).ping_liste(event, guild_object)
                         ping_liste += ping
                         descstr += f"- {ping} {event.str_day()}\n"
                     embeds.append(Embed(title="Événements ajoutés :", description=descstr, color=0x57f287))
@@ -69,16 +69,16 @@ class MyTask(Extension):
                 if len(mod) > 0:
                     descstr = ""
                     for (old, new) in mod:
-                        ping = get_tool(self.bot, guild_object).ping_liste(old, guild_object)
+                        ping = get_tool(self.bot, guild_object, annee).ping_liste(old, guild_object)
                         if old.group != new.group:
-                            ping += f" {get_tool(self.bot, guild_object).ping_liste(new, guild_object)}"
+                            ping += f" {get_tool(self.bot, guild_object, annee).ping_liste(new, guild_object)}"
                         ping_liste += ping
                         descstr += f"- {ping}\n\t- {old.str_day(new)}\n - ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ⇓\n - {new.str_day(old)}\n"
                     embeds.append(Embed(title="Événements modifiés :", description=descstr, color=0x5865f2))
 
                 if len(embeds):
                     ping_liste = f"Il y a eu des modification dans l'EDT ||{ping_liste}||"
-                    await serveur.channel_changement_edt.send(ping_liste, embeds=embeds, ephemeral=False, allowed_mentions=AllowedMentions(roles=serveur.roles))
+                    await serveur.channel_changement_edt.send(ping_liste, embeds=embeds, ephemeral=False)
 
     @Task.create(TimeTrigger(hour=6, minute=0, seconds=0, utc=False))
     async def daily_morning_update(self) -> None:
@@ -88,14 +88,14 @@ class MyTask(Extension):
         # Pour l'envoi hebdomadaire.
         if datetime.today().weekday() == 0:
             for id in user_base.weekly_subscribed_users:
-                user = get_user_base().get_user(id)
-                tool = get_tool(self.bot, get_bd_serveur(self.bot).get_annee(user.annee)[0].guild)
+                user = user_base.get_user(id)
+                tool = get_tool(self.bot, annee=user.annee)
                 await tool.send_weekly_update(user, user_base.is_user_subscribed_ics(id, Subscription.WEEKLY_ICS))
         # Pour l'envoi quotidien.
         if datetime.today().weekday() <= 4:  # Si on est le week end
             for id in user_base.daily_subscribed_users:
-                user = get_user_base().get_user(id)
-                tool = get_tool(self.bot, get_bd_serveur(self.bot).get_annee(user.annee)[0].guild)
+                user = user_base.get_user(id)
+                tool = get_tool(self.bot, annee=user.annee)
                 await tool.send_daily_update(user, user_base.is_user_subscribed_ics(id, Subscription.WEEKLY_ICS))
 
     @slash_command(name="send_daily", description="Envoie les messages daily",

@@ -205,7 +205,7 @@ class CalendarL2(Calendar):
 
 
 
-def changed_events(old: Calendar, new: Calendar, annee: Annee, filters: list[Filter] = [TimeFilter(date.today(), Timing.AFTER), TimeFilter((date.today() + timedelta(days=14)), Timing.BEFORE)]):
+def changed_events(old: Calendar, new: Calendar, annee: Annee, filters: list[Filter] = [TimeFilter(date.today(), Timing.AFTER), TimeFilter((date.today() + timedelta(days=7)), Timing.BEFORE)]):
     """Permet de vérifier si des événements ont été supprimer, ajouter ou modifier compris dans les filtres (défaut 14 jour)."""
     global calendar
     calendar[annee] = new
