@@ -50,6 +50,15 @@ class Annee(Enum):
     def __str__(self):
         return self.value
 
+    def __eq__(self, other):
+        if isinstance(other,Enum):
+            other : Enum
+            return self.name == other.name
+        return False
+
+    def __hash__(self):
+        return hash(self.value)
+
 class Filiere(Enum):
     """Représent les différentes filières (INGE, MIAGE, UKNW)."""
     INGE  = "Ingé"
@@ -63,8 +72,8 @@ class Filiere(Enum):
 class BaseGroup(Enum):
 
     def __eq__(self, other):
-        if isinstance(self, other):
-            other : BaseGroup
+        if isinstance(other, Enum):
+            other : Enum
             return self.name == other.name
         return False
 

@@ -5,6 +5,7 @@ from datetime import datetime
 import os
 import re
 
+
 from UserBase import get_user_base, nuke
 from MyTask import MyTask
 from Tool import get_tool, get_bd_serveur
@@ -62,12 +63,7 @@ class MyListen(Extension):
     @listen(MemberUpdate)
     async def on_member_update(self, event: MemberUpdate) -> None:
         """Permet de mettre à jour la base de donnée quand un membre met à jour ses rôles."""
-        user_base = get_user_base()
-        user = event.after
-        if not user_base.has_user(user.id):
-            user_base.add_user(user.id, get_tool(self.bot, event.guild).get_groupes_as_list(user), get_tool(self.bot, event.guild).get_filiere_as_filiere(user))
-        else:
-            user_base.update_user(user.id, get_tool(self.bot, event.guild).get_groupes_as_list(user), get_tool(self.bot, event.guild).get_filiere_as_filiere(user))
+        await get_tool(self.bot, guild=event.guild).userscan()
 
     @listen(Error)
     async def on_error(self, error: Error) -> None:

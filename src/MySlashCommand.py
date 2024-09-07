@@ -71,7 +71,8 @@ class MySlashCommand(Extension):
             bd = get_user_base()
             bd_user = bd.get_user(user_id)
             annee = bd_user.annee
-            await get_tool(self.bot, annee=annee).get_week_bt(ctx, date.today().strftime("%d-%m-%Y"), False)
+            tool = get_tool(self.bot, annee=annee)
+            await tool.get_week_bt(ctx, date.today().strftime("%d-%m-%Y"), False)
 
 
     @slash_command(name="help", description="Affiche la page d'Aide.")

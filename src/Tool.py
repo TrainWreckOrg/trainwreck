@@ -130,6 +130,7 @@ class Tool(ABC):
     def __init__(self, bot: Client):
         self.bot = bot
         self.serveur = get_bd_serveur(bot)
+        self.annee = None
 
     def get_subscription(self, author: User | Member) -> list[Subscription]:
         """Fonction qui permet d'avoir la liste de subscription d'un utilisateur."""
@@ -277,7 +278,7 @@ class Tool(ABC):
             days_since_monday = date_formater.weekday()
             monday_date = date_formater - timedelta(days=days_since_monday)
             sunday_date = monday_date + timedelta(days=6)
-            events: list[Event] = filter_events(get_calendar(self.serveur.get_serveur(ctx.guild).annee).get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), self.get_filiere(author), self.get_groupes(author)])
+            events: list[Event] = filter_events(get_calendar(self.annee).get_events(), [TimeFilter(monday_date, Timing.AFTER), TimeFilter(sunday_date, Timing.BEFORE), self.get_filiere(author), self.get_groupes(author)])
 
             embeds = get_embeds(events, author, monday_date, sunday_date)
 
@@ -458,7 +459,7 @@ class Tool(ABC):
                 #     continue
                 guild = serveur.guild
 
-                annee = get_bd_serveur(self.bot).get_serveur(guild).annee
+                #annee = get_bd_serveur(self.bot).get_serveur(guild).annee
 
                 for user in guild.members:
                     # Si l'utilisateur n'est pas dans la base de donnée, on lui crée un profil
@@ -494,6 +495,7 @@ class Tool(ABC):
 class ToolL3(Tool):
     def __init__(self, bot: Client):
         super().__init__(bot)
+        self.annee = Annee.L3
 
     def ping_liste(self, event: EventL3, guild: Guild) -> str:
         """Permet d'avoir une liste de mention pour un Event."""
@@ -515,6 +517,7 @@ class ToolL3(Tool):
 class ToolL2(Tool):
     def __init__(self, bot: Client):
         super().__init__(bot)
+        self.annee = Annee.L2
 
     def ping_liste(self, event: Event, guild: Guild) -> str:
         """Permet d'avoir une liste de mention pour un Event."""
