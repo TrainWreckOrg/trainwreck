@@ -66,6 +66,11 @@ class MySlashCommand(Extension):
         """Fonction qui permet d'obtenir l'EDT de cette semaine."""
         await self.tool.get_week_bt(ctx, date.today().strftime("%d-%m-%Y"), False)
 
+    @slash_command(name="next_week", description="Envoie votre EDT de la semaine prochaine.")
+    async def next_week(self, ctx: SlashContext) -> None:
+        """Fonction qui permet d'obtenir l'EDT de la semaine prochaine."""
+        await self.tool.get_week_bt(ctx, (date.today() + timedelta(days=7)).strftime("%d-%m-%Y"), False)
+
     @slash_command(name="help", description="Affiche la page d'Aide.")
     async def help(self, ctx: SlashContext) -> None:
         """Affiche le Contenu de HELP.md."""
