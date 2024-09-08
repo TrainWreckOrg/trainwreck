@@ -72,6 +72,33 @@ class Onboard(Extension):
             if group in [Group.TPAI, Group.TPBI, Group.TPCI, Group.TPDI, Group.TP1M, Group.TP2M, Group.TP3M]:
                 await ctx.edit_origin(embed=Embed(title="Vous ne pouvez pas avoir plusieurs rôles de la même catégorie."), components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
                 return
+        role = self.tool.get_roles(ctx.guild)
+        if ctx.custom_id == "tpaI":
+            await ctx.author.add_roles([role[Group.TPAI], role[Group.TDA1I], role[RoleEnum.ONBOARDED]])
+        elif ctx.custom_id == "tpbI":
+            await ctx.author.add_roles([role[Group.TPBI], role[Group.TDA2I], role[RoleEnum.ONBOARDED]])
+        elif ctx.custom_id == "tpcI":
+            await ctx.author.add_roles([role[Group.TPCI], role[Group.TDA3I], role[RoleEnum.ONBOARDED]])
+        elif ctx.custom_id == "tpdI":
+            await ctx.author.add_roles([role[Group.TPDI], role[Group.TDA4I], role[RoleEnum.ONBOARDED]])
+
+        elif ctx.custom_id == "tp1M":
+            await ctx.author.add_roles([role[Group.TP1M], role[Group.TDA1M], role[RoleEnum.ONBOARDED]])
+        elif ctx.custom_id == "tp2M":
+            await ctx.author.add_roles([role[Group.TP2M], role[Group.TDA2M], role[RoleEnum.ONBOARDED]])
+        elif ctx.custom_id == "tp3M":
+            await ctx.author.add_roles([role[Group.TP3M], role[Group.TDA3M], role[RoleEnum.ONBOARDED]])
+        await self.onboard(ctx, edit=True)
+
+    async def return_tp_old(self, ctx: ComponentContext) -> None:
+        """Permet d'ajouter un rôle de TP en fonction du bouton cliqué."""
+        # Si la personne à déjà un groupe de TP.
+        for group in self.tool.get_groupes_as_list(ctx.author):
+            if group in [Group.TPAI, Group.TPBI, Group.TPCI, Group.TPDI, Group.TP1M, Group.TP2M, Group.TP3M]:
+                await ctx.edit_origin(
+                    embed=Embed(title="Vous ne pouvez pas avoir plusieurs rôles de la même catégorie."),
+                    components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
+                return
 
         if ctx.custom_id == "tpaI":
             await ctx.author.add_role(self.tool.get_roles(ctx.guild)[Group.TPAI])
@@ -89,6 +116,7 @@ class Onboard(Extension):
         elif ctx.custom_id == "tp3M":
             await ctx.author.add_role(self.tool.get_roles(ctx.guild)[Group.TP3M])
         await self.onboard(ctx, edit=True)
+
 
     @component_callback(re.compile("^td[1|2|3|4][I|M]A$"))
     async def return_td_anglais(self, ctx:ComponentContext) -> None:
@@ -134,8 +162,12 @@ class Onboard(Extension):
         # Est-ce que la personne a déjà un groupe de TP.
         for group in groupe:
             if group in [Group.TPAI, Group.TPBI, Group.TPCI, Group.TPDI, Group.TP1M, Group.TP2M, Group.TP3M]:
-                await self.ask_td_anglais(ctx, filiere, edit=edit)
+                if edit:
+                    await ctx.edit_origin(embed=Embed(title="Vous avez déjà tout les rôles nécessaire"), components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
+                else:
+                    await ctx.send(embed=Embed(title="Vous avez déjà tout les rôles nécessaire"), ephemeral=True)
                 return
+                # await self.ask_td_anglais(ctx, filiere, edit=edit)
         # Est-ce que la personne a déjà un groupe de TD.
         for group in groupe:
             if group in [Group.TD1I, Group.TD2I, Group.TD1M, Group.TD2M]:
@@ -317,3 +349,5 @@ class Onboard(Extension):
             await ctx.edit_origin(embed=embed, components=actionRow)
         else:
             await ctx.send(embed=embed, components=actionRow, ephemeral=True)
+
+

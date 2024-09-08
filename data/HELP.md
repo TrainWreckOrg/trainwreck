@@ -31,6 +31,7 @@ Pour utiliser les applications, il faut, sur PC, faire un clic droit sur un memb
 - `/today` : Envoie votre EDT du jour
 - `/tomorrow` : Envoie votre EDT du lendemain
 - `/week` : Envoie votre EDT de la semaine
+- `/next_week` : Envoie votre EDT de la semaine prochaine
 - `/ics <date début> <date fin>` : Envoie un fichier ICS (iCalendar) des événements entre les deux dates, importable dans la plupart des applications de calendrier (⚠ : Le calendrier n'est pas mis à jour dynamiquement)
 - `/subscribe [service] [ics]` : Vous permet de vous abonner à l'envoi de l'EDT dans vos DM de manière Quotidienne (`DAILY`) ou Hebdomadaire (`WEEKLY`) avec la possibilité d'avoir le fichier ics correspondant en option soit `DAILY`, `WEEKLY`, ou les deux. (⚠ : Les envois se font à 6h du matin, mais uniquement en semaine)
 - `/unsubscribe [service] [ics]` : Vous permet de vous désabonner à l'envoi de l'EDT dans vos DM (voir `/subscribe` pour plus de détails)
