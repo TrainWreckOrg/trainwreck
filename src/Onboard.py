@@ -27,7 +27,69 @@ class Onboard(Extension):
     @component_callback(re.compile("onboard"))
     async def onboard_bt(self, ctx:ComponentContext) -> None:
         """Permet de faire réagir le bouton d'onboard."""
-        await self.onboard(ctx, edit=False)
+        roles = self.tool.get_groupes_as_list(ctx.author)
+        print(roles)
+        if len(roles) == 4:
+            str_role = ""
+            for role in roles:
+                if role in [Group.CM, Group.TDA1I, Group.TDA2I, Group.TDA3I, Group.TDA4I, Group.TDA1M, Group.TDA2M, Group.TDA3M]:
+                    continue
+                str_role += role.value + ", "
+            str_role = str_role[:-2]
+
+            oui = Button(
+                style=ButtonStyle.BLURPLE,
+                custom_id="oui_onb",
+                label="Oui"
+            )
+            non = Button(
+                style=ButtonStyle.BLURPLE,
+                custom_id="non_onb",
+                label="Non"
+            )
+            action_row = ActionRow(oui, non)
+            await ctx.send(embed=Embed(title="Est ce que vous groupe sont corrects ?", description=str_role),
+                           components=action_row, ephemeral=True)
+        else:
+            user = ctx.author
+            for filiere in Filiere:
+                if filiere in [Filiere.UKNW]:
+                    continue
+                if user.has_role(self.tool.get_roles(ctx.guild)[filiere]):
+                    await user.remove_role(self.tool.get_roles(ctx.guild)[filiere])
+            for group in Group:
+                if group in [Group.CM, Group.UKNW]:
+                    continue
+                if user.has_role(self.tool.get_roles(ctx.guild)[group]):
+                    await user.remove_role(self.tool.get_roles(ctx.guild)[group])
+            await self.onboard(ctx, edit=False)
+
+    @component_callback(re.compile("oui_onb"))
+    async def onboard_oui(self, ctx: ComponentContext) -> None:
+        if not ctx.author.has_role(self.tool.get_roles(ctx.guild)[RoleEnum.ONBOARDED]):
+            await ctx.author.add_role(self.tool.get_roles(ctx.guild)[RoleEnum.ONBOARDED])
+        await ctx.edit_origin(embed=Embed(title="Vous avez déjà tout les rôles nécessaire"),
+                              components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
+
+    @component_callback(re.compile("non_onb"))
+    async def onboard_non(self, ctx: ComponentContext) -> None:
+        user = ctx.author
+        for filiere in Filiere:
+            if filiere in [Filiere.UKNW]:
+                continue
+            if user.has_role(self.tool.get_roles(ctx.guild)[filiere]):
+                await user.remove_role(self.tool.get_roles(ctx.guild)[filiere])
+        for group in Group:
+            if group in [Group.CM, Group.UKNW]:
+                continue
+            if user.has_role(self.tool.get_roles(ctx.guild)[group]):
+                await user.remove_role(self.tool.get_roles(ctx.guild)[group])
+
+        await self.onboard(ctx, edit=True)
+
+
+
+
 
     @component_callback(re.compile("inge|miage"))
     async def return_filiere(self, ctx:ComponentContext) -> None:
