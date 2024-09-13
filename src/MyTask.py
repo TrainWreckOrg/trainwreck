@@ -1,5 +1,5 @@
 from interactions import Client, Task, TimeTrigger, OrTrigger, Embed, Extension, slash_command, SlashContext, \
-    Permissions, AllowedMentions
+    Permissions, AllowedMentions, ContextType
 from datetime import datetime
 from dotenv import load_dotenv
 import os
@@ -90,7 +90,7 @@ class MyTask(Extension):
                 await self.tool.send_daily_update(self.bot.get_user(id), user_base.is_user_subscribed_ics(id, Subscription.DAILY_ICS))
 
     @slash_command(name="send_daily", description="Envoie les messages daily",
-                   default_member_permissions=Permissions.ADMINISTRATOR)
+                   default_member_permissions=Permissions.ADMINISTRATOR, contexts=[ContextType.GUILD])
     async def send_daily(self, ctx: SlashContext):
         """Fonction qui permet d'envoyer le message automatique."""
         # Elle est ici parce que ailleurs, il y aurait des problèmes d'import circulaire (je pense).
@@ -102,7 +102,7 @@ class MyTask(Extension):
         await self.daily_morning_update()
 
     @slash_command(name="update_force", description="Force la mise à jour du calendrier",
-                   default_member_permissions=Permissions.ADMINISTRATOR)
+                   default_member_permissions=Permissions.ADMINISTRATOR, contexts=[ContextType.GUILD])
     async def update_force(self, ctx: SlashContext):
         """Fonction qui permet de forcer la mise à jour du calendrier."""
         # Elle est ici parce que ailleurs, il y aurait des problèmes d'import circulaire (je pense).
