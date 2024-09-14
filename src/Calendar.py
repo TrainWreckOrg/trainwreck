@@ -92,7 +92,7 @@ class Calendar:
 
             # La description est sur plusieurs lignes et commence par un espace.
             elif line.startswith(" "):
-                event["DESCRIPTION"] += line.removeprefix(" ")
+                event["DESCRIPTION"] += line.removeprefix(" ").removesuffix("\n")
             else:
                 for prefix in ("DTSTART:", "DTEND:", "SUMMARY:", "LOCATION:", "DESCRIPTION:", "UID:") :
                     if line.startswith(prefix):
