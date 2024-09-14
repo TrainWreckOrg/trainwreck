@@ -24,7 +24,7 @@ token_bot = os.getenv("TOKEN_BOT_DISCORD")
 
 # Si une commande ne veut pas partir / est dupliqué dans la liste des commandes sur discord ajouter
 # `delete_unused_application_cmds=True` pour supprimer les commandes en cache
-bot = Client(token=token_bot, intents=Intents.DEFAULT | Intents.GUILD_MEMBERS | Intents.GUILD_PRESENCES, send_command_tracebacks=False)
+bot = Client(token=token_bot, intents=Intents.DEFAULT | Intents.GUILD_MEMBERS | Intents.GUILD_PRESENCES, send_command_tracebacks=False, delete_unused_application_cmds=True)
 
 # Extension pour gérer les erreurs avec https://sentry.io/
 bot.load_extension('interactions.ext.sentry', dsn=str(os.getenv("SENTRY_DSN")))
