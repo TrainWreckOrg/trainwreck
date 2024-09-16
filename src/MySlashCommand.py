@@ -185,7 +185,10 @@ class MySlashCommand(Extension):
                 await self.tool.subscription_role(id, Subscription.BOTH_ICS, True)
                 user_base.user_subscribe_ics(id, Subscription.BOTH_ICS)
 
-        await self.tool.check_subscription(ctx)
+        if service == "None" and ics == "None":
+            await ctx.send("Vous devez sélectionner une option pour vous abonner.\n Par exemple : pour recevoir l'emploi du temps de la semaine le lundi, avec un fichier ics, et l'emploi du temps du jour tout les jours, sans ics : `/subscribe service: Both ics: Weekly`", ephemeral=True)
+        else:
+            await self.tool.check_subscription(ctx)
 
     @slash_command(name="unsubscribe", description="Vous permet de vous désabonner à l'envoi de l'EDT dans vos DM.")
     @slash_option(
