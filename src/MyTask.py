@@ -40,7 +40,7 @@ class MyTask(Extension):
 
         sup, add, mod = changed_events(old_calendar, new_calendar)
         embeds: list[Embed] = []
-        ping_liste = ""
+        ping_liste = set()
 
         serveur = self.bot.user.guilds[0]
 
@@ -48,7 +48,7 @@ class MyTask(Extension):
             descstr = ""
             for event in sup:
                 ping = self.tool.ping_liste(event, serveur)
-                ping_liste += ping
+                ping_liste.add(ping)
                 descstr += f"- {ping} {event.str_day()}\n"
             embeds.append(Embed(title="Événements supprimés :", description=descstr, color=0xEd4245))
 
@@ -56,7 +56,7 @@ class MyTask(Extension):
             descstr = ""
             for event in add:
                 ping = self.tool.ping_liste(event, serveur)
-                ping_liste += ping
+                ping_liste.add(ping)
                 descstr += f"- {ping} {event.str_day()}\n"
             embeds.append(Embed(title="Événements ajoutés :", description=descstr, color=0x57f287))
 
@@ -66,13 +66,17 @@ class MyTask(Extension):
                 ping = self.tool.ping_liste(old, serveur)
                 if old.group != new.group:
                     ping += f" {self.tool.ping_liste(new, serveur)}"
-                ping_liste += ping
-                descstr += f"- {ping}\n\t- {old.str_day(new)}\n - ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ⇓\n - {new.str_day(old)}\n"
+                ping_liste.add(ping)
+                descstr += f"- {ping}\n    - {old.str_day(new)}\n   - ⇓\n   - {new.str_day(old)}\n"#f"- {ping}\n\t- {old.str_day(new)}\n\t- ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ⇓\n\t- {new.str_day(old)}\n"
             embeds.append(Embed(title="Événements modifiés :", description=descstr, color=0x5865f2))
+
+        ping_list_str = ""
+        for ping in ping_liste:
+            ping_list_str += ping
 
         if len(embeds):
             ping_chan = self.bot.get_channel(os.getenv("PING_CHANGE_CHANNEL_ID"))
-            ping_liste = f"Il y a eu des modification dans l'EDT ||{ping_liste}||"
+            ping_liste = f"Il y a eu des modification dans l'EDT ||{ping_list_str}||"
             await ping_chan.send(ping_liste, embeds=embeds, ephemeral=False, allowed_mentions=AllowedMentions(roles=serveur.roles))
 
     @Task.create(TimeTrigger(hour=6, minute=0, seconds=0, utc=False))
