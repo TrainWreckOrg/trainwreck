@@ -38,7 +38,7 @@ class MyTask(Extension):
         await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Exécution de `update_calendar`")
         old_calendar = Calendar(False)
         new_calendar = Calendar(True)
-
+        await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(f"Fichier du {datetime.now()}", files=["data/INGE.ics", "data/MIAGE.ics"])
         sup, add, mod, changed_id = changed_events(old_calendar, new_calendar)
 
         if changed_id:
