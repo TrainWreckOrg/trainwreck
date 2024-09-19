@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import os
 
 from Calendar import Calendar, changed_events
+from Event import Event
 from UserBase import get_user_base
 from Tool import get_tool
 from Enums import Subscription, RoleEnum
@@ -38,7 +39,11 @@ class MyTask(Extension):
         old_calendar = Calendar(False)
         new_calendar = Calendar(True)
 
-        sup, add, mod = changed_events(old_calendar, new_calendar)
+        sup, add, mod, changed_id = changed_events(old_calendar, new_calendar)
+
+        if changed_id:
+            await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(f"l'id d'un cours a changé : {changed_id}")
+
         embeds: list[Embed] = []
         ping_liste = set()
 

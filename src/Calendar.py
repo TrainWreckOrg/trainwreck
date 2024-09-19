@@ -156,7 +156,18 @@ def changed_events(old: Calendar, new: Calendar, filters: list[Filter] = [TimeFi
         if e.uid in new_events_dict.keys() and e != new_events_dict[e.uid]:
             mod.add((e, new_events_dict[e.uid]))
     
-    return sup, add, mod
+    changed_id : list[tuple[str, str]] = []
+
+    for ne in add.copy():
+        for oe in sup.copy():
+            if ne.similar(oe):
+                changed_id.append((oe.uid, ne.uid))
+                if oe in sup:
+                    sup.remove(oe)
+                if ne in add:
+                    add.remove(ne)
+
+    return sup, add, mod, changed_id
 
 calendar: Calendar | None = None
 
