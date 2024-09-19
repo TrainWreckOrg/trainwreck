@@ -22,6 +22,16 @@ class Event:
 
         self.duree = self.end_timestamp - self.start_timestamp 
 
+    def similar(self, other: object) -> bool:
+        """Permet de vérifier l'égalité du contenu avec un autre objet. (ne prend pas en compte l'uid)"""
+        if isinstance(other, Event):
+            return (self.start_timestamp == other.start_timestamp and
+                    self.end_timestamp == other.end_timestamp and self.location == other.location and
+                    self.teacher == other.teacher and self.subject == other.subject and self.group == other.group and
+                    self.isMIAGE == other.isMIAGE and self.isINGE == other.isINGE and self.isEXAM == other.isEXAM and
+                    self.duree == other.duree)
+        return False
+
     def __eq__(self, other: object) -> bool:
         """Permet de vérifier l'égalité avec un autre objet."""
         if isinstance(other, Event):
