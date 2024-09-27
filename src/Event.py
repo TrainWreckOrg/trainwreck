@@ -48,31 +48,37 @@ class Event:
 
     def __str__(self) -> str:
         """Permet d'avoir une str pour représenter l'Event."""
+        event = f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
         if self.isEXAM:
-            return ":warning: " + (f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.subject} - {f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.location} - {self.teacher}".upper()) + " :warning:"
+            return ":warning: " + (event.upper()) + " :warning:"
         else:
-            return f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
+            return event
 
     def str_day(self, autre: 'Event' = None) -> str:
         """Permet de comparer deux Event et de renvoyer une str de l'événement self avec les éléments qui changent en gars."""
+        defaut = f"{weekday[self.start_timestamp.weekday()]} {self.start_timestamp.strftime("%d-%m-%Y")} {self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
 
         if autre is None:
             if self.isEXAM:
-                return ":warning: " + (f"{weekday[self.start_timestamp.weekday()]} {self.start_timestamp.strftime("%d-%m-%Y")} {self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.subject} - {f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.location} - {self.teacher}".upper()) + " :warning:"
+                return ":warning: " + defaut + " :warning:"
             else:
-                return f"{weekday[self.start_timestamp.weekday()]} {self.start_timestamp.strftime("%d-%m-%Y")} {self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
+                return defaut
 
         texte = ""
 
+        day=f"{weekday[self.start_timestamp.weekday()]} {self.start_timestamp.strftime("%d-%m-%Y")} "
+
         if(self.start_timestamp.strftime("%d-%m-%Y")) != (autre.start_timestamp.strftime("%d-%m-%Y")):
-            texte += f"**{weekday[self.start_timestamp.weekday()]} {self.start_timestamp.strftime("%d-%m-%Y")}** "
+            texte += f"**{day}**"
         else:
-            texte += f"{weekday[self.start_timestamp.weekday()]} {self.start_timestamp.strftime("%d-%m-%Y")} "
+            texte += day
+
+        time=f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")}"
 
         if (self.start_timestamp.strftime("%Hh%M")) != (autre.start_timestamp.strftime("%Hh%M")):
-            texte += f"**{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")}**"
+            texte += f"**{time}**"
         else:
-            texte += f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")}"
+            texte += time
 
         texte += " : "
 
@@ -105,7 +111,7 @@ class Event:
             texte += self.teacher
 
         if self.isEXAM:
-            return ":warning: " + (texte.upper()) + " :warning:"
+            return f":warning: {texte.upper()} :warning:"
         else:
             return texte
 
@@ -129,7 +135,7 @@ class Event:
         return ics
 
 
-def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str) -> Event:
+def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str, flag_exam: list[str]) -> Event:
     """Permet d'extraire les informations des données parsées."""
     # Événements spéciaux.
     if sum == "Réunion rentrée - L3 INGENIERIE INFORMATIQUE":
@@ -151,6 +157,9 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
     # Nettoie le nom du professeur (antépénultième élément), et inclus un fallback si le nom n'est pas renseigné.
     teacher = descsplit[-3].replace("\n", "").removeprefix(" ") if descsplit[-3] != "L3 INFORMAT-UPEX MINERVE" else "Enseignant ?"
     location = loc if not loc == "" else "Salle ?"
+
+    is_exam = uid in flag_exam
+
 
     # Valeur par défaut.
     isMIAGE = False
@@ -251,4 +260,4 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
                             sentry_sdk.capture_exception(exception)
 
     # Crée un nouvel Objet Event à partir des infos calculées.
-    return Event(start, end, subject, group, location, teacher, isINGE, isMIAGE, uid)
+    return Event(start, end, subject, group, location, teacher, isINGE, isMIAGE, uid, is_exam)
