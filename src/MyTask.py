@@ -1,3 +1,5 @@
+import json
+
 from interactions import Client, Task, TimeTrigger, OrTrigger, Embed, Extension, slash_command, SlashContext, \
     Permissions, AllowedMentions, ContextType
 from datetime import datetime
@@ -35,9 +37,16 @@ class MyTask(Extension):
         # sup :set[Event]         = set()
         # add :set[Event]         = set()
         # mod :set[(Event,Event)] = set()
+
+        channels = self.bot.guilds[0].channels
+        arguement: dict[str:dict[str:str]] = None
+        for channel in channels:
+            if channel.name =="arguement-bot":
+                arguement = json.loads((await channel.fetch_message(channel.last_message_id)).content)
+
         await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Exécution de `update_calendar`")
-        old_calendar = Calendar(False)
-        new_calendar = Calendar(True)
+        old_calendar = Calendar(False, list(arguement.get("exam_list").values()))
+        new_calendar = Calendar(True, list(arguement.get("exam_list").values()))
         await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(f"Fichier du {datetime.now()}", files=["data/INGE.ics", "data/MIAGE.ics"])
         sup, add, mod, changed_id = changed_events(old_calendar, new_calendar)
 
