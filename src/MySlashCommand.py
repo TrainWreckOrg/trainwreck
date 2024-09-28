@@ -255,7 +255,9 @@ class MySlashCommand(Extension):
         embeds = get_embeds(exams, ctx.author)
         if not exams:
             embeds[0].description = "Aucun examens"
-        embeds.insert(0, Embed(title="EXAMENS", description="ATTENTION CETTE LISTE D'EXAMS N'EST PEUT ÊTRE PAS A JOUR MERCI DE VERIFIER SUR LE SITE DE L'UNIVERSITÉ!", color=colors[0]))
+        embeds.insert(0, Embed(title="EXAMENS", description="ATTENTION CETTE LISTE D'EXAMS N'EST PEUT-ÊTRE PAS A JOUR MERCI DE VERIFIER SUR LE SITE DE L’UNIVERSITÉ !\nCERTAINS EXAMS (CONTRÔLE EN DÉBUT DE TD/TP) NOUS ONT ETE RAPPORTER ET AJOUTER DONC NE SONT PAS SUR LE SITE.", color=colors[0]))
+
+        embeds[-1].footer.text = f"Commande fait par {ctx.author.display_name}\nLes emploi du temps sont fournis a titre informatif uniquement.\n-> Veuillez vous référer à votre page personnelle sur l'ENT."
 
         universite = Button(
             style=ButtonStyle.URL,
@@ -266,7 +268,12 @@ class MySlashCommand(Extension):
         ephemeral = False
         if self.tool.is_guild_chan(ctx.author):
             ephemeral = not ctx.author.has_role( self.tool.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
-        await ctx.send(embeds=embeds, components=universite, ephemeral=ephemeral)
+
+        # Au cas où, il y a plus de 10 embeds, ça les envoie en plusieurs messages
+        cut = embeds
+        for i in range(0,len(embeds),10):
+            await ctx.send(embeds=cut[:10], components=universite, ephemeral=ephemeral)
+            cut = cut[10:]
 
     @slash_command(name="wipe", description="Enlève tout les rôles.", default_member_permissions=Permissions.ADMINISTRATOR, contexts=[ContextType.GUILD])
     async def wipe(self, ctx: SlashContext) -> None:

@@ -53,7 +53,6 @@ class Calendar:
             self.fetch_calendar(url["INGE"], filenameINGE)
             self.fetch_calendar(url["MIAGE"], filenameMIAGE)
 
-        self.exam_list = []
         # | sert à concaténer deux dictionnaires.
         output = self.parse_calendar(filenameINGE, flag_exam) | self.parse_calendar(filenameMIAGE, flag_exam)
 
@@ -61,6 +60,8 @@ class Calendar:
         self.events_dict = output
         # Tri les événements par ordre croissant en fonction de leur date.
         self.events_list = sorted(list(self.events_dict.values()),key=lambda event: event.start_timestamp)
+
+        self.exams_list = sorted(list(self.exams_list),key=lambda event: event.start_timestamp)
 
     def parse_calendar(self, filename:str, flag_exam:list[str]) -> dict[str:Event]:
         """Extrait les données du fichier .ics passé dans filename.
@@ -73,6 +74,8 @@ class Calendar:
         events = {}
         # Dictionnaire pour stocker temporairement les infos d'un événement avant sa création.
         event = {}
+        # Liste des exam
+        exams = []
 
         for line in lines:
             # Balise Ouvrante, crée un nouveau dictionnaire vide.
@@ -89,7 +92,10 @@ class Calendar:
                     event["UID"],
                     flag_exam
                 )
-                events[e.uid] = e
+                if e.isEXAM:
+                    exams.append(e)
+                else:
+                    events[e.uid] = e
 
             # La description est sur plusieurs lignes et commence par un espace.
             elif line.startswith(" "):
@@ -102,7 +108,7 @@ class Calendar:
 
         # Exam list.
 
-        exams = [
+        exams += [
             # Event(
             # start=datetime(day=3, month=6, year=2024, hour=13, minute=30, second=0, microsecond=0, tzinfo=timezone("Europe/Paris")),
             # end=datetime(day=3, month=6, year=2024, hour=13, minute=30, second=0, microsecond=0, tzinfo=timezone("Europe/Paris")),
