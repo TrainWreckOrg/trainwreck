@@ -1,5 +1,5 @@
 from interactions import Client, slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Permissions, \
-    Embed, EmbedFooter, User, contexts, Extension, Button, ButtonStyle, ActionRow, ContextType
+    Embed, EmbedFooter, User, contexts, Extension, Button, ButtonStyle, ActionRow, ContextType, AutocompleteContext
 from datetime import datetime, date, timedelta
 import os
 
@@ -104,13 +104,15 @@ class MySlashCommand(Extension):
         name="debut",
         description="Quelle est la date de début ? (DD-MM-YYYY)",
         required=True,
-        opt_type=OptionType.STRING
+        opt_type=OptionType.STRING,
+        autocomplete=True
     )
     @slash_option(
         name="fin",
         description="Quelle est la date de fin ? (DD-MM-YYYY)",
         required=True,
-        opt_type=OptionType.STRING
+        opt_type=OptionType.STRING,
+        autocomplete=True
     )
     async def ics(self, ctx: SlashContext, debut: str, fin: str) -> None:
         """Génère le fichier ICS entre deux dates."""
@@ -132,6 +134,46 @@ class MySlashCommand(Extension):
             os.remove(f"{filename}.ics")
         except ValueError:
             await ctx.send(embeds=[self.tool.create_error_embed(f"La valeur `{debut}` ou `{fin}` ne correspond pas à une date.")], ephemeral=True)
+
+    @ics.autocomplete("debut")
+    async def autocomplete(self, ctx: AutocompleteContext):
+
+        days_since_monday = date.today().weekday()
+        monday_date = date.today() - timedelta(days=days_since_monday)
+        next_monday = monday_date + timedelta(days=7)
+        await ctx.send(
+            choices=[
+                {
+                    "name": f"Lundi de cette semaine",
+                    "value": f"{monday_date.strftime("%d-%m-%Y")}",
+                },
+                {
+                    "name": f"Lundi de la semaine prochaine",
+                    "value": f"{next_monday.strftime("%d-%m-%Y")}",
+                }
+            ]
+        )
+
+    @ics.autocomplete("fin")
+    async def autocomplete(self, ctx: AutocompleteContext):
+
+        days_since_monday = date.today().weekday()
+        monday_date = date.today() - timedelta(days=days_since_monday)
+        sunday_date = monday_date + timedelta(days=6)
+        next_sunday = sunday_date + timedelta(days=7)
+        await ctx.send(
+            choices=[
+                {
+                    "name": f"Dimanche de cette semaine",
+                    "value": f"{sunday_date.strftime("%d-%m-%Y")}",
+                },
+                {
+                    "name": f"Dimanche de la semaine prochaine",
+                    "value": f"{next_sunday.strftime("%d-%m-%Y")}",
+                }
+            ]
+        )
+
 
     @slash_command(name="subscribe",
                    description="Vous permet de vous abonner à l'envoi de l'EDT dans vos DM, de manière quotidienne ou hebdomadaire.")
