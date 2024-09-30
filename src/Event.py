@@ -66,12 +66,12 @@ class Event:
 
         texte = ""
 
-        day=f"{weekday[self.start_timestamp.weekday()]} {self.start_timestamp.strftime("%d-%m-%Y")} "
+        day=f"{weekday[self.start_timestamp.weekday()]} {self.start_timestamp.strftime("%d-%m-%Y")}"
 
         if(self.start_timestamp.strftime("%d-%m-%Y")) != (autre.start_timestamp.strftime("%d-%m-%Y")):
-            texte += f"**{day}**"
+            texte += f"**{day}** "
         else:
-            texte += day
+            texte += f"day "
 
         time=f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")}"
 
