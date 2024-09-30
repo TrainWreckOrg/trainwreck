@@ -1,6 +1,7 @@
 import datetime
 
-from interactions import Client, Intents, SlashContext, ModalContext, ContextMenuContext, ComponentContext
+from interactions import Client, Intents, SlashContext, ModalContext, ContextMenuContext, ComponentContext, \
+    AutocompleteContext
 from dotenv import load_dotenv
 import sentry_sdk
 import os
@@ -34,7 +35,7 @@ bot.load_extension("MySlashCommand")
 bot.load_extension("Onboard")
 
 
-async def log(ctx: SlashContext | ModalContext | ContextMenuContext | ComponentContext, **kwargs):
+async def log(ctx: SlashContext | ModalContext | ContextMenuContext | ComponentContext | AutocompleteContext, **kwargs):
     """Fonction qui permet de logger toutes les actions."""
     if isinstance(ctx, ComponentContext):
         ctx_bt : ComponentContext = ctx
@@ -44,6 +45,8 @@ async def log(ctx: SlashContext | ModalContext | ContextMenuContext | ComponentC
         ctx_menu : ContextMenuContext = ctx
         await bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(
             f"{ctx_menu.author.display_name} ({ctx_menu.author.id}) à utilise {ctx_menu.command.name} sur {ctx_menu.target} ({ctx_menu.target_id}) {kwargs}, le {datetime.datetime.now()}")
+    elif isinstance(ctx, AutocompleteContext):
+        return
     else:
         await bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(f"{ctx.author.display_name} ({ctx.author.id}) à utilise {ctx.command.name} {kwargs}, le {datetime.datetime.now()}")
 
