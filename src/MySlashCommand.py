@@ -291,9 +291,16 @@ class MySlashCommand(Extension):
         await self.tool.check_subscription(ctx)
 
     @slash_command(name="exam", description="Vous permet de consulter la liste des exams.")
-    async def exam(self, ctx: SlashContext) -> None:
+    @slash_option(
+        name="personne",
+        description="Quel utilisateur ?",
+        required=False,
+        opt_type=OptionType.USER
+    )
+    async def exam(self, ctx: SlashContext, personne: User = None) -> None:
         """Permet d'obtenir la liste des exams."""
-        exams = get_calendar().get_exams()
+        author = ctx.author if (personne is None) else personne
+        exams = filter_events(get_calendar().get_exams(),[self.tool.get_filiere(author), self.tool.get_groupes(author)])
         embeds = get_embeds(exams, ctx.author)
         if not exams:
             embeds[0].description = "Aucun examens"
