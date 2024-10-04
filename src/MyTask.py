@@ -42,7 +42,8 @@ class MyTask(Extension):
         arguement: dict[str:dict[str:str]] = None
         for channel in channels:
             if channel.name =="arguement-bot":
-                arguement = json.loads((await channel.fetch_message(channel.last_message_id)).content)
+                contenu = (await channel.fetch_messages(1))[0].content
+                arguement = json.loads(contenu)
 
         await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Exécution de `update_calendar`")
         old_calendar = Calendar(False, list(arguement.get("exam_list").values()))
