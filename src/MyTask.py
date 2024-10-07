@@ -37,7 +37,10 @@ class MyTask(Extension):
         # sup :set[Event]         = set()
         # add :set[Event]         = set()
         # mod :set[(Event,Event)] = set()
-
+        try:
+            await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Exécution de `update_calendar`")
+        except:
+            pass
         channels = self.bot.guilds[0].channels
         arguement: dict[str:dict[str:str]] = None
         for channel in channels:
@@ -45,14 +48,15 @@ class MyTask(Extension):
                 contenu = (await channel.fetch_messages(1))[0].content
                 arguement = json.loads(contenu)
 
-        await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Exécution de `update_calendar`")
         old_calendar = Calendar(False, list(arguement.get("exam_list").values()))
         new_calendar = Calendar(True, list(arguement.get("exam_list").values()))
-        await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(f"Fichier du {datetime.now()}", files=["data/INGE.ics", "data/MIAGE.ics"])
         sup, add, mod, changed_id = changed_events(old_calendar, new_calendar)
-
-        if changed_id:
-            await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(f"l'id d'un cours a changé : {changed_id}")
+        try:
+            await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(f"Fichier du {datetime.now()}", files=["data/INGE.ics", "data/MIAGE.ics"])
+            if changed_id:
+                await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(f"l'id d'un cours a changé : {changed_id}")
+        except:
+            pass
 
         embeds: list[Embed] = []
         ping_liste = set()
@@ -97,7 +101,10 @@ class MyTask(Extension):
     @Task.create(TimeTrigger(hour=6, minute=0, seconds=0, utc=False))
     async def daily_morning_update(self) -> None:
         """Permet d'envoyer les EDT automatiquement."""
-        await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Exécution de `daily_morning_update`")
+        try:
+            await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Exécution de `daily_morning_update`")
+        except:
+            pass
         user_base = get_user_base()
         # Pour l'envoi hebdomadaire.
         if datetime.today().weekday() == 0:
