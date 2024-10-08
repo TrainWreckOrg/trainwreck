@@ -363,3 +363,12 @@ class MySlashCommand(Extension):
             file_prod.write(content)
 
         await ctx.send("Le fichier ics à été modifier.", ephemeral=False)
+
+    @slash_command(name="stop", description="Permet de stop le bot si autorisé.",
+                   default_member_permissions=Permissions.ADMINISTRATOR)
+    async def stop(self, ctx: SlashContext) -> None:
+        """Permet d'obtenir la BD."""
+
+        await ctx.send("Le bot va s'arreter.", ephemeral=False)
+        if ctx.author.id =="233145138380013568":
+            await self.bot.stop()

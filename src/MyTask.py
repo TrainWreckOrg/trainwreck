@@ -41,15 +41,11 @@ class MyTask(Extension):
             await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Exécution de `update_calendar`")
         except:
             pass
-        channels = self.bot.guilds[0].channels
-        arguement: dict[str:dict[str:str]] = None
-        for channel in channels:
-            if channel.name =="arguement-bot":
-                contenu = (await channel.fetch_messages(1))[0].content
-                arguement = json.loads(contenu)
 
-        old_calendar = Calendar(False, list(arguement.get("exam_list").values()))
-        new_calendar = Calendar(True, list(arguement.get("exam_list").values()))
+        arguement  = await self.tool.get_arguement()
+
+        old_calendar = Calendar(False, arguement)
+        new_calendar = Calendar(True, arguement)
         sup, add, mod, changed_id = changed_events(old_calendar, new_calendar)
         try:
             await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(f"Fichier du {datetime.now()}", files=["data/INGE.ics", "data/MIAGE.ics"])

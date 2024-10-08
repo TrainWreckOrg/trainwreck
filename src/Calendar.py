@@ -11,14 +11,14 @@ import os
 
 class Calendar:
     """Classe utilisée pour stocker une liste d'objet Event."""
-    def __init__(self, update : bool, fleg_exam:list[str]) -> None:
+    def __init__(self, update : bool, argument) -> None:
         """ Update : Si l'on doit télécharger les fichiers ics."""
         # Dictionnaire qui stock les Event associé à l'UID.
         self.events_dict : dict[str:Event]
         self.events_list : list[Event]
         self.exams_list : list[Event]
 
-        self.update_events(update, fleg_exam)
+        self.update_events(update, argument)
 
     def fetch_calendar(self, url:str, filename:str) -> None:
         """Télécharge le fichier .ics.
@@ -38,7 +38,7 @@ class Calendar:
         iso_date = f"{input[0:4]}-{input[4:6]}-{input[6:11]}:{input[11:13]}:{input[13:]}"
         return datetime.fromisoformat(iso_date).astimezone(timezone("Europe/Paris"))
 
-    def update_events(self, update: bool, flag_exam : list[str]) -> None:
+    def update_events(self, update: bool, argument) -> None:
         """Met à jour la liste d'événements en mêlant les événements issus des deux .ics.
         Update : Si l'on doit télécharger les fichiers ics.
         """
@@ -54,7 +54,7 @@ class Calendar:
             self.fetch_calendar(url["MIAGE"], filenameMIAGE)
 
         # | sert à concaténer deux dictionnaires.
-        output = self.parse_calendar(filenameINGE, flag_exam) | self.parse_calendar(filenameMIAGE, flag_exam)
+        output = self.parse_calendar(filenameINGE, argument) | self.parse_calendar(filenameMIAGE, argument)
 
 
         self.events_dict = output
@@ -63,7 +63,7 @@ class Calendar:
 
         self.exams_list = sorted(list(self.exams_list),key=lambda event: event.start_timestamp)
 
-    def parse_calendar(self, filename:str, flag_exam:list[str]) -> dict[str:Event]:
+    def parse_calendar(self, filename:str, argument) -> dict[str:Event]:
         """Extrait les données du fichier .ics passé dans filename.
         Filename : Chemin du fichier."""
         # On lit tout le fichiers ICS
@@ -90,7 +90,7 @@ class Calendar:
                     event["LOCATION"],
                     event["DESCRIPTION"],
                     event["UID"],
-                    flag_exam
+                    argument
                 )
                 if e.isEXAM:
                     exams.append(e)
@@ -106,15 +106,38 @@ class Calendar:
                         event[prefix.removesuffix(":")] = line.removeprefix(prefix).removesuffix("\n")
                         break
 
-        # Exam list.
+        for new_event in argument.get("add_event").values():
+            e = Event(
+                self.convert_timestamp(new_event["start"]),
+                self.convert_timestamp(new_event["end"]),
+                new_event["subject"],
+                new_event["group"],
+                new_event["location"],
+                new_event["teacher"],
+                new_event["isINGE"]=="True",
+                new_event["isMIAGE"]=="True",
+                new_event["uid"],
+                new_event["isEXAM"]=="True"
+            )
+            if e.isEXAM:
+                exams.append(e)
+            else:
+                events[e.uid] = e
 
-        exams += [
-            # Event(
-            # start=datetime(day=3, month=6, year=2024, hour=13, minute=30, second=0, microsecond=0, tzinfo=timezone("Europe/Paris")),
-            # end=datetime(day=3, month=6, year=2024, hour=13, minute=30, second=0, microsecond=0, tzinfo=timezone("Europe/Paris")),
-            # subject="Exam Anglais", group=Group.CM, location="S103", teacher="Anne-Cécile Alzy", isINGE=True, isMIAGE=True, uid="EXAM01",
-            # isEXAM=True)
-        ]
+        for over_uid in argument.get("override_event").keys():
+            override_event = argument.get("override_event").get(over_uid)
+            events[over_uid] = Event(
+                self.convert_timestamp(override_event["start"]),
+                self.convert_timestamp(override_event["end"]),
+                override_event["subject"],
+                override_event["group"],
+                override_event["location"],
+                override_event["teacher"],
+                override_event["isINGE"]=="True",
+                override_event["isMIAGE"]=="True",
+                override_event["uid"],
+                override_event["isEXAM"]=="True"
+            )
 
         self.exams_list = exams
 
