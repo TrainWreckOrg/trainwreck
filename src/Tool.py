@@ -1,6 +1,7 @@
 import json
 import urllib
 from http.client import HTTPException
+from time import sleep
 from urllib.error import URLError
 from urllib.request import urlretrieve
 
@@ -404,11 +405,18 @@ class Tool:
         try:
             await self.download_file(url, filename)
         except ValueError as exception:
-            print(exception)
+            await self.send_error(exception)
             sentry_sdk.capture_exception(exception)
 
-        with open(filename, 'r', encoding='utf-8') as file:
-            arguement = json.load(file)
+        try:
+            with open(filename, 'r', encoding='utf-8') as file:
+                arguement = json.load(file)
+        except BaseException as exception:
+            exception.add_note("C'est le chargement du fichier d'argument qui à foiré")
+            await self.send_error(exception)
+            sentry_sdk.capture_exception(exception)
+            arguement = {} # Pour éviter de planter
+
         os.remove(filename)
         return arguement
 
