@@ -101,3 +101,10 @@ class MyListen(Extension):
                 if user.has_role(self.tool.get_roles(ctx.guild)[group]):
                     await user.remove_role(self.tool.get_roles(ctx.guild)[group])
         await ctx.send("Les membres du serveur n'ont plus de rôle.", ephemeral=False)
+
+    @component_callback(re.compile("stop-bot"))
+    async def stop_bt(self, ctx: ComponentContext):
+        """Permet d'enlever les rôles de Filière et de Groupe à tout le monde"""
+
+        await ctx.send("Le bot va s'arreter.", ephemeral=False)
+        await self.bot.stop()

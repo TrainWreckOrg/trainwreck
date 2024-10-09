@@ -12,12 +12,12 @@ def get_embeds(events: list[Event], user: User | Member, jour: date = date(year=
     icon = user.avatar_url
     if len(events) == 0:
         return [Embed(title=f"{weekday[jour.weekday()]} {jour.day} {month[jour.month - 1]} {jour.year}{f" - {weekday[jour2.weekday()]} {jour2.day} {month[jour2.month - 1]} {jour2.year}" if (jour2 is not None) else ""}:", description="Aucun Cours", footer=EmbedFooter(f"Emploi du Temps de @{user.display_name}\nLes emploi du temps sont fournis a titre informatif uniquement,\n -> Veuillez vous référer à votre page personnelle sur l'ENT", icon))]
-    current_weekday = 7
+    current_day = date(1970, 1, 1)
     embeds : list[Embed] = []
     for event in events:
-        if event.start_timestamp.weekday() != current_weekday:
-            current_weekday = event.start_timestamp.weekday()
-            embed = Embed(f"{weekday[current_weekday]} {event.start_timestamp.day} {month[event.start_timestamp.month - 1]} {event.start_timestamp.year}:", "", colors[current_weekday])
+        if event.start_timestamp.date() != current_day:
+            current_day = event.start_timestamp.date()
+            embed = Embed(f"{weekday[current_day.weekday()]} {event.start_timestamp.day} {month[event.start_timestamp.month - 1]} {event.start_timestamp.year}:", "", colors[current_day.weekday()])
             embeds.append(embed)
         embeds[-1].description += "- " + str(event) + "\n"
     

@@ -16,7 +16,9 @@ class Calendar:
         # Dictionnaire qui stock les Event associé à l'UID.
         self.events_dict : dict[str:Event]
         self.events_list : list[Event]
+        self.exams_dict : dict[str:Event] = {}
         self.exams_list : list[Event]
+
 
         self.update_events(update, argument)
 
@@ -61,7 +63,7 @@ class Calendar:
         # Tri les événements par ordre croissant en fonction de leur date.
         self.events_list = sorted(list(self.events_dict.values()),key=lambda event: event.start_timestamp)
 
-        self.exams_list = sorted(list(self.exams_list),key=lambda event: event.start_timestamp)
+        self.exams_list = sorted(list(self.exams_dict.values()),key=lambda event: event.start_timestamp)
 
     def parse_calendar(self, filename:str, argument) -> dict[str:Event]:
         """Extrait les données du fichier .ics passé dans filename.
@@ -75,7 +77,7 @@ class Calendar:
         # Dictionnaire pour stocker temporairement les infos d'un événement avant sa création.
         event = {}
         # Liste des exam
-        exams = []
+        exams = {}
 
         for line in lines:
             # Balise Ouvrante, crée un nouveau dictionnaire vide.
@@ -93,7 +95,7 @@ class Calendar:
                     argument
                 )
                 if e.isEXAM:
-                    exams.append(e)
+                    exams[e.uid] = e
                 else:
                     events[e.uid] = e
 
@@ -120,7 +122,7 @@ class Calendar:
                 new_event["isEXAM"]=="True"
             )
             if e.isEXAM:
-                exams.append(e)
+                exams[e.uid] = e
             else:
                 events[e.uid] = e
 
@@ -139,11 +141,9 @@ class Calendar:
                 override_event["isEXAM"]=="True"
             )
 
-        self.exams_list = exams
+        self.exams_dict |= exams
 
-        for exam in exams:
-            events[exam.uid] = exam
-
+        events |= exams
         return events
 
     def get_events(self) -> list[Event]:
