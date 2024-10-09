@@ -158,7 +158,7 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
     teacher = descsplit[-3].replace("\n", "").removeprefix(" ") if descsplit[-3] != "L3 INFORMAT-UPEX MINERVE" else "Enseignant ?"
     location = loc if not loc == "" else "Salle ?"
 
-    is_exam = uid in argument.get("exam_list")
+    is_exam = uid in list(argument.get("exam_list").values())
 
 
     # Valeur par défaut.

@@ -350,3 +350,11 @@ class MySlashCommand(Extension):
     async def bd(self, ctx: SlashContext) -> None:
         """Permet d'obtenir la BD."""
         await ctx.send("Voici la BD.", file="data/UserBase.pkl", ephemeral=False)
+
+    @slash_command(name="stop", description="Permet de stoper le bot.",
+                   default_member_permissions=Permissions.ADMINISTRATOR)
+    @contexts(guild=True, bot_dm=False)
+    async def stop(self, ctx: SlashContext) -> None:
+        """Permet de stopper le bot."""
+        await ctx.send(":warning: Vous êtes sur le point de stopper le bot est vous sûr", components=Button(style=ButtonStyle.BLURPLE, custom_id="stop-bot", label="OUI"),  ephemeral=True)
+
