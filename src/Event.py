@@ -260,6 +260,8 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
                             sentry_sdk.capture_exception(exception)
 
 
+    if "CC" in sum:
+        teacher = "équipe enseignante"
 
     # Crée un nouvel Objet Event à partir des infos calculées.
     return Event(start, end, subject, group, location, teacher, isINGE, isMIAGE, uid, is_exam)
