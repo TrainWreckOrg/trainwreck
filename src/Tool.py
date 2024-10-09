@@ -1,5 +1,11 @@
+import json
+import urllib
 from http.client import HTTPException
+from time import sleep
+from urllib.error import URLError
+from urllib.request import urlretrieve
 
+import aiohttp
 import sentry_sdk
 from interactions import Client, ActionRow, Button, ButtonStyle, SlashContext, Guild, Role, Embed, User, Member, \
     ModalContext, ContextMenuContext, ComponentContext
@@ -378,6 +384,41 @@ class Tool:
                         user_base.user_subscribe_ics(user.id, Subscription.WEEKLY_ICS)
 
         await ctx.send("Les membres du serveur ont été ajoutée et mit à jour.", ephemeral=True)
+
+    async def download_file(self, url, filename):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as resp:
+                if resp.status == 200:
+                    with open(filename, 'wb') as f:
+                        f.write(await resp.read())
+                else:
+                    raise ValueError("Le fichier n'à pas été télécharger")
+
+
+    async def get_arguement(self):
+        channels = self.bot.guilds[0].channels
+        arguement: dict[str:dict[str:str]] = None
+        for channel in channels:
+            if channel.name == "arguement-bot":
+                url = (await channel.fetch_messages(1))[0].attachments[0].url
+        filename = "arguement.json"
+        try:
+            await self.download_file(url, filename)
+        except ValueError as exception:
+            await self.send_error(exception)
+            sentry_sdk.capture_exception(exception)
+
+        try:
+            with open(filename, 'r', encoding='utf-8') as file:
+                arguement = json.load(file)
+        except BaseException as exception:
+            exception.add_note("C'est le chargement du fichier d'argument qui à foiré")
+            await self.send_error(exception)
+            sentry_sdk.capture_exception(exception)
+            arguement = {} # Pour éviter de planter
+
+        os.remove(filename)
+        return arguement
 
 tool: Tool | None = None
 

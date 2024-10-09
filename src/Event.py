@@ -135,7 +135,7 @@ class Event:
         return ics
 
 
-def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str, flag_exam: list[str]) -> Event:
+def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str, argument) -> Event:
     """Permet d'extraire les informations des données parsées."""
     # Événements spéciaux.
     if sum == "Réunion rentrée - L3 INGENIERIE INFORMATIQUE":
@@ -158,7 +158,7 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
     teacher = descsplit[-3].replace("\n", "").removeprefix(" ") if descsplit[-3] != "L3 INFORMAT-UPEX MINERVE" else "Enseignant ?"
     location = loc if not loc == "" else "Salle ?"
 
-    is_exam = uid in flag_exam
+    is_exam = uid in argument.get("exam_list")
 
 
     # Valeur par défaut.
@@ -258,6 +258,10 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
                         except BaseException as exception:
                             print(exception)
                             sentry_sdk.capture_exception(exception)
+
+
+    if "CC" in sum:
+        teacher = "équipe enseignante"
 
     # Crée un nouvel Objet Event à partir des infos calculées.
     return Event(start, end, subject, group, location, teacher, isINGE, isMIAGE, uid, is_exam)
