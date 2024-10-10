@@ -11,6 +11,7 @@ from Event import Event
 from UserBase import get_user_base
 from Tool import get_tool
 from Enums import Subscription, RoleEnum
+from src.Calendar import overlap
 
 load_dotenv("keys.env")
 
@@ -47,6 +48,7 @@ class MyTask(Extension):
         old_calendar = Calendar(False, arguement)
         new_calendar = Calendar(True, arguement)
         sup, add, mod, changed_id = changed_events(old_calendar, new_calendar)
+        overlap_list = overlap(new_calendar, arguement)
         try:
             await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(f"Fichier du {datetime.now()}", files=["data/INGE.ics", "data/MIAGE.ics"])
             if changed_id:
@@ -84,6 +86,16 @@ class MyTask(Extension):
                 ping_liste.add(ping)
                 descstr += f"- {ping}\n    - {old.str_day(new)}\n   - ⇓\n   - {new.str_day(old)}\n"#f"- {ping}\n\t- {old.str_day(new)}\n\t- ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ⇓\n\t- {new.str_day(old)}\n"
             embeds.append(Embed(title="Événements modifiés :", description=descstr, color=0x5865f2))
+
+        if len(overlap_list) > 0:
+            descstr = ""
+            for (event1, event2) in overlap_list:
+                ping = self.tool.ping_liste(event1, serveur)
+                if event1.group != event2.group:
+                    ping += f" {self.tool.ping_liste(event2, serveur)}"
+                ping_liste.add(ping)
+                descstr += f"- {ping}\n    - {event1.str_day()}\n   - {event2.str_day()}\n"
+            embeds.append(Embed(title="CHEVAUCHEMENT DE COURS DÉTECTÉ :", description=descstr, color=0xEd4245))
 
         ping_list_str = ""
         for ping in ping_liste:

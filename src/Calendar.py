@@ -199,6 +199,75 @@ def changed_events(old: Calendar, new: Calendar, filters: list[Filter] = [TimeFi
 
     return sup, add, mod, changed_id
 
+
+def overlap(calendar: Calendar,argument , filters: list[Filter] = [TimeFilter(date.today(), Timing.AFTER), TimeFilter((date.today() + timedelta(days=14)), Timing.BEFORE)]):
+    overlap_list = []
+
+    list_event = filter_events(calendar.get_events(), filters)
+    disable_raw : dict[str:str] = argument.get("disable_overlap")
+    disable_tab : list[tuple[str:str]] = []
+    for disable in disable_raw.values():
+        disable:str
+        uid1, uid2 = disable.split("|")
+        disable_tab.append((uid1,uid2))
+
+    for event1 in list_event:
+        for event2 in list_event:
+            if event1 == event2 or (event2,event1) in overlap_list:
+                continue
+            if (event1.uid,event2.uid) in disable_tab or (event2.uid,event1.uid) in disable_tab:
+                continue
+            if (event1.start_timestamp < event2.start_timestamp and event2.start_timestamp < event1.end_timestamp):
+                if check_compatibilite_group(event1,event2):
+                    overlap_list.append((event1,event2))
+                    continue
+            if (event1.start_timestamp < event2.end_timestamp and event2.end_timestamp < event1.end_timestamp):
+                if check_compatibilite_group(event1,event2):
+                    overlap_list.append((event1,event2))
+                    continue
+            if (event1.start_timestamp >= event2.start_timestamp and event1.end_timestamp <= event2.end_timestamp):
+                if check_compatibilite_group(event1,event2):
+                    overlap_list.append((event1,event2))
+                    continue
+
+    return overlap_list
+
+
+def check_compatibilite_group(event1:Event,event2:Event):
+    group1 = event1.group
+    group2 = event2.group
+
+    if event1.isINGE == event2.isINGE :
+        if group1 == Group.CM:
+            return group2 in [Group.CM,Group.TD1I,Group.TD2I,Group.TPAI, Group.TPBI, Group.TPCI, Group.TPDI, Group.TDA1I, Group.TDA2I, Group.TDA3I, Group.TDA4I]
+        if group1 == Group.TD1I:
+            return group2 in [Group.CM,Group.TD1I,Group.TPAI,Group.TPBI,Group.TDA1I,Group.TDA2I]
+        if group1 == Group.TD2I:
+            return group2 in [Group.CM,Group.TD2I,Group.TPCI,Group.TPDI,Group.TDA3I,Group.TDA4I]
+        if group1 in [Group.TPAI,Group.TDA1I]:
+            return group2 in [Group.CM,Group.TD1I,Group.TPAI,Group.TDA1I]
+        if group1 in [Group.TPBI,Group.TDA2I]:
+            return group2 in [Group.CM,Group.TD1I,Group.TPBI,Group.TDA2I]
+        if group1 in [Group.TPCI,Group.TDA3I]:
+            return group2 in [Group.CM,Group.TD2I,Group.TPCI,Group.TDA3I]
+        if group1 in [Group.TPDI,Group.TDA4I]:
+            return group2 in [Group.CM,Group.TD2I,Group.TPDI,Group.TDA4I]
+    if event1.isMIAGE == event2.isMIAGE :
+        if group1 == Group.CM:
+            return group2 in [Group.CM,Group.TD1M,Group.TD2M,Group.TP1M, Group.TP2M, Group.TP3M, Group.TDA1M, Group.TDA2M, Group.TDA3M]
+        if group1 == Group.TD1M:
+            return group2 in [Group.CM,Group.TD1M,Group.TP1M,Group.TP3M,Group.TDA1M,Group.TDA3M]
+        if group1 == Group.TD2M:
+            return group2 in [Group.CM,Group.TD2M,Group.TP2M,Group.TP3M,Group.TDA2M,Group.TDA3M]
+        if group1 in [Group.TP1M,Group.TDA1M]:
+            return group2 in [Group.CM,Group.TD1M,Group.TP1M,Group.TDA1M]
+        if group1 in [Group.TP2M,Group.TDA2M]:
+            return group2 in [Group.CM,Group.TD2M,Group.TP2M,Group.TDA2M]
+        if group1 in [Group.TP3M,Group.TDA3M]:
+            return group2 in [Group.CM,Group.TD1M,Group.TD2M,Group.TP3M,Group.TDA3M]
+
+
+
 calendar: Calendar | None = None
 
 def get_calendar() -> Calendar:
