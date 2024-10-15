@@ -62,7 +62,6 @@ class Calendar:
         self.events_dict = output
         # Tri les événements par ordre croissant en fonction de leur date.
         self.events_list = sorted(list(self.events_dict.values()),key=lambda event: event.start_timestamp)
-
         self.exams_list = sorted(list(self.exams_dict.values()),key=lambda event: event.start_timestamp)
 
     def parse_calendar(self, filename:str, argument) -> dict[str:Event]:
@@ -109,17 +108,22 @@ class Calendar:
                         break
 
         for new_event in argument.get("add_event").values():
+            group = Group.UKNW
+            for g in Group:
+                if g.value == new_event["group"]:
+                    group = g
             e = Event(
                 self.convert_timestamp(new_event["start"]),
                 self.convert_timestamp(new_event["end"]),
                 new_event["subject"],
-                new_event["group"],
+                group,
                 new_event["location"],
                 new_event["teacher"],
                 new_event["isINGE"]=="True",
                 new_event["isMIAGE"]=="True",
                 new_event["uid"],
-                new_event["isEXAM"]=="True"
+                new_event["isEXAM"]=="True",
+                isAdd=True
             )
             if e.isEXAM:
                 exams[e.uid] = e
@@ -128,18 +132,30 @@ class Calendar:
 
         for over_uid in argument.get("override_event").keys():
             override_event = argument.get("override_event").get(over_uid)
-            events[over_uid] = Event(
+            group=Group.UKNW
+            for g in Group:
+                if g.value == override_event["group"]:
+                    group=g
+            over_event = Event(
                 self.convert_timestamp(override_event["start"]),
                 self.convert_timestamp(override_event["end"]),
                 override_event["subject"],
-                override_event["group"],
+                group,
                 override_event["location"],
                 override_event["teacher"],
-                override_event["isINGE"]=="True",
-                override_event["isMIAGE"]=="True",
+                override_event["isINGE"] == "True",
+                override_event["isMIAGE"] == "True",
                 override_event["uid"],
-                override_event["isEXAM"]=="True"
+                override_event["isEXAM"] == "True",
             )
+            base_event : Event
+            if over_uid in events.keys():
+                base_event = events.get(over_uid)
+                base_event.override = over_event
+            elif over_uid in exams.keys():
+                base_event = events.get(over_uid)
+                base_event.override = over_event
+
 
         self.exams_dict |= exams
 

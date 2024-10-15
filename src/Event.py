@@ -7,7 +7,7 @@ from Enums import Group, subjects_table, weekday
 
 class Event:
     """Classe utilisée pour gérer les objets événements"""
-    def __init__(self, start:datetime, end:datetime, subject:str, group:Group, location:str, teacher:str, isINGE:bool, isMIAGE:bool, uid:str, isEXAM:bool=False) -> None:
+    def __init__(self, start:datetime, end:datetime, subject:str, group:Group, location:str, teacher:str, isINGE:bool, isMIAGE:bool, uid:str, isEXAM:bool=False, isAdd:bool=False,isDelete:bool=False, override = None) -> None:
         self.start_timestamp = start
         self.end_timestamp = end
         self.location = location
@@ -19,6 +19,10 @@ class Event:
         self.isINGE  = isINGE
         self.uid = uid
         self.isEXAM = isEXAM
+
+        self.isAdd = isAdd
+        self.isDelete = isDelete
+        self.override = override
 
         self.duree = self.end_timestamp - self.start_timestamp 
 
@@ -50,19 +54,22 @@ class Event:
         """Permet d'avoir une str pour représenter l'Event."""
         event = f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
         if self.isEXAM:
-            return ":warning: " + (event.upper()) + " :warning:"
-        else:
-            return event
+            event = ":warning: " + (event.upper()) + " :warning:"
+        elif self.isAdd:
+            event = f":white_check_mark: Cette Event à été ajouter manuellement {event}"
+        elif self.isDelete:
+            event = f":x: Cette Event à été supprimer manuellement {event}"
+        elif self.override is not None:
+            event = f":information_source: {self.override.__str__()} Cette event remplace {event}"
+
+        return event
 
     def str_day(self, autre: 'Event' = None) -> str:
         """Permet de comparer deux Event et de renvoyer une str de l'événement self avec les éléments qui changent en gars."""
         defaut = f"{weekday[self.start_timestamp.weekday()]} {self.start_timestamp.strftime("%d-%m-%Y")} {self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
 
         if autre is None:
-            if self.isEXAM:
-                return ":warning: " + defaut + " :warning:"
-            else:
-                return defaut
+            return f"{weekday[self.start_timestamp.weekday()]} {self.start_timestamp.strftime("%d-%m-%Y")} {self.__str__()}"
 
         texte = ""
 
@@ -150,7 +157,8 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
     descsplit = desc.split("\\n")
 
     # Si la Matière (4eme element) est une abbrev connu dans la subjects_table, remplacer par le nom complet.
-    subject = subjects_table[descsplit[3]] if descsplit[3] in subjects_table.keys() else descsplit[3]
+    subject_split = descsplit[3].split(" GR")
+    subject = subjects_table[subject_split[0]] if subject_split[0] in subjects_table.keys() else descsplit[3]
     if "L3 INFORMATIQUE" in subject:
         subject = descsplit[2]
 
@@ -159,7 +167,7 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
     location = loc if not loc == "" else "Salle ?"
 
     is_exam = uid in list(argument.get("exam_list").values())
-
+    is_delete = uid in list(argument.get("delete_event").values())
 
     # Valeur par défaut.
     isMIAGE = False
@@ -264,4 +272,4 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
         teacher = "équipe enseignante"
 
     # Crée un nouvel Objet Event à partir des infos calculées.
-    return Event(start, end, subject, group, location, teacher, isINGE, isMIAGE, uid, is_exam)
+    return Event(start, end, subject, group, location, teacher, isINGE, isMIAGE, uid, is_exam, isDelete=is_delete)
