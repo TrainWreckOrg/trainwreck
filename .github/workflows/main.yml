@@ -25,4 +25,4 @@ jobs:
     steps:
       - name: Test curl command
         run: |
-          curl -v -6 ${{ secrets.DEPLOY_WEBHOOK_URL  }}
+          curl -v ${{ secrets.DEPLOY_WEBHOOK_URL  }}
