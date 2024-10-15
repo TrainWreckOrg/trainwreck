@@ -6,12 +6,11 @@ from datetime import datetime
 from dotenv import load_dotenv
 import os
 
-from Calendar import Calendar, changed_events
+from Calendar import Calendar, changed_events, overlap
 from Event import Event
 from UserBase import get_user_base
 from Tool import get_tool
 from Enums import Subscription, RoleEnum
-from src.Calendar import overlap
 
 load_dotenv("keys.env")
 
