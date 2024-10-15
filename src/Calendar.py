@@ -122,7 +122,7 @@ class Calendar:
                 new_event["isINGE"]=="True",
                 new_event["isMIAGE"]=="True",
                 new_event["uid"],
-                new_event["isEXAM"]=="True",
+                isEXAM= new_event["uid"] in list(argument.get("exam_list").values()),
                 isAdd=True
             )
             if e.isEXAM:
