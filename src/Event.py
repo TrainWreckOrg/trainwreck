@@ -157,8 +157,10 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
     descsplit = desc.split("\\n")
 
     # Si la Matière (4eme element) est une abbrev connu dans la subjects_table, remplacer par le nom complet.
-    subject_split = descsplit[3].split(" GR")
-    subject = subjects_table[subject_split[0]] if subject_split[0] in subjects_table.keys() else descsplit[3]
+    # subject_split = descsplit[3].split(" GR")
+    # subject = subjects_table[subject_split[0]] if subject_split[0] in subjects_table.keys() else descsplit[3]
+    subject_split = sum.split(" - ")
+    subject = subjects_table[subject_split[0]] if subject_split[0] in subjects_table.keys() else sum
     if "L3 INFORMATIQUE" in subject:
         subject = descsplit[2]
 
