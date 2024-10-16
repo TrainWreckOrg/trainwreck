@@ -28,7 +28,12 @@ subjects_table = {
     "Fram.Web 1" : "Frameworks Web 1",
     "Pro. Pro. Per." : "Projet Personnel & Professionnel",
     "Réseaux 1" : "Réseaux 1",
-    "Anglais": "Anglais"
+    "Anglais": "Anglais",
+    "Programmation Avancée": "Programmation Avancée",
+    "Statistique":"Statistique",
+    "Gestion comptable":"Gestion comptable",
+    "Système d’information" : "Système d’information",
+    "Techniques de comm" : "Techniques de comm"
 }
 
 # Liste des couleurs pour les embeds.
