@@ -180,6 +180,10 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
     group   = Group.CM
     if subject_split[1] in ["CM","HM", "CC-"]:
         group = Group.CM
+        if "L3 INFO - INGENIERIE" in descsplit and "MIAGE" not in sum:
+            isINGE = True
+        if "L3 INFORMATIQUE - MIAGE" in descsplit or "MIAGE" in sum:
+            isMIAGE = True
     elif subject == "Anglais":
         if "MIAGE" in sum :
             # ex : Anglais - TD3 MIAGE
