@@ -151,6 +151,8 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
         return Event(start, end, sum, Group.CM, "Campus", "Équipe Enseignante", True, True,"ADE60323032342d323032352d32323835332d302d30")
     elif sum == "Réunion rentrée - L3 MIAGE":
         return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", False, True,"ADE60323032342d323032352d31333132352d302d30")
+    elif sum == "Sensibilisation au handicap dans le développement d'application":
+        return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", True, True,"ADE60323032342d323032352d39303132382d302d30")
 
     # Descsplit contient les informations correspondant à la description de l'événement, séparé par lignes.
     # Ex : ['', '', 'Gr TPC', 'Con. Ana. Algo', 'Con. Ana. Algo', 'L3 INFO - INGENIERIE', 'L3 INFORMAT-UPEX MINERVE', 'LIEDLOFF', '(Exporté le : 27/07/2024 20:20)', '\n\n']
@@ -160,6 +162,10 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
     # subject_split = descsplit[3].split(" GR")
     # subject = subjects_table[subject_split[0]] if subject_split[0] in subjects_table.keys() else descsplit[3]
     subject_split = sum.split(" - ")
+    try:
+        subject_split[1] = subject_split[1].replace(" ","")
+    except:
+        print("hello")
     subject = subjects_table[subject_split[0]] if subject_split[0] in subjects_table.keys() else sum
     if "L3 INFORMATIQUE" in subject:
         subject = descsplit[2]
@@ -175,12 +181,14 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
     isMIAGE = False
     isINGE  = False
     group   = Group.CM
+    if uid == "ADE60323032342d323032352d31393332322d322d30":
+        print("test")
 
     if subject == "Anglais":
         if "MIAGE" in sum :
             # ex : Anglais - TD3 MIAGE
             isMIAGE = True
-            match sum[12]:
+            match subject_split[1][2]: #sum[12]
                 case "1":
                     group = Group.TDA1M
                 case "2":
@@ -199,7 +207,7 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
         else:
             # ex : Anglais - TD 1
             isINGE = True
-            match sum[13]:
+            match subject_split[1][2]: #sum[13]
                 case "1":
                     group = Group.TDA1I
                 case "2":
@@ -223,51 +231,65 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
         if "L3 INFORMATIQUE - MIAGE" in descsplit or "MIAGE" in sum:
             isMIAGE = True
         # descsplit[2] contient le numéro de groupe ou le nom de la matière si CM.
-        if descsplit[2].startswith("Gr"):
-            if isINGE:
-                isMIAGE = False
-                match descsplit[2][3:]:
-                    case "TD1":
-                        group = Group.TD1I
-                    case "TD2":
-                        group = Group.TD2I
-                    case "TPA":
-                        group = Group.TPAI
-                    case "TPB":
-                        group = Group.TPBI
-                    case "TPC":
-                        group = Group.TPCI
-                    case "TPD":
-                        group = Group.TPDI
-                    case _:
-                        # Ce cas ne devrait pas arriver et devrait être fix rapidement.
-                        group = Group.UKNW
-                        try:
-                            raise ValueError("Groupe inconnue cours ingé dans get_event_from_data")
-                        except BaseException as exception:
-                            print(exception)
-                            sentry_sdk.capture_exception(exception)
+        #if descsplit[2].startswith("Gr"):
+        if isINGE:
+            isMIAGE = False
+            match subject_split[1][:3]: # subject_split[0]
+                case "TD1":
+                    group = Group.TD1I
+                case "TD2":
+                    group = Group.TD2I
+                case "TPA":
+                    group = Group.TPAI
+                case "TPB":
+                    group = Group.TPBI
+                case "TPC":
+                    group = Group.TPCI
+                case "TPD":
+                    group = Group.TPDI
+                case "TP1":
+                    group = Group.TPAI
+                case "TP2":
+                    group = Group.TPBI
+                case "TP3":
+                    group = Group.TPCI
+                case "TP4":
+                    group = Group.TPDI
+                case _:
+                    # Ce cas ne devrait pas arriver et devrait être fix rapidement.
+                    group = Group.UKNW
+                    try:
+                        raise ValueError("Groupe inconnue cours ingé dans get_event_from_data")
+                    except BaseException as exception:
+                        print(exception)
+                        sentry_sdk.capture_exception(exception)
 
-            else:
-                match descsplit[2][3:]:
-                    case "TD1":
-                        group = Group.TD1M
-                    case "TD2":
-                        group = Group.TD2M
-                    case "TP1":
-                        group = Group.TP1M
-                    case "TP2":
-                        group = Group.TP2M
-                    case "TP3":
-                        group = Group.TP3M
-                    case _:
-                        # Ce cas ne devrait pas arriver et devrait être fix rapidement.
-                        group = Group.UKNW
-                        try:
-                            raise ValueError("Groupe inconnue cours Miage dans get_event_from_data")
-                        except BaseException as exception:
-                            print(exception)
-                            sentry_sdk.capture_exception(exception)
+        else:
+            match subject_split[1][:3] :  #descsplit[2][3:]:
+                case "TD1":
+                    group = Group.TD1M
+                case "TD2":
+                    group = Group.TD2M
+                case "TP1":
+                    group = Group.TP1M
+                case "TP2":
+                    group = Group.TP2M
+                case "TP3":
+                    group = Group.TP3M
+                case "TPA":
+                    group = Group.TP1M
+                case "TPB":
+                    group = Group.TP2M
+                case "TPC":
+                    group = Group.TP3M
+                case _:
+                    # Ce cas ne devrait pas arriver et devrait être fix rapidement.
+                    group = Group.UKNW
+                    try:
+                        raise ValueError("Groupe inconnue cours Miage dans get_event_from_data")
+                    except BaseException as exception:
+                        print(exception)
+                        sentry_sdk.capture_exception(exception)
 
 
     if "CC" in sum:
