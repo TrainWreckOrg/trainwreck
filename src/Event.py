@@ -162,10 +162,7 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
     # subject_split = descsplit[3].split(" GR")
     # subject = subjects_table[subject_split[0]] if subject_split[0] in subjects_table.keys() else descsplit[3]
     subject_split = sum.split(" - ")
-    try:
-        subject_split[1] = subject_split[1].replace(" ","")
-    except:
-        print("hello")
+    subject_split[1] = subject_split[1].replace(" ","")
     subject = subjects_table[subject_split[0]] if subject_split[0] in subjects_table.keys() else sum
     if "L3 INFORMATIQUE" in subject:
         subject = descsplit[2]
@@ -181,10 +178,9 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
     isMIAGE = False
     isINGE  = False
     group   = Group.CM
-    if uid == "ADE60323032342d323032352d31393332322d322d30":
-        print("test")
-
-    if subject == "Anglais":
+    if subject_split[1] in ["CM","HM", "CC-"]:
+        group = Group.CM
+    elif subject == "Anglais":
         if "MIAGE" in sum :
             # ex : Anglais - TD3 MIAGE
             isMIAGE = True
