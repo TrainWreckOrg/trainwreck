@@ -6,7 +6,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 import os
 
-from Calendar import Calendar, changed_events, overlap
+from Calendar import Calendar, changed_events, overlap, set_calendar
 from Event import Event
 from UserBase import get_user_base
 from Tool import get_tool
@@ -43,6 +43,14 @@ class MyTask(Extension):
             pass
 
         arguement  = await self.tool.get_arguement()
+        if datetime.now() >= datetime(2024,10,24,11,00,00):
+            calendar = Calendar(False, arguement)
+            set_calendar(calendar)
+            try:
+                await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Désactivation de la mise à jour des ics.")
+            except:
+                pass
+            return
 
         old_calendar = Calendar(False, arguement)
         new_calendar = Calendar(True, arguement)
@@ -54,6 +62,7 @@ class MyTask(Extension):
                 await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(f"l'id d'un cours a changé : {changed_id}")
         except:
             pass
+
 
         embeds: list[Embed] = []
         ping_liste = set()
