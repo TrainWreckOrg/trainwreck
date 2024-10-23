@@ -290,3 +290,8 @@ def get_calendar() -> Calendar:
     """Permet d'obtenir l'objet Calendar."""
     global calendar
     return calendar
+
+def set_calendar(calendar_old : Calendar) -> None:
+    """Permet d'obtenir l'objet Calendar."""
+    global calendar
+    calendar = calendar_old
