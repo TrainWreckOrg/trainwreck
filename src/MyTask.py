@@ -43,14 +43,14 @@ class MyTask(Extension):
             pass
 
         arguement  = await self.tool.get_arguement()
-        if datetime.now() >= datetime(2024,10,24,11,00,00):
+        """if datetime.now() >= datetime(2024,10,24,11,00,00):
             calendar = Calendar(False, arguement)
             set_calendar(calendar)
             try:
                 await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Désactivation de la mise à jour des ics.")
             except:
                 pass
-            return
+            return"""
 
         old_calendar = Calendar(False, arguement)
         new_calendar = Calendar(True, arguement)
