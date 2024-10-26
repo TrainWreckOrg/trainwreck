@@ -121,6 +121,10 @@ class MyTask(Extension):
             await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Exécution de `daily_morning_update`")
         except:
             pass
+        argument = await self.tool.get_arguement()
+        if argument.get("send_daily_state") == "False":
+            print("out")
+            return
         user_base = get_user_base()
         # Pour l'envoi hebdomadaire.
         if datetime.today().weekday() == 0:

@@ -396,11 +396,16 @@ class Tool:
 
 
     async def get_arguement(self):
-        channels = self.bot.guilds[0].channels
-        arguement: dict[str:dict[str:str]] = None
-        for channel in channels:
-            if channel.name == "arguement-bot":
-                url = (await channel.fetch_messages(1))[0].attachments[0].url
+        try:
+            channels = self.bot.guilds[0].channels
+            arguement: dict[str:dict[str:str]] = None
+            for channel in channels:
+                if channel.name == "arguement-bot":
+                    url = (await channel.fetch_messages(1))[0].attachments[0].url
+        except BaseException as exception:
+            exception.add_note("C'est l'obtention des message qui à foiré'")
+            await self.send_error(exception)
+            sentry_sdk.capture_exception(exception)
         filename = "arguement.json"
         try:
             await self.download_file(url, filename)
