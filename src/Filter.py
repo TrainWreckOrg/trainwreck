@@ -3,7 +3,7 @@ import sentry_sdk
 
 from Enums import Timing, Filiere, Group
 from Event import Event
-
+from sender import send_error_non_async
 
 class Filter:
     """Classe de Base pour les filtres."""
@@ -32,8 +32,7 @@ class TimeFilter(Filter):
                 try:
                     raise ValueError("Timing inconnue dans la classe TimeFilter")
                 except BaseException as exception:
-                    print(exception)
-                    sentry_sdk.capture_exception(exception)
+                    send_error_non_async(exception)
                 return False
 
 

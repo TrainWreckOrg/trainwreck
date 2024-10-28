@@ -9,6 +9,7 @@ from UserBase import get_user_base, nuke
 from Calendar import get_calendar
 from Tool import get_tool
 from Filter import *
+from sender import send
 
 
 class MySlashCommand(Extension):
@@ -94,10 +95,7 @@ class MySlashCommand(Extension):
         )
 
         action_row = ActionRow(repo, vincent)
-        ephemeral = False
-        if self.tool.is_guild_chan(ctx.author):
-            ephemeral = not ctx.author.has_role(self.tool.get_roles(ctx.guild)[RoleEnum.PERMA]) # Permanent si la personne à le rôle
-        await ctx.send(embed=embed, components=action_row, ephemeral=ephemeral)
+        await send(ctx, embeds=[embed], components=action_row, auto_ephemeral=True)
 
     @slash_command(name="ics", description="Envoie un fichier ICS importable dans la plupart des applications de calendrier.")
     @slash_option(
@@ -119,6 +117,7 @@ class MySlashCommand(Extension):
         try:
             date_debut = datetime.strptime(debut, "%d-%m-%Y").date()
             date_fin = datetime.strptime(fin, "%d-%m-%Y").date()
+
             filename = str(ctx.author.id)
             get_ics(filter_events(get_calendar().get_events(),
                                   [TimeFilter(date_debut, Timing.AFTER), TimeFilter(date_fin, Timing.BEFORE),
@@ -130,10 +129,10 @@ class MySlashCommand(Extension):
             if self.tool.is_guild_chan(ctx.author):
                 ephemeral = not ctx.author.has_role(self.tool.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
 
-            await ctx.send("Voici votre fichier ics (:warning: : Le calendrier n'est pas mis a jour dynamiquement)", files=[f"{filename}.ics"], ephemeral=ephemeral)
+            await send(ctx,"Voici votre fichier ics (:warning: : Le calendrier n'est pas mis a jour dynamiquement)", files=[f"{filename}.ics"], ephemeral=ephemeral)
             os.remove(f"{filename}.ics")
         except ValueError:
-            await ctx.send(embeds=[self.tool.create_error_embed(f"La valeur `{debut}` ou `{fin}` ne correspond pas à une date.")], ephemeral=True)
+            await send(ctx, embeds=[self.tool.create_error_embed(f"La valeur `{debut}` ou `{fin}` ne correspond pas à une date.")], ephemeral=True)
 
     @ics.autocomplete("debut")
     async def autocomplete(self, ctx: AutocompleteContext):
@@ -228,7 +227,7 @@ class MySlashCommand(Extension):
                 user_base.user_subscribe_ics(id, Subscription.BOTH_ICS)
 
         if service == "None" and ics == "None":
-            await ctx.send("Vous devez sélectionner une option pour vous abonner.\n Par exemple : pour recevoir l'emploi du temps de la semaine le lundi, avec un fichier ics, et l'emploi du temps du jour tout les jours, sans ics : `/subscribe service: Both ics: Weekly`", ephemeral=True)
+            await send(ctx,"Vous devez sélectionner une option pour vous abonner.\n Par exemple : pour recevoir l'emploi du temps de la semaine le lundi, avec un fichier ics, et l'emploi du temps du jour tout les jours, sans ics : `/subscribe service: Both ics: Weekly`", ephemeral=True)
         else:
             await self.tool.check_subscription(ctx)
 
@@ -318,16 +317,12 @@ class MySlashCommand(Extension):
         if self.tool.is_guild_chan(ctx.author):
             ephemeral = not ctx.author.has_role( self.tool.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
 
-        # Au cas où, il y a plus de 10 embeds, ça les envoie en plusieurs messages
-        cut = embeds
-        for i in range(0,len(embeds),10):
-            await ctx.send(embeds=cut[:10], components=universite, ephemeral=ephemeral)
-            cut = cut[10:]
+        await send(ctx, embeds=embeds, components=universite, ephemeral=ephemeral)
 
     @slash_command(name="wipe", description="Enlève tout les rôles.", default_member_permissions=Permissions.ADMINISTRATOR, contexts=[ContextType.GUILD])
     async def wipe(self, ctx: SlashContext) -> None:
         """Fonction qui permet d'enlever tous les attribués"""
-        await ctx.send(":warning: Vous êtes sur le point de supprimer les rôles est vous sûr", components=Button(style=ButtonStyle.BLURPLE, custom_id="delete-role", label="OUI"),  ephemeral=True)
+        await send(ctx,":warning: Vous êtes sur le point de supprimer les rôles est vous sûr", components=Button(style=ButtonStyle.BLURPLE, custom_id="delete-role", label="OUI"),  ephemeral=True)
 
     @slash_command(name="userscan", description="Permet d'ajouter tout les membres dans la BD.",
                    default_member_permissions=Permissions.ADMINISTRATOR)
@@ -342,19 +337,19 @@ class MySlashCommand(Extension):
     async def nuke(self, ctx: SlashContext) -> None:
         """Permet de vider la BD."""
         nuke()
-        await ctx.send("La BD à été nuke.", ephemeral=True)
+        await send(ctx,"La BD à été nuke.", ephemeral=True)
 
     @slash_command(name="bd", description="Permet d'obtenir' BD.",
                    default_member_permissions=Permissions.ADMINISTRATOR)
     @contexts(guild=True, bot_dm=False)
     async def bd(self, ctx: SlashContext) -> None:
         """Permet d'obtenir la BD."""
-        await ctx.send("Voici la BD.", file="data/UserBase.pkl", ephemeral=False)
+        await send(ctx,"Voici la BD.", files=["data/UserBase.pkl"], ephemeral=False)
 
     @slash_command(name="stop", description="Permet de stoper le bot.",
                    default_member_permissions=Permissions.ADMINISTRATOR)
     @contexts(guild=True, bot_dm=False)
     async def stop(self, ctx: SlashContext) -> None:
         """Permet de stopper le bot."""
-        await ctx.send(":warning: Vous êtes sur le point de stopper le bot est vous sûr", components=Button(style=ButtonStyle.BLURPLE, custom_id="stop-bot", label="OUI"),  ephemeral=True)
+        await send(ctx,":warning: Vous êtes sur le point de stopper le bot est vous sûr", components=Button(style=ButtonStyle.BLURPLE, custom_id="stop-bot", label="OUI"),  ephemeral=True)
 

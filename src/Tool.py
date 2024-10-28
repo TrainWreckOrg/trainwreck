@@ -15,6 +15,7 @@ from UserBase import get_user_base
 from Calendar import get_calendar
 from Filter import *
 from Enums import RoleEnum, Group, colors, Subscription
+from sender import send
 
 
 from datetime import datetime, date, timedelta
@@ -51,6 +52,12 @@ class Tool:
                         if roleEnum.value == role.name:
                             self.roles[int(guild.id)][roleEnum] = role
         return self.roles.get(int(guild.id))
+
+    def get_admin_mention(self, guild: Guild):
+        return (tool.get_roles(guild)[RoleEnum.ADMIN]).mention
+
+    def get_perma_role(self, guild: Guild):
+        return (tool.get_roles(guild)[RoleEnum.PERMA])
 
     def get_subscription(self, author: User | Member) -> list[Subscription]:
         """Fonction qui permet d'avoir la liste de subscription d'un utilisateur."""
@@ -188,15 +195,15 @@ class Tool:
                 if modifier:
                     await ctx.edit_origin(embeds=embeds, components=[action_row])
                 else:
-                    await ctx.send(embeds=embeds, components=[action_row], ephemeral=ephemeral)
+                    await send(ctx,embeds=embeds, components=[action_row], ephemeral=ephemeral)
             else:
                 if modifier:
                     await ctx.edit_origin(embeds=embeds)
                 else:
-                    await ctx.send(embeds=embeds, ephemeral=ephemeral)
+                    await send(ctx,embeds=embeds, ephemeral=ephemeral)
 
         except ValueError:
-            await ctx.send(embeds=[self.create_error_embed(f"La valeur `{jour}` ne correspond pas à une date au format DD-MM-YYYY")], ephemeral=True)
+            await send(ctx,embeds=[self.create_error_embed(f"La valeur `{jour}` ne correspond pas à une date au format DD-MM-YYYY")], ephemeral=True)
 
     async def get_week_bt(self, ctx: SlashContext | ModalContext | ContextMenuContext | ComponentContext, semaine: str, modifier: bool, personne: User = None):
         """Fonction qui permet d'obtenir l'EDT d'une semaine spécifique.
@@ -236,14 +243,14 @@ class Tool:
                 if modifier:
                     await ctx.edit_origin(embeds=embeds, components=[action_row])
                 else:
-                    await ctx.send(embeds=embeds, components=[action_row], ephemeral=ephemeral)
+                    await send(ctx,embeds=embeds, components=[action_row], ephemeral=ephemeral)
             else:
                 if modifier:
                     await ctx.edit_origin(embeds=embeds)
                 else:
-                    await ctx.send(embeds=embeds, ephemeral=ephemeral)
+                    await send(ctx,embeds=embeds, ephemeral=ephemeral)
         except ValueError:
-            await ctx.send(embeds=[self.create_error_embed(f"La valeur `{semaine}` ne correspond pas à une date au format DD-MM-YYYY")], ephemeral=True)
+            await send(ctx,embeds=[self.create_error_embed(f"La valeur `{semaine}` ne correspond pas à une date au format DD-MM-YYYY")], ephemeral=True)
 
     async def send_daily_update(self, user: User, ics: bool):
         """Permet d'envoyer les EDT automatiquement pour le jour."""
@@ -290,14 +297,14 @@ class Tool:
         if self.is_guild_chan(ctx.author):
             ephemeral = not ctx.author.has_role(self.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
 
-        await ctx.send(
-            embed=Embed(f"Abonnements de {ctx.author.display_name}",
+        await send(ctx,
+            embeds=[Embed(f"Abonnements de {ctx.author.display_name}",
                 f"- Mise à Jour Quotidienne : {'✅' if (user_base.is_user_subscribed(id, Subscription.DAILY)) else '❌'}\n"
                 f"- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}\n"
                 f"- Mise à Jour Quotidienne ICS: {'✅' if (user_base.is_user_subscribed_ics(id, Subscription.DAILY_ICS)) else '❌'}\n"
                 f"- Mise à Jour Hebdomadaire ICS: {'✅' if (user_base.is_user_subscribed_ics(id, Subscription.WEEKLY_ICS)) else '❌'}\n"
                 f":warning: vous devez avoir vous mp ouvert ou déjà avoir mp le bot. "
-                ),
+                )],
             ephemeral=ephemeral
         )
 
@@ -383,7 +390,7 @@ class Tool:
                     case Subscription.WEEKLY_ICS:
                         user_base.user_subscribe_ics(user.id, Subscription.WEEKLY_ICS)
 
-        await ctx.send("Les membres du serveur ont été ajoutée et mit à jour.", ephemeral=True)
+        await send(ctx,"Les membres du serveur ont été ajoutée et mit à jour.", ephemeral=True)
 
     async def download_file(self, url, filename):
         async with aiohttp.ClientSession() as session:

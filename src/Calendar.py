@@ -6,6 +6,7 @@ from pytz import timezone
 from Filter import Filter, TimeFilter, filter_events
 from Enums import url, Timing
 from Event import *
+from sender import send_error_non_async
 
 import os
 
@@ -30,8 +31,7 @@ class Calendar:
         try:
             urlretrieve(url, filename)
         except URLError as exception:
-            print(exception)
-            sentry_sdk.capture_exception(exception)
+            send_error_non_async(exception)
 
     def convert_timestamp(self, input: str) -> datetime:
         """Permet de convertir les timestamp en ISO-8601, et les passer en UTC+2.

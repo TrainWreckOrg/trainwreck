@@ -3,6 +3,7 @@ from pytz import timezone
 import sentry_sdk
 
 from Enums import Group, subjects_table, weekday
+from sender import send_error_non_async
 
 
 class Event:
@@ -201,8 +202,7 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
                     try:
                         raise ValueError("Groupe inconnue anglais Miage dans get_event_from_data")
                     except BaseException as exception:
-                        print(exception)
-                        sentry_sdk.capture_exception(exception)
+                        send_error_non_async(exception)
 
         else:
             # ex : Anglais - TD 1
@@ -222,8 +222,7 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
                     try:
                         raise ValueError("Groupe inconnue anglais ingé dans get_event_from_data")
                     except BaseException as exception:
-                        print(exception)
-                        sentry_sdk.capture_exception(exception)
+                        send_error_non_async(exception)
 
     else:
         if "L3 INFO - INGENIERIE" in descsplit and "MIAGE" not in sum:
@@ -261,8 +260,7 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
                     try:
                         raise ValueError("Groupe inconnue cours ingé dans get_event_from_data")
                     except BaseException as exception:
-                        print(exception)
-                        sentry_sdk.capture_exception(exception)
+                        send_error_non_async(exception)
 
         else:
             match subject_split[1][:3] :  #descsplit[2][3:]:
@@ -288,9 +286,7 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
                     try:
                         raise ValueError("Groupe inconnue cours Miage dans get_event_from_data")
                     except BaseException as exception:
-                        print(exception)
-                        sentry_sdk.capture_exception(exception)
-
+                        send_error_non_async(exception)
 
     if "CC" in sum:
         teacher = "équipe enseignante"
