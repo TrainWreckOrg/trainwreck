@@ -154,6 +154,8 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
         return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", False, True,"ADE60323032342d323032352d31333132352d302d30")
     elif sum == "Sensibilisation au handicap dans le développement d'application":
         return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", True, True,"ADE60323032342d323032352d39303132382d302d30")
+    elif sum == "Réunion d'information - Alternance L3 MIAGE":
+        return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", False, True,"ADE60323032342d323032352d37353935352d302d30")
 
     # Descsplit contient les informations correspondant à la description de l'événement, séparé par lignes.
     # Ex : ['', '', 'Gr TPC', 'Con. Ana. Algo', 'Con. Ana. Algo', 'L3 INFO - INGENIERIE', 'L3 INFORMAT-UPEX MINERVE', 'LIEDLOFF', '(Exporté le : 27/07/2024 20:20)', '\n\n']
