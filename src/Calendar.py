@@ -122,7 +122,7 @@ class Calendar:
                 new_event["isINGE"]=="True",
                 new_event["isMIAGE"]=="True",
                 new_event["uid"],
-                isEXAM= new_event["uid"] in list(argument.get("exam_list").values()),
+                isEXAM= (new_event["isEXAM"] == "True" or new_event["uid"] in list(argument.get("exam_list").values())),
                 isAdd=True
             )
             if e.isEXAM:
@@ -146,7 +146,7 @@ class Calendar:
                 override_event["isINGE"] == "True",
                 override_event["isMIAGE"] == "True",
                 override_event["uid"],
-                override_event["isEXAM"] == "True",
+                override_event["isEXAM"] == "True" or override_event["uid"] in list(argument.get("exam_list").values()),
             )
             base_event : Event
             if over_uid in events.keys():
