@@ -45,6 +45,31 @@ async def send(context: SlashContext | ModalContext | ContextMenuContext | Compo
         await send(context,content,embeds, components, files, ephemeral, auto_ephemeral, nb_try-1)
 
 
+
+
+
+
+
+
+async def edit_origin(context: SlashContext | ModalContext | ContextMenuContext | ComponentContext | AutocompleteContext | GuildText,
+         content : str = "", embeds: list[Embed] = [], components = None, nb_try : int = 5):
+    try:
+        await context.edit_origin(content=content, embeds=embeds, components=components)
+    except BaseException as exception:
+        if nb_try == 0:
+            await send_error(exception)
+        await edit_origin(context,content,embeds, components, nb_try-1)
+
+
+
+
+
+
+
+
+
+
+
 async def send_error(exception: BaseException) -> None:
     """Permet de faire la gestion des erreurs pour l'ensemble du bot, envoie un message aux admins et prévient l'utilisateur de l'erreur."""
     global tool

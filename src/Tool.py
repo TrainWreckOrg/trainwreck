@@ -15,7 +15,7 @@ from UserBase import get_user_base
 from Calendar import get_calendar
 from Filter import *
 from Enums import RoleEnum, Group, colors, Subscription
-from sender import send
+from sender import send, edit_origin, send_error
 
 
 from datetime import datetime, date, timedelta
@@ -193,14 +193,15 @@ class Tool:
             if personne is None:
                 action_row = ActionRow(precedent, suivant)
                 if modifier:
-                    await ctx.edit_origin(embeds=embeds, components=[action_row])
+                    await edit_origin(ctx, embeds=embeds, components=[action_row])
                 else:
                     await send(ctx,embeds=embeds, components=[action_row], ephemeral=ephemeral)
             else:
-                if modifier:
-                    await ctx.edit_origin(embeds=embeds)
-                else:
-                    await send(ctx,embeds=embeds, ephemeral=ephemeral)
+                # TODO : enlever ca si ca casse rien
+                #if modifier:
+                    #await edit_origin(ctx,embeds=embeds)
+                #else:
+                await send(ctx,embeds=embeds, ephemeral=ephemeral)
 
         except ValueError:
             await send(ctx,embeds=[self.create_error_embed(f"La valeur `{jour}` ne correspond pas à une date au format DD-MM-YYYY")], ephemeral=True)
@@ -241,14 +242,15 @@ class Tool:
             if personne is None:
                 action_row = ActionRow(precedent, suivant)
                 if modifier:
-                    await ctx.edit_origin(embeds=embeds, components=[action_row])
+                    await edit_origin(ctx, embeds=embeds, components=[action_row])
                 else:
                     await send(ctx,embeds=embeds, components=[action_row], ephemeral=ephemeral)
             else:
-                if modifier:
-                    await ctx.edit_origin(embeds=embeds)
-                else:
-                    await send(ctx,embeds=embeds, ephemeral=ephemeral)
+                # TODO : enlever ca si ca casse rien
+                # if modifier:
+                    # await edit_origin(ctx, embeds=embeds)
+                # else:
+                await send(ctx,embeds=embeds, ephemeral=ephemeral)
         except ValueError:
             await send(ctx,embeds=[self.create_error_embed(f"La valeur `{semaine}` ne correspond pas à une date au format DD-MM-YYYY")], ephemeral=True)
 
@@ -260,13 +262,13 @@ class Tool:
             if ics:
                 filename = str(user.id)
                 get_ics(events, filename=filename)
-                await user.send("Bonjour voici votre EDT pour aujourd'hui.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, files=[f"{filename}.ics"], ephemeral=False)
+                await send(user,"Bonjour voici votre EDT pour aujourd'hui.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, files=[f"{filename}.ics"], ephemeral=False)
                 os.remove(f"{filename}.ics")
             else:
-                await user.send("Bonjour voici votre EDT pour aujourd'hui.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, ephemeral=False)
+                await send(user,"Bonjour voici votre EDT pour aujourd'hui.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, ephemeral=False)
         except HTTPException as exception:
-            await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(
-                f"Problème d'envoie avec `{user.id}` -> {exception}")
+            exception.add_note(f"Problème d'envoie avec `{user.id}` -> {exception}")
+            await send_error(exception)
 
     async def send_weekly_update(self, user: User, ics: bool):
         """Permet d'envoyer les EDT automatiquement pour la semaine."""
@@ -280,13 +282,13 @@ class Tool:
             if ics:
                 filename = str(user.id)
                 get_ics(events, filename=filename)
-                await user.send("Bonjour voici votre EDT pour la semaine.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, files=[f"{filename}.ics"], ephemeral=False)
+                await send(user,"Bonjour voici votre EDT pour la semaine.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, files=[f"{filename}.ics"], ephemeral=False)
                 os.remove(f"{filename}.ics")
             else:
-                await user.send("Bonjour voici votre EDT pour la semaine.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, ephemeral=False)
+                await send(user,"Bonjour voici votre EDT pour la semaine.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, ephemeral=False)
         except HTTPException as exception:
-            await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(
-                f"Problème d'envoie avec `{user.id}` -> {exception}")
+            exception.add_note(f"Problème d'envoie avec `{user.id}` -> {exception}")
+            await send_error(exception)
 
     async def check_subscription(self, ctx: SlashContext) -> None:
         """Permet d'afficher quel sont les abonnements d'un utilisateur."""
@@ -410,23 +412,21 @@ class Tool:
                 if channel.name == "arguement-bot":
                     url = (await channel.fetch_messages(1))[0].attachments[0].url
         except BaseException as exception:
-            exception.add_note("C'est l'obtention des message qui à foiré'")
-            await self.send_error(exception)
-            sentry_sdk.capture_exception(exception)
+            exception.add_note("C'est l'obtention des message qui n'a pas fonctionné")
+            await send_error(exception)
         filename = "arguement.json"
         try:
             await self.download_file(url, filename)
         except ValueError as exception:
-            await self.send_error(exception)
-            sentry_sdk.capture_exception(exception)
+            exception.add_note("C'est le dl du ficher qui n'a pas fonctionné")
+            await send_error(exception)
 
         try:
             with open(filename, 'r', encoding='utf-8') as file:
                 arguement = json.load(file)
         except BaseException as exception:
-            exception.add_note("C'est le chargement du fichier d'argument qui à foiré")
-            await self.send_error(exception)
-            sentry_sdk.capture_exception(exception)
+            exception.add_note("C'est le chargement du fichier d'argument qui n'a pas fonctionné")
+            await send_error(exception)
             arguement = {} # Pour éviter de planter
 
         os.remove(filename)
