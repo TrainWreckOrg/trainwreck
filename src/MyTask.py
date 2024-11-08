@@ -67,7 +67,7 @@ class MyTask(Extension):
 
         if len(embeds):
             ping_chan = self.bot.get_channel(os.getenv("PING_CHANGE_CHANNEL_ID"))
-            ping_liste = f"Il y a eu des modification dans l'EDT ||{ping_list_str}||"
+            ping_liste = f"Il y a eu des modifications dans l'EDT ||{ping_list_str}||"
             # await ping_chan.send(ping_liste, embeds=embeds, ephemeral=False, allowed_mentions=AllowedMentions(roles=serveur.roles))
             await send(ping_chan,ping_liste, embeds=embeds, ephemeral=False)
 

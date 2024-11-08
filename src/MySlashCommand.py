@@ -18,7 +18,7 @@ class MySlashCommand(Extension):
         self.bot = bot
         self.tool = get_tool(bot)
 
-    @slash_command(name="get_day", description="Envoie votre EDT pour un jour donné. Si une personne est donnée, donne le sien.")
+    @slash_command(name="get_day", description="Envoie votre EDT pour un jour donner. Si une personne est donnée, donne le sien.")
     @slash_option(
         name="jour",
         description="Quel jour ? (DD-MM-YYYY)",
@@ -79,7 +79,7 @@ class MySlashCommand(Extension):
             help_file = f.read()
 
         embed = Embed(description=help_file, footer=EmbedFooter(
-            "Les EDT sont fournis a titre informatif uniquement -> Veuillez vous référer à votre page personnelle sur l'ENT.",
+            "Les EDT sont fournis à titre informatif uniquement -> Veuillez-vous référer à votre page personnelle sur l'ENT.",
             self.bot.user.avatar_url), color=colors[2])
 
         repo = Button(
@@ -129,7 +129,7 @@ class MySlashCommand(Extension):
             if self.tool.is_guild_chan(ctx.author):
                 ephemeral = not ctx.author.has_role(self.tool.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
 
-            await send(ctx,"Voici votre fichier ics (:warning: : Le calendrier n'est pas mis a jour dynamiquement)", files=[f"{filename}.ics"], ephemeral=ephemeral)
+            await send(ctx,"Voici votre fichier ICS (:warning: : Le calendrier n'est pas mis à jour dynamiquement)", files=[f"{filename}.ics"], ephemeral=ephemeral)
             os.remove(f"{filename}.ics")
         except ValueError:
             await send(ctx, embeds=[self.tool.create_error_embed(f"La valeur `{debut}` ou `{fin}` ne correspond pas à une date.")], ephemeral=True)
@@ -227,7 +227,7 @@ class MySlashCommand(Extension):
                 user_base.user_subscribe_ics(id, Subscription.BOTH_ICS)
 
         if service == "None" and ics == "None":
-            await send(ctx,"Vous devez sélectionner une option pour vous abonner.\n Par exemple : pour recevoir l'emploi du temps de la semaine le lundi, avec un fichier ics, et l'emploi du temps du jour tout les jours, sans ics : `/subscribe service: Both ics: Weekly`", ephemeral=True)
+            await send(ctx,"Vous devez sélectionner une option pour vous abonner.\n Par exemple : pour recevoir l'emploi du temps de la semaine le lundi, avec un fichier ics, et l'emploi du temps du jour tous les jours, sans ics : `/subscribe service: Both ics: Weekly`", ephemeral=True)
         else:
             await self.tool.check_subscription(ctx)
 
@@ -305,7 +305,7 @@ class MySlashCommand(Extension):
             embeds[0].description = "Aucun examens"
         embeds.insert(0, Embed(title="EXAMENS", description="ATTENTION CETTE LISTE D'EXAMS N'EST PEUT-ÊTRE PAS A JOUR MERCI DE VERIFIER SUR LE SITE DE L’UNIVERSITÉ !\nCERTAINS EXAMS (CONTRÔLE EN DÉBUT DE TD/TP) NOUS ONT ETE RAPPORTER ET AJOUTER DONC NE SONT PAS SUR LE SITE.", color=colors[0]))
 
-        embeds[-1].footer.text = f"Commande fait par {ctx.author.display_name}\nLes emploi du temps sont fournis a titre informatif uniquement.\n-> Veuillez vous référer à votre page personnelle sur l'ENT."
+        embeds[-1].footer.text = f"Commande fait par {ctx.author.display_name}\nLes emploi du temps sont fournis à titre informatif uniquement.\n-> Veuillez vous référer à votre page personnelle sur l'ENT."
 
         universite = Button(
             style=ButtonStyle.URL,

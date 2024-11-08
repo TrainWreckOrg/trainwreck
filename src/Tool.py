@@ -262,10 +262,10 @@ class Tool:
             if ics:
                 filename = str(user.id)
                 get_ics(events, filename=filename)
-                await send(user,"Bonjour voici votre EDT pour aujourd'hui.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, files=[f"{filename}.ics"], ephemeral=False)
+                await send(user,"Bonjour voici votre EDT pour aujourd'hui.\n:warning: : Le calendrier n'est pas mis à jour dynamiquement", embeds=embeds, files=[f"{filename}.ics"], ephemeral=False)
                 os.remove(f"{filename}.ics")
             else:
-                await send(user,"Bonjour voici votre EDT pour aujourd'hui.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, ephemeral=False)
+                await send(user,"Bonjour voici votre EDT pour aujourd'hui.\n:warning: : Le calendrier n'est pas mis à jour dynamiquement", embeds=embeds, ephemeral=False)
         except HTTPException as exception:
             exception.add_note(f"Problème d'envoie avec `{user.id}` -> {exception}")
             await send_error(exception)
@@ -282,10 +282,10 @@ class Tool:
             if ics:
                 filename = str(user.id)
                 get_ics(events, filename=filename)
-                await send(user,"Bonjour voici votre EDT pour la semaine.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, files=[f"{filename}.ics"], ephemeral=False)
+                await send(user,"Bonjour voici votre EDT pour la semaine.\n:warning: : Le calendrier n'est pas mis à jour dynamiquement", embeds=embeds, files=[f"{filename}.ics"], ephemeral=False)
                 os.remove(f"{filename}.ics")
             else:
-                await send(user,"Bonjour voici votre EDT pour la semaine.\n:warning: : Le calendrier n'est pas mis a jour dynamiquement", embeds=embeds, ephemeral=False)
+                await send(user,"Bonjour voici votre EDT pour la semaine.\n:warning: : Le calendrier n'est pas mis à jour dynamiquement", embeds=embeds, ephemeral=False)
         except HTTPException as exception:
             exception.add_note(f"Problème d'envoie avec `{user.id}` -> {exception}")
             await send_error(exception)
@@ -305,7 +305,7 @@ class Tool:
                 f"- Mise à Jour Hebdomadaire : {'✅' if (user_base.is_user_subscribed(id, Subscription.WEEKLY)) else '❌'}\n"
                 f"- Mise à Jour Quotidienne ICS: {'✅' if (user_base.is_user_subscribed_ics(id, Subscription.DAILY_ICS)) else '❌'}\n"
                 f"- Mise à Jour Hebdomadaire ICS: {'✅' if (user_base.is_user_subscribed_ics(id, Subscription.WEEKLY_ICS)) else '❌'}\n"
-                f":warning: vous devez avoir vous mp ouvert ou déjà avoir mp le bot. "
+                f":warning: Vous devez avoir vous MP ouvert ou déjà avoir MP le bot. "
                 )],
             ephemeral=ephemeral
         )

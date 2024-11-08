@@ -86,7 +86,7 @@ class MyListen(Extension):
                 f" - channel :  {error.ctx.channel}\n"
                 f" - role member :  {error.ctx.member.roles}```"
         )
-        await send(error.ctx,embeds=[Embed("Une erreur est survenu, les admins sont prévenu.")], ephemeral=True)
+        await send(error.ctx,embeds=[Embed("Une erreur est survenue, les admins sont prévenu.")], ephemeral=True)
 
     @component_callback(re.compile("delete-role"))
     async def wipe_bt(self, ctx: ComponentContext):
@@ -107,5 +107,5 @@ class MyListen(Extension):
     @component_callback(re.compile("stop-bot"))
     async def stop_bt(self, ctx: ComponentContext):
         """Permet d'enlever les rôles de Filière et de Groupe à tout le monde"""
-        await send(ctx,"Le bot va s'arreter.", ephemeral=False)
+        await send(ctx,"Le bot va s'arrêter.", ephemeral=False)
         await self.bot.stop()

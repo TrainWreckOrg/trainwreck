@@ -21,7 +21,7 @@ def get_embeds(events: list[Event], user: User | Member, jour: date = date(year=
             embeds.append(embed)
         embeds[-1].description += "- " + str(event) + "\n"
     
-    embeds[-1].set_footer(f"Emploi du Temps de @{user.display_name}\nLes emploi du temps sont fournis a titre informatif uniquement,\n -> Veuillez vous référer à votre page personnelle sur l'ENT", icon)
+    embeds[-1].set_footer(f"Emploi du Temps de @{user.display_name}\nLes emploi du temps sont fournis à titre informatif uniquement,\n -> Veuillez-vous référer à votre page personnelle sur l'ENT", icon)
     return embeds
 
 
