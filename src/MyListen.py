@@ -9,6 +9,7 @@ from UserBase import get_user_base, nuke
 from MyTask import MyTask
 from Tool import get_tool
 from Enums import RoleEnum, Filiere, Group
+from sender import send, get_error_log_chan
 
 load_dotenv("keys.env")
 
@@ -34,16 +35,17 @@ class MyListen(Extension):
         )
         await self.bot.synchronise_interactions()
         nuke()
-        await self.tool.userscan(self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")))
+        await self.tool.userscan(get_error_log_chan())
         if not MyTask.daily_morning_update.running:
             MyTask.daily_morning_update.start()
-            await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Démarrage de la Task `daily_morning_update`")
+            await send(get_error_log_chan(), "Démarrage de la Task `daily_morning_update`")
         if not MyTask.update_calendar.running:
             MyTask.update_calendar.start()
-            await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Démarrage de la Task `update_calendar`")
+            await send(get_error_log_chan(), "Démarrage de la Task `update_calendar`")
         await MyTask.update_calendar()
         print(f"Ready\nThis bot is owned by {self.bot.owner}")
-        await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send("Démarrage du bot v1")
+        await send(get_error_log_chan(), "Démarrage du bot fini")
+
 
     @component_callback(re.compile("day|week"))
     async def on_component(self, ctx: ComponentContext) -> None:
@@ -55,7 +57,7 @@ class MyListen(Extension):
         elif pattern_week.search(ctx.custom_id):
             await self.tool.get_week_bt(ctx, ctx.custom_id[5:], True)
         else:
-            await ctx.send("Bouton cliqué mais aucune action définie", ephemeral=True)
+            await send(ctx,"Bouton cliqué mais aucune action définie", ephemeral=True)
             raise ValueError("Bouton cliqué mais aucune action définie (on_component)")
 
     @listen(MemberUpdate)
@@ -71,7 +73,7 @@ class MyListen(Extension):
     @listen(Error)
     async def on_error(self, error: Error) -> None:
         """Permet de faire la gestion des erreurs pour l'ensemble du bot, envoie un message aux admins et prévient l'utilisateur de l'erreur."""
-        await self.bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(
+        await send(get_error_log_chan(),
             f"{(self.tool.get_roles(error.ctx.guild)[RoleEnum.ADMIN]).mention}"
             f"```ERREUR dans : {error.source} - {datetime.now()}\n"
             f"Erreur de type : {type(error.error)}\n"
@@ -84,7 +86,7 @@ class MyListen(Extension):
                 f" - channel :  {error.ctx.channel}\n"
                 f" - role member :  {error.ctx.member.roles}```"
         )
-        await error.ctx.send(embed=Embed("Une erreur est survenu, les admins sont prévenu."), ephemeral=True)
+        await send(error.ctx,embeds=[Embed("Une erreur est survenu, les admins sont prévenu.")], ephemeral=True)
 
     @component_callback(re.compile("delete-role"))
     async def wipe_bt(self, ctx: ComponentContext):
@@ -100,11 +102,10 @@ class MyListen(Extension):
                     continue
                 if user.has_role(self.tool.get_roles(ctx.guild)[group]):
                     await user.remove_role(self.tool.get_roles(ctx.guild)[group])
-        await ctx.send("Les membres du serveur n'ont plus de rôle.", ephemeral=False)
+        await send(ctx,"Les membres du serveur n'ont plus de rôle.", ephemeral=False)
 
     @component_callback(re.compile("stop-bot"))
     async def stop_bt(self, ctx: ComponentContext):
         """Permet d'enlever les rôles de Filière et de Groupe à tout le monde"""
-
-        await ctx.send("Le bot va s'arreter.", ephemeral=False)
+        await send(ctx,"Le bot va s'arreter.", ephemeral=False)
         await self.bot.stop()
