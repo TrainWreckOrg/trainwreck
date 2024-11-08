@@ -5,7 +5,8 @@ from interactions import Client, Intents, SlashContext, ModalContext, ContextMen
 from dotenv import load_dotenv
 import sentry_sdk
 import os
-
+from sender import set_bot, send, get_error_log_chan, set_tool
+from Tool import get_tool
 
 # Charge le fichier env
 load_dotenv("keys.env")
@@ -27,6 +28,9 @@ token_bot = os.getenv("TOKEN_BOT_DISCORD")
 # `delete_unused_application_cmds=True` pour supprimer les commandes en cache
 bot = Client(token=token_bot, intents=Intents.DEFAULT | Intents.GUILD_MEMBERS | Intents.GUILD_PRESENCES, send_command_tracebacks=False)
 
+set_bot(bot)
+set_tool(get_tool(bot))
+
 # Extension pour gérer les erreurs avec https://sentry.io/
 bot.load_extension('interactions.ext.sentry', dsn=str(os.getenv("SENTRY_DSN")))
 bot.load_extension("MyListen")
@@ -39,16 +43,14 @@ async def log(ctx: SlashContext | ModalContext | ContextMenuContext | ComponentC
     """Fonction qui permet de logger toutes les actions."""
     if isinstance(ctx, ComponentContext):
         ctx_bt : ComponentContext = ctx
-        await bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(
-            f"{ctx.author.display_name} ({ctx.author.id}) à utilise {ctx_bt.custom_id} {kwargs}, le {datetime.datetime.now()}")
+        await send(get_error_log_chan(), f"{ctx.author.display_name} ({ctx.author.id}) à utilise {ctx_bt.custom_id} {kwargs}, le {datetime.datetime.now()}")
     elif isinstance(ctx, ContextMenuContext):
         ctx_menu : ContextMenuContext = ctx
-        await bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(
-            f"{ctx_menu.author.display_name} ({ctx_menu.author.id}) à utilise {ctx_menu.command.name} sur {ctx_menu.target} ({ctx_menu.target_id}) {kwargs}, le {datetime.datetime.now()}")
+        await send(get_error_log_chan(), f"{ctx_menu.author.display_name} ({ctx_menu.author.id}) à utilise {ctx_menu.command.name} sur {ctx_menu.target} ({ctx_menu.target_id}) {kwargs}, le {datetime.datetime.now()}")
     elif isinstance(ctx, AutocompleteContext):
         return
     else:
-        await bot.get_channel(os.getenv("ERROR_CHANNEL_ID")).send(f"{ctx.author.display_name} ({ctx.author.id}) à utilise {ctx.command.name} {kwargs}, le {datetime.datetime.now()}")
+        await send(get_error_log_chan(), f"{ctx.author.display_name} ({ctx.author.id}) à utilise {ctx.command.name} {kwargs}, le {datetime.datetime.now()}")
 
 # Définition d'une action avant une action
 bot.pre_run_callback = log

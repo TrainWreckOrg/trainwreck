@@ -5,6 +5,7 @@ import re
 from Enums import RoleEnum
 from Tool import get_tool
 from Filter import *
+from sender import send, send_error, edit_origin
 
 
 class Onboard(Extension):
@@ -22,7 +23,7 @@ class Onboard(Extension):
             custom_id="onboard",
             label="Commencer"
         )
-        await ctx.send(embed=embed, components=bouton)
+        await send(ctx,embeds=[embed], components=[bouton])
 
     @component_callback(re.compile("onboard"))
     async def onboard_bt(self, ctx:ComponentContext) -> None:
@@ -48,7 +49,7 @@ class Onboard(Extension):
                 label="Non"
             )
             action_row = ActionRow(oui, non)
-            await ctx.send(embed=Embed(title="Est ce que vous groupe sont corrects ?", description=str_role),
+            await send(ctx,embeds=[Embed(title="Est ce que vous groupe sont corrects ?", description=str_role)],
                            components=action_row, ephemeral=True)
         else:
             user = ctx.author
@@ -68,7 +69,7 @@ class Onboard(Extension):
     async def onboard_oui(self, ctx: ComponentContext) -> None:
         if not ctx.author.has_role(self.tool.get_roles(ctx.guild)[RoleEnum.ONBOARDED]):
             await ctx.author.add_role(self.tool.get_roles(ctx.guild)[RoleEnum.ONBOARDED])
-        await ctx.edit_origin(embed=Embed(title="Vous avez déjà tout les rôles nécessaire"),
+        await edit_origin(ctx,embeds=[Embed(title="Vous avez déjà tout les rôles nécessaire")],
                               components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
 
     @component_callback(re.compile("non_onb"))
@@ -96,7 +97,7 @@ class Onboard(Extension):
         """Permet d'ajouter un rôle de filière en fonction du bouton cliqué."""
         # Si la personne à déjà une filière.
         if self.tool.get_filiere_as_filiere(ctx.author) != Filiere.UKNW:
-            await ctx.edit_origin(embed=Embed(title="Vous ne pouvez pas avoir plusieurs rôles de la même catégorie."), components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
+            await edit_origin(ctx,embeds=[Embed(title="Vous ne pouvez pas avoir plusieurs rôles de la même catégorie.")], components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
             return
 
         if ctx.custom_id == "inge":
@@ -112,7 +113,10 @@ class Onboard(Extension):
         # Si la personne à déjà un groupe de TD.
         for group in self.tool.get_groupes_as_list(ctx.author):
             if group in [Group.TD1I, Group.TD2I, Group.TD1M, Group.TD2M]:
-                await ctx.edit_origin(embed=Embed(title="Vous ne pouvez pas avoir plusieurs rôles de la même catégorie."), components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
+                await edit_origin(ctx, embeds=[
+                    Embed(title="Vous ne pouvez pas avoir plusieurs rôles de la même catégorie.")],
+                                  components=ActionRow(
+                                      Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
                 return
 
         if ctx.custom_id == "td1I":
@@ -132,7 +136,10 @@ class Onboard(Extension):
         # Si la personne à déjà un groupe de TP.
         for group in self.tool.get_groupes_as_list(ctx.author):
             if group in [Group.TPAI, Group.TPBI, Group.TPCI, Group.TPDI, Group.TP1M, Group.TP2M, Group.TP3M]:
-                await ctx.edit_origin(embed=Embed(title="Vous ne pouvez pas avoir plusieurs rôles de la même catégorie."), components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
+                await edit_origin(ctx, embeds=[
+                    Embed(title="Vous ne pouvez pas avoir plusieurs rôles de la même catégorie.")],
+                                  components=ActionRow(
+                                      Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
                 return
         role = self.tool.get_roles(ctx.guild)
         if ctx.custom_id == "tpaI":
@@ -157,9 +164,10 @@ class Onboard(Extension):
         # Si la personne à déjà un groupe de TP.
         for group in self.tool.get_groupes_as_list(ctx.author):
             if group in [Group.TPAI, Group.TPBI, Group.TPCI, Group.TPDI, Group.TP1M, Group.TP2M, Group.TP3M]:
-                await ctx.edit_origin(
-                    embed=Embed(title="Vous ne pouvez pas avoir plusieurs rôles de la même catégorie."),
-                    components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
+                await edit_origin(ctx, embeds=[
+                    Embed(title="Vous ne pouvez pas avoir plusieurs rôles de la même catégorie.")],
+                                  components=ActionRow(
+                                      Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
                 return
 
         if ctx.custom_id == "tpaI":
@@ -186,7 +194,10 @@ class Onboard(Extension):
         # Si la personne à déjà un groupe de TD d'Anglais.
         for group in self.tool.get_groupes_as_list(ctx.author):
             if group in [Group.TDA1I, Group.TDA2I, Group.TDA3I, Group.TDA4I, Group.TDA1M, Group.TDA2M, Group.TDA3M]:
-                await ctx.edit_origin(embed=Embed(title="Vous ne pouvez pas avoir plusieurs rôles de la même catégorie."), components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
+                await edit_origin(ctx, embeds=[
+                    Embed(title="Vous ne pouvez pas avoir plusieurs rôles de la même catégorie.")],
+                                  components=ActionRow(
+                                      Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
                 return
         if ctx.custom_id == "td1IA":
             await ctx.author.add_roles([self.tool.get_roles(ctx.guild)[Group.TDA1I], self.tool.get_roles(ctx.guild)[RoleEnum.ONBOARDED]])
@@ -217,17 +228,17 @@ class Onboard(Extension):
         for group in groupe:
             if group in [Group.TDA1I, Group.TDA2I, Group.TDA3I, Group.TDA4I, Group.TDA1M, Group.TDA2M, Group.TDA3M]:
                 if edit:
-                    await ctx.edit_origin(embed=Embed(title="Vous avez déjà tout les rôles nécessaire"), components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
+                    await edit_origin(ctx,embeds=[Embed(title="Vous avez déjà tout les rôles nécessaire")], components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
                 else:
-                    await ctx.send(embed=Embed(title="Vous avez déjà tout les rôles nécessaire"), ephemeral=True)
+                    await send(ctx,embeds=[Embed(title="Vous avez déjà tout les rôles nécessaire")], ephemeral=True)
                 return
         # Est-ce que la personne a déjà un groupe de TP.
         for group in groupe:
             if group in [Group.TPAI, Group.TPBI, Group.TPCI, Group.TPDI, Group.TP1M, Group.TP2M, Group.TP3M]:
                 if edit:
-                    await ctx.edit_origin(embed=Embed(title="Vous avez déjà tout les rôles nécessaire"), components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
+                    await edit_origin(ctx,embeds=[Embed(title="Vous avez déjà tout les rôles nécessaire")], components=ActionRow(Button(style=ButtonStyle.RED, label="Pas autorisée", disabled=True)))
                 else:
-                    await ctx.send(embed=Embed(title="Vous avez déjà tout les rôles nécessaire"), ephemeral=True)
+                    await send(ctx,embeds=[Embed(title="Vous avez déjà tout les rôles nécessaire")], ephemeral=True)
                 return
                 # await self.ask_td_anglais(ctx, filiere, edit=edit)
         # Est-ce que la personne a déjà un groupe de TD.
@@ -252,9 +263,9 @@ class Onboard(Extension):
         )
         actionRow = ActionRow(inge, miage)
         if edit:
-            await ctx.edit_origin(embed=embed, components=actionRow)
+            await edit_origin(ctx, embeds=[embed], components=actionRow)
         else:
-            await ctx.send(embed=embed, components=actionRow, ephemeral=True)
+            await send(ctx,embeds=[embed], components=actionRow, ephemeral=True)
 
     async def ask_td(self, ctx: SlashContext | ComponentContext, filiere: Filiere, edit: bool = False) -> None:
         """Permet de demander le groupe de TD."""
@@ -287,16 +298,16 @@ class Onboard(Extension):
         elif filiere == Filiere.UKNW:
             await self.ask_filiere(ctx)
         else:
-            await ctx.send("Une erreur est survenu", ephemeral=True)
+            await send(ctx,"Une erreur est survenu", ephemeral=True)
             try:
                 raise ValueError("Onboard Filière inconnue dans ask_td")
             except BaseException as exception:
-                await self.tool.send_error(exception)
+                await send_error(exception)
 
         if edit:
-            await ctx.edit_origin(embed=embed, components=actionRow)
+            await edit_origin(ctx, embeds=[embed], components=actionRow)
         else:
-            await ctx.send(embed=embed, components=actionRow, ephemeral=True)
+            await send(ctx, embeds=[embed], components=actionRow, ephemeral=True)
 
     async def ask_tp(self, ctx: SlashContext | ComponentContext, filiere: Filiere, edit: bool = False) -> None:
         """Permet de demander le groupe de TP."""
@@ -344,16 +355,16 @@ class Onboard(Extension):
         elif filiere == Filiere.UKNW:
             await self.ask_filiere(ctx)
         else:
-            await ctx.send("Une erreur est survenu", ephemeral=True)
+            await send(ctx,"Une erreur est survenu", ephemeral=True)
             try:
                 raise ValueError("Onboard Filière inconnue dans ask_tp")
             except BaseException as exception:
-                await self.tool.send_error(exception)
+                await send_error(exception)
 
         if edit:
-            await ctx.edit_origin(embed=embed, components=actionRow)
+            await edit_origin(ctx, embeds=[embed], components=actionRow)
         else:
-            await ctx.send(embed=embed, components=actionRow, ephemeral=True)
+            await send(ctx,embeds=[embed], components=actionRow, ephemeral=True)
 
     async def ask_td_anglais(self, ctx: SlashContext | ComponentContext, filiere: Filiere, edit: bool = False) -> None:
         """Permet de demander le groupe de TD d'Anglais."""
@@ -401,15 +412,15 @@ class Onboard(Extension):
         elif filiere == Filiere.UKNW:
             await self.ask_filiere(ctx)
         else:
-            await ctx.send("Une erreur est survenu", ephemeral=True)
+            await send(ctx,"Une erreur est survenu", ephemeral=True)
             try:
                 raise ValueError("Onboard Filière inconnue dans ask_td_anglais")
             except BaseException as exception:
-                await self.tool.send_error(exception)
+                await send_error(exception)
 
         if edit:
-            await ctx.edit_origin(embed=embed, components=actionRow)
+            await edit_origin(ctx, embeds=[embed], components=actionRow)
         else:
-            await ctx.send(embed=embed, components=actionRow, ephemeral=True)
+            await send(ctx,embeds=[embed], components=actionRow, ephemeral=True)
 
 

@@ -3,6 +3,7 @@ from pytz import timezone
 import sentry_sdk
 
 from Enums import Group, subjects_table, weekday
+from sender import send_error_non_async
 
 
 class Event:
@@ -153,6 +154,8 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
         return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", False, True,"ADE60323032342d323032352d31333132352d302d30")
     elif sum == "Sensibilisation au handicap dans le développement d'application":
         return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", True, True,"ADE60323032342d323032352d39303132382d302d30")
+    elif sum == "Réunion d'information - Alternance L3 MIAGE":
+        return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", False, True,"ADE60323032342d323032352d37353935352d302d30")
 
     # Descsplit contient les informations correspondant à la description de l'événement, séparé par lignes.
     # Ex : ['', '', 'Gr TPC', 'Con. Ana. Algo', 'Con. Ana. Algo', 'L3 INFO - INGENIERIE', 'L3 INFORMAT-UPEX MINERVE', 'LIEDLOFF', '(Exporté le : 27/07/2024 20:20)', '\n\n']
@@ -201,8 +204,7 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
                     try:
                         raise ValueError("Groupe inconnue anglais Miage dans get_event_from_data")
                     except BaseException as exception:
-                        print(exception)
-                        sentry_sdk.capture_exception(exception)
+                        send_error_non_async(exception)
 
         else:
             # ex : Anglais - TD 1
@@ -222,8 +224,7 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
                     try:
                         raise ValueError("Groupe inconnue anglais ingé dans get_event_from_data")
                     except BaseException as exception:
-                        print(exception)
-                        sentry_sdk.capture_exception(exception)
+                        send_error_non_async(exception)
 
     else:
         if "L3 INFO - INGENIERIE" in descsplit and "MIAGE" not in sum:
@@ -261,8 +262,7 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
                     try:
                         raise ValueError("Groupe inconnue cours ingé dans get_event_from_data")
                     except BaseException as exception:
-                        print(exception)
-                        sentry_sdk.capture_exception(exception)
+                        send_error_non_async(exception)
 
         else:
             match subject_split[1][:3] :  #descsplit[2][3:]:
@@ -288,9 +288,7 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
                     try:
                         raise ValueError("Groupe inconnue cours Miage dans get_event_from_data")
                     except BaseException as exception:
-                        print(exception)
-                        sentry_sdk.capture_exception(exception)
-
+                        send_error_non_async(exception)
 
     if "CC" in sum:
         teacher = "équipe enseignante"
