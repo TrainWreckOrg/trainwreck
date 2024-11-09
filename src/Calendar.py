@@ -90,13 +90,9 @@ class Calendar:
                     event["SUMMARY"],
                     event["LOCATION"],
                     event["DESCRIPTION"],
-                    event["UID"],
-                    argument
+                    event["UID"]
                 )
-                if e.isEXAM:
-                    exams[e.uid] = e
-                else:
-                    events[e.uid] = e
+                events[e.uid] = e
 
             # La description est sur plusieurs lignes et commence par un espace.
             elif line.startswith(" "):
@@ -107,6 +103,43 @@ class Calendar:
                         event[prefix.removesuffix(":")] = line.removeprefix(prefix).removesuffix("\n")
                         break
 
+        events, exams = self.apply_argument(events,exams,argument)
+
+        self.exams_dict |= exams
+
+        events |= exams
+        return events
+
+
+    def apply_argument(self, events:dict[str,Event], exams:dict[str,Event],argument):
+        events, exams = self.exam_event_arguement(events, exams, argument)
+        events, exams = self.delete_event_arguement(events, exams, argument)
+        events, exams = self.add_event_arguement(events, exams, argument)
+        events, exams = self.override_event_arguement(events, exams, argument)
+        return events, exams
+
+    def exam_event_arguement(self, events:dict[str,Event], exams:dict[str,Event],argument):
+        for exam_event in list(argument.get("exam_list").values()):
+            exam = events.get(exam_event)
+            if exam is not None:
+                exam.isEXAM = True
+                exams[exam.uid] = exam
+        return events,exams
+
+
+    def delete_event_arguement(self, events:dict[str,Event], exams:dict[str,Event],argument):
+        for delete_event in list(argument.get("delete_event").values()):
+            base_event: Event
+            if delete_event in events.keys():
+                base_event = events.get(delete_event)
+                base_event.isDelete = True
+            elif delete_event in exams.keys():
+                base_event = exams.get(delete_event)
+                base_event.isDelete = True
+        return events,exams
+
+
+    def add_event_arguement(self,events:dict[str,Event], exams:dict[str,Event],argument):
         for new_event in argument.get("add_event").values():
             group = Group.UKNW
             for g in Group:
@@ -127,9 +160,12 @@ class Calendar:
             )
             if e.isEXAM:
                 exams[e.uid] = e
-            else:
-                events[e.uid] = e
+            events[e.uid] = e
 
+        return events,exams
+
+
+    def override_event_arguement(self,events:dict[str,Event], exams:dict[str,Event], argument):
         for over_uid in argument.get("override_event").keys():
             override_event = argument.get("override_event").get(over_uid)
             group=Group.UKNW
@@ -153,14 +189,11 @@ class Calendar:
                 base_event = events.get(over_uid)
                 base_event.override = over_event
             elif over_uid in exams.keys():
-                base_event = events.get(over_uid)
+                base_event = exams.get(over_uid)
                 base_event.override = over_event
 
+        return events,exams
 
-        self.exams_dict |= exams
-
-        events |= exams
-        return events
 
     def get_events(self) -> list[Event]:
         """Retourne la liste des événements."""

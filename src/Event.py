@@ -143,7 +143,7 @@ class Event:
         return ics
 
 
-def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str, argument) -> Event:
+def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str) -> Event:
     """Permet d'extraire les informations des données parsées."""
     # Événements spéciaux.
     if sum == "Réunion rentrée - L3 INGENIERIE INFORMATIQUE":
@@ -174,8 +174,6 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
     teacher = descsplit[-3].replace("\n", "").removeprefix(" ") if descsplit[-3] != "L3 INFORMAT-UPEX MINERVE" else "Enseignant ?"
     location = loc if not loc == "" else "Salle ?"
 
-    is_exam = uid in list(argument.get("exam_list").values())
-    is_delete = uid in list(argument.get("delete_event").values())
 
     # Valeur par défaut.
     isMIAGE = False
@@ -294,4 +292,4 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
         teacher = "équipe enseignante"
 
     # Crée un nouvel Objet Event à partir des infos calculées.
-    return Event(start, end, subject, group, location, teacher, isINGE, isMIAGE, uid, is_exam, isDelete=is_delete)
+    return Event(start, end, subject, group, location, teacher, isINGE, isMIAGE, uid)
