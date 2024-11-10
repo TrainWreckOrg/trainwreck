@@ -8,7 +8,7 @@ from sender import send_error_non_async
 
 class Event:
     """Classe utilisée pour gérer les objets événements"""
-    def __init__(self, start:datetime, end:datetime, subject:str, group:Group, location:str, teacher:str, isINGE:bool, isMIAGE:bool, uid:str, isEXAM:bool=False, isAdd:bool=False,isDelete:bool=False, override = None) -> None:
+    def __init__(self, start:datetime, end:datetime, subject:str, group:Group, location:str, teacher:str, isINGE:bool, isMIAGE:bool, uid:str, isEXAM:bool=False, isAdd:bool=False,isDelete:bool=False, override = None, isSpecial : bool = False, description : str="") -> None:
         self.start_timestamp = start
         self.end_timestamp = end
         self.location = location
@@ -19,11 +19,13 @@ class Event:
         self.isMIAGE = isMIAGE
         self.isINGE  = isINGE
         self.uid = uid
-        self.isEXAM = isEXAM
 
+        self.isEXAM = isEXAM
+        self.isSpecial = isSpecial
         self.isAdd = isAdd
         self.isDelete = isDelete
         self.override = override
+        self.description = description
 
         self.duree = self.end_timestamp - self.start_timestamp 
 
@@ -54,20 +56,24 @@ class Event:
     def __str__(self) -> str:
         """Permet d'avoir une str pour représenter l'Event."""
         event = f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
-        if self.isEXAM:
-            event = ":warning: " + (event.upper()) + " :warning:"
-        elif self.isAdd:
-            event = f":white_check_mark: Cette Event à été ajouter manuellement {event}"
-        elif self.isDelete:
-            event = f":x: Cette Event à été supprimer manuellement {event}"
-        elif self.override is not None:
-            event = f":information_source: {self.override.__str__()} Cette event remplace {event}"
+        if self.description != "":
+            event += f" - :information_source: ||{self.description}||"
 
+        if self.isEXAM:
+            event = f":warning: {(event.upper())} :warning:"
+        if self.isSpecial:
+            event = f":sparkles: {event} :sparkles:"
+        if self.isAdd:
+            event = f":white_check_mark: Cette Event à été ajouter manuellement {event}"
+        if self.isDelete:
+            event = f":x: Cette Event à été supprimer manuellement {event}"
+        if self.override is not None:
+            event = f":pencil2: {self.override.__str__()} Cette event remplace {event}"
+        event = event.replace(":INFORMATION_SOURCE:",":information_source:")
         return event
 
     def str_day(self, autre: 'Event' = None) -> str:
         """Permet de comparer deux Event et de renvoyer une str de l'événement self avec les éléments qui changent en gars."""
-        defaut = f"{weekday[self.start_timestamp.weekday()]} {self.start_timestamp.strftime("%d-%m-%Y")} {self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")} : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group.value == "CM" else ""} - {self.subject} - {self.location} - {self.teacher}"
 
         if autre is None:
             return f"{weekday[self.start_timestamp.weekday()]} {self.start_timestamp.strftime("%d-%m-%Y")} {self.__str__()}"
@@ -119,10 +125,22 @@ class Event:
         else:
             texte += self.teacher
 
+        if self.description != "":
+            texte += f" - ||{self.description}||"
+
         if self.isEXAM:
-            return f":warning: {texte.upper()} :warning:"
-        else:
-            return texte
+            texte = f":warning: {(texte.upper())} :warning:"
+        if self.isSpecial:
+            texte = f":sparkles: {texte} :sparkles:"
+        if self.isAdd:
+            texte = f":white_check_mark: Cette Event à été ajouter manuellement {texte}"
+        if self.isDelete:
+            texte = f":x: Cette Event à été supprimer manuellement {texte}"
+        if self.override is not None:
+            texte = f":information_source: {self.override.__str__()} Cette event remplace {texte}"
+
+        texte = texte.replace(":INFORMATION_SOURCE:",":information_source:")
+        return texte
 
     def ics(self) -> str:
         """Permet d'avoir l'Event au format ICS."""
