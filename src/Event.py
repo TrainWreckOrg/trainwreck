@@ -82,8 +82,9 @@ class Event:
             texte += f"{day} "
 
         time=f"{self.start_timestamp.strftime("%Hh%M")}-{self.end_timestamp.strftime("%Hh%M")}"
+        time_autre=f"{autre.start_timestamp.strftime("%Hh%M")}-{autre.end_timestamp.strftime("%Hh%M")}"
 
-        if (self.start_timestamp.strftime("%Hh%M")) != (autre.start_timestamp.strftime("%Hh%M")):
+        if time != time_autre:
             texte += f"**{time}**"
         else:
             texte += time
