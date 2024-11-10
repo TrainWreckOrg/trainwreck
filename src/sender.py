@@ -46,11 +46,6 @@ async def send(context: SlashContext | ModalContext | ContextMenuContext | Compo
 
 
 
-
-
-
-
-
 async def edit_origin(context: SlashContext | ModalContext | ContextMenuContext | ComponentContext | AutocompleteContext | GuildText,
          content : str = "", embeds: list[Embed] = [], components = None, nb_try : int = 5):
     try:
@@ -62,22 +57,13 @@ async def edit_origin(context: SlashContext | ModalContext | ContextMenuContext 
 
 
 
-
-
-
-
-
-
-
-
 async def send_error(exception: BaseException) -> None:
     """Permet de faire la gestion des erreurs pour l'ensemble du bot, envoie un message aux admins et prévient l'utilisateur de l'erreur."""
     global tool
     guild = get_bot().user.guilds[0]
     print(exception)
     sentry_sdk.capture_exception(exception)
-    await send(get_error_log_chan(),
-        f"{tool.get_admin_mention(guild)} {exception}")
+    await get_error_log_chan().send(content=f"{tool.get_admin_mention(guild)} {exception}") # On utilise le send discord car si l'autre fonction bug ca boucle à l'infini
 
 
 def send_error_non_async(exception: BaseException):

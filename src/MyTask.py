@@ -44,7 +44,7 @@ class MyTask(Extension):
         arguement  = await self.tool.get_arguement()
 
         maj = arguement.get("maj_ics")
-        if maj is not None and datetime.now() >= datetime.strptime(maj, "%d-%m-%Y %H:%M:%S"):
+        if maj != "True" and datetime.now() >= datetime.strptime(maj, "%d-%m-%Y %H:%M:%S"):
             calendar = Calendar(False, arguement)
             set_calendar(calendar)
             await send(get_error_log_chan(),"Désactivation de la mise à jour des ics.")

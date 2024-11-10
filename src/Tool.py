@@ -180,6 +180,12 @@ class Tool:
                 label="Jour précédent"
             )
 
+            update = Button(
+                style=ButtonStyle.PRIMARY,
+                custom_id="day-" + (date_formater).strftime("%d-%m-%Y"),
+                label="🔁"
+            )
+
             suivant = Button(
                 style=ButtonStyle.PRIMARY,
                 custom_id="day-" + (date_formater + timedelta(days=1)).strftime("%d-%m-%Y"),
@@ -191,7 +197,7 @@ class Tool:
                 ephemeral = not ctx.author.has_role(self.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
 
             if personne is None:
-                action_row = ActionRow(precedent, suivant)
+                action_row = ActionRow(precedent, update, suivant)
                 if modifier:
                     await edit_origin(ctx, embeds=embeds, components=[action_row])
                 else:
@@ -228,6 +234,12 @@ class Tool:
                 label="Semaine précédente"
             )
 
+            update = Button(
+                style=ButtonStyle.PRIMARY,
+                custom_id="week-" + (monday_date).strftime("%d-%m-%Y"),
+                label="🔁"
+            )
+
             suivant = Button(
                 style=ButtonStyle.PRIMARY,
                 custom_id="week-" + (sunday_date + timedelta(days=1)).strftime("%d-%m-%Y"),
@@ -240,7 +252,7 @@ class Tool:
                     self.get_roles(ctx.guild)[RoleEnum.PERMA])  # Permanent si la personne a le rôle
 
             if personne is None:
-                action_row = ActionRow(precedent, suivant)
+                action_row = ActionRow(precedent, update, suivant)
                 if modifier:
                     await edit_origin(ctx, embeds=embeds, components=[action_row])
                 else:

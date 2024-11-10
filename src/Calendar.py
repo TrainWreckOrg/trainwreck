@@ -90,13 +90,9 @@ class Calendar:
                     event["SUMMARY"],
                     event["LOCATION"],
                     event["DESCRIPTION"],
-                    event["UID"],
-                    argument
+                    event["UID"]
                 )
-                if e.isEXAM:
-                    exams[e.uid] = e
-                else:
-                    events[e.uid] = e
+                events[e.uid] = e
 
             # La description est sur plusieurs lignes et commence par un espace.
             elif line.startswith(" "):
@@ -107,6 +103,56 @@ class Calendar:
                         event[prefix.removesuffix(":")] = line.removeprefix(prefix).removesuffix("\n")
                         break
 
+        events, exams = self.apply_argument(events,exams,argument)
+
+        self.exams_dict |= exams
+
+        events |= exams
+        return events
+
+
+    def apply_argument(self, events:dict[str,Event], exams:dict[str,Event],argument):
+        events, exams = self.exam_event_arguement(events, exams, argument)
+        events, exams = self.special_event_arguement(events, exams, argument)
+        events, exams = self.add_description_event_arguement(events, exams, argument)
+        events, exams = self.add_event_arguement(events, exams, argument)
+        events, exams = self.override_event_arguement(events, exams, argument)
+        events, exams = self.delete_event_arguement(events, exams, argument)
+        return events, exams
+
+    def exam_event_arguement(self, events:dict[str,Event], exams:dict[str,Event],argument):
+        exams_argument : dict[str:str] = argument.get("exam_list")
+        for exam_uid in list(exams_argument.keys()):
+            exam  = events.get(exam_uid)
+            if exam is not None:
+                exam.isEXAM = True
+                if exams_argument.get(exam_uid)["text"] != "":
+                    exam.description = exams_argument.get(exam_uid)["text"]
+                exams[exam.uid] = exam
+        return events,exams
+
+    def special_event_arguement(self, events:dict[str,Event], exams:dict[str,Event],argument):
+        special_argument : dict[str:str] = argument.get("special_event")
+        for special_uid in list(special_argument.keys()):
+            event  = events.get(special_uid)
+            if event is not None:
+                event.isSpecial = True
+                if special_argument.get(special_uid)["text"] != "":
+                    event.description = special_argument.get(special_uid)["text"]
+        return events,exams
+
+
+    def add_description_event_arguement(self, events:dict[str,Event], exams:dict[str,Event],argument):
+        description_argument : dict[str:str] = argument.get("add_description")
+        for description_uid in list(description_argument.keys()):
+            event  = events.get(description_uid)
+            if event is not None:
+                if description_argument.get(description_uid)["text"] != "":
+                    event.description = description_argument.get(description_uid)["text"]
+        return events,exams
+
+
+    def add_event_arguement(self,events:dict[str,Event], exams:dict[str,Event],argument):
         for new_event in argument.get("add_event").values():
             group = Group.UKNW
             for g in Group:
@@ -122,16 +168,21 @@ class Calendar:
                 new_event["isINGE"]=="True",
                 new_event["isMIAGE"]=="True",
                 new_event["uid"],
-                isEXAM= (new_event["isEXAM"] == "True" or new_event["uid"] in list(argument.get("exam_list").values())),
+                isEXAM= (new_event["isEXAM"] == "True" or new_event["uid"] in list(argument.get("exam_list").keys())),
+                isSpecial=(new_event["isSPECIAL"] == "True" or new_event["uid"] in list(argument.get("special_event").keys())),
+                description=new_event["text"],
                 isAdd=True
             )
             if e.isEXAM:
                 exams[e.uid] = e
-            else:
-                events[e.uid] = e
+            events[e.uid] = e
 
-        for over_uid in argument.get("override_event").keys():
-            override_event = argument.get("override_event").get(over_uid)
+        return events,exams
+
+
+    def override_event_arguement(self,events:dict[str,Event], exams:dict[str,Event], argument):
+        for over_description in argument.get("override_event").keys():
+            override_event = argument.get("override_event").get(over_description)
             group=Group.UKNW
             for g in Group:
                 if g.value == override_event["group"]:
@@ -146,21 +197,29 @@ class Calendar:
                 override_event["isINGE"] == "True",
                 override_event["isMIAGE"] == "True",
                 override_event["uid"],
-                override_event["isEXAM"] == "True" or override_event["uid"] in list(argument.get("exam_list").values()),
+                isEXAM=(override_event["isEXAM"] == "True"),
+                isSpecial=(override_event["isSPECIAL"] == "True"),
+                description=override_event["text"],
             )
             base_event : Event
-            if over_uid in events.keys():
-                base_event = events.get(over_uid)
+            if override_event["uid"] in events.keys():
+                base_event = events.get(override_event["uid"])
                 base_event.override = over_event
-            elif over_uid in exams.keys():
-                base_event = events.get(over_uid)
+            if override_event["uid"] in exams.keys():
+                base_event = exams.get(override_event["uid"])
                 base_event.override = over_event
 
+        return events,exams
 
-        self.exams_dict |= exams
-
-        events |= exams
-        return events
+    def delete_event_arguement(self, events: dict[str, Event], exams: dict[str, Event], argument):
+        delete_arguement : dict[str,dict[str,str]] = argument.get("delete_event")
+        for delete_uid in list(delete_arguement.keys()):
+            event: Event = events.get(delete_uid)
+            if event is not None:
+                event.isDelete = True
+                if delete_arguement.get(delete_uid)["text"] != "":
+                    event.description = delete_arguement.get(delete_uid)["text"]
+        return events, exams
 
     def get_events(self) -> list[Event]:
         """Retourne la liste des événements."""
