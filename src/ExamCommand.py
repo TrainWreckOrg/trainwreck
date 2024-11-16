@@ -1,9 +1,12 @@
 import json
 import os
+import re
 from datetime import datetime
+from lib2to3.fixes.fix_input import context
 
 from interactions import Client, slash_command, SlashContext, OptionType, slash_option, SlashCommandChoice, Permissions, \
-    Embed, EmbedFooter, User, contexts, Extension, Button, ButtonStyle, ActionRow, ContextType, AutocompleteContext, Role
+    Embed, EmbedFooter, User, contexts, Extension, Button, ButtonStyle, ActionRow, ContextType, AutocompleteContext, \
+    Role, StringSelectMenu, component_callback, ComponentContext, StringSelectOption
 from Enums import subjects_table, Group, Filiere, Timing
 from sender import send, get_error_log_chan, get_arguement_chan
 
@@ -16,8 +19,6 @@ class ExamCommand(Extension):
     def __init__(self, bot: Client):
         self.bot = bot
         self.tool = get_tool(bot)
-
-
 
     @slash_command(name="add_exam", description="Permet d'ajouter un exam")
     @slash_option(
@@ -177,3 +178,55 @@ class ExamCommand(Extension):
                 choices.append(dico)
         await ctx.send(choices=choices)
         return
+
+
+
+
+
+    @slash_command(name="delete_exam", description="Permet de supprimer un exam")
+    async def delete_exam(self,ctx : SlashContext):
+
+        list_exam = get_calendar().get_exams()
+        menu_option = []
+
+        for exam in list_exam:
+            menu_option.append(
+                StringSelectOption(
+                    label=exam.subject,
+                    value=f"delete_exam:{exam.uid}",
+                    description= f"{exam.start_timestamp.strftime("%Hh%M")}-{exam.end_timestamp.strftime("%Hh%M")} : {exam.group.value}{f" {"INGE" if exam.isINGE else ""}{"-" if exam.isINGE and exam.isMIAGE else ""}{"MIAGE" if exam.isMIAGE else ""}" if exam.group.value == "CM" else ""} - {exam.subject} - {exam.location} - {exam.teacher}"[:100]
+                )
+            )
+
+        list_component = []
+
+        for i in range(0,len(menu_option), 25):
+            list_component.append(
+                StringSelectMenu(
+                    menu_option[:25],
+                    placeholder="Quel exam voulez vous supprimer ?",
+                    min_values = 1,
+                    max_values = 1,
+                    custom_id = "delete_exam"
+                )
+            )
+            menu_option = menu_option[25:]
+
+        for component in list_component:
+            await ctx.send("Choisir une option", components=component)
+        # await send(ctx, content="Choisir une option", components=list_component)
+
+    @component_callback(re.compile("delete_exam"))
+    async def responseMenu(self, ctx: ComponentContext) -> None:
+        argument = await self.tool.get_arguement()
+
+        exam_delete = argument.get("exam_list").pop(ctx.values[0].removeprefix("delete_exam:"))
+
+        with open("argument.json", 'w', encoding='utf-8') as file:
+            json.dump(argument, file, ensure_ascii=False, indent=4)
+
+        await send(get_arguement_chan(),
+                   f"Le cours est : {exam_delete} n'est plus un exam",
+                   ephemeral=False, auto_ephemeral=False, files=["argument.json"])
+        await send(ctx, "C'est supprimer.")
+        os.remove("argument.json")
