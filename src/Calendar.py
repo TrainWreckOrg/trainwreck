@@ -126,6 +126,7 @@ class Calendar:
             exam  = events.get(exam_uid)
             if exam is not None:
                 exam.isEXAM = True
+                exam.description_personnel = exams_argument.get(exam_uid)["description"]
                 if exams_argument.get(exam_uid)["text"] != "":
                     exam.description = exams_argument.get(exam_uid)["text"]
                 exams[exam.uid] = exam

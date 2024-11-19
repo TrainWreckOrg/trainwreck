@@ -37,6 +37,7 @@ bot.load_extension("MyListen")
 bot.load_extension("MyContextMenus")
 bot.load_extension("MySlashCommand")
 bot.load_extension("Onboard")
+bot.load_extension("ExamCommand")
 
 
 async def log(ctx: SlashContext | ModalContext | ContextMenuContext | ComponentContext | AutocompleteContext, **kwargs):

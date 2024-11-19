@@ -4,7 +4,7 @@ from interactions import Client, Intents, SlashContext, ModalContext, ContextMen
 import os
 
 
-bot = None
+bot : Client | None = None
 tool = None
 
 def set_bot(bot_new : Client):
@@ -22,6 +22,13 @@ def set_tool(tool_new):
 def get_error_log_chan() -> GuildText:
     return get_bot().get_channel(os.getenv("ERROR_CHANNEL_ID"))
 
+def get_arguement_chan() -> GuildText:
+    global bot
+    channels = bot.guilds[0].channels
+    for channel in channels:
+        if channel.name == "arguement-bot":
+            return channel
+    return get_error_log_chan()
 
 async def send(context: SlashContext | ModalContext | ContextMenuContext | ComponentContext | AutocompleteContext | GuildText,
          content : str = "", embeds: list[Embed] = [], components = [], files: list[str] = [], ephemeral :bool = False, auto_ephemeral:bool=False, nb_try : int = 5):
@@ -42,6 +49,7 @@ async def send(context: SlashContext | ModalContext | ContextMenuContext | Compo
     except BaseException as exception:
         if nb_try == 0:
             await send_error(exception)
+            return
         await send(context,content,embeds, components, files, ephemeral, auto_ephemeral, nb_try-1)
 
 
@@ -53,6 +61,7 @@ async def edit_origin(context: SlashContext | ModalContext | ContextMenuContext 
     except BaseException as exception:
         if nb_try == 0:
             await send_error(exception)
+            return
         await edit_origin(context,content,embeds, components, nb_try-1)
 
 
