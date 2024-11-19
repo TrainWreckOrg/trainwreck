@@ -20,7 +20,7 @@ class ExamCommand(Extension):
         self.bot = bot
         self.tool = get_tool(bot)
 
-    @slash_command(name="add_exam", description="Permet d'ajouter un exam")
+    @slash_command(name="add_exam", description="Permet d'ajouter un exam", contexts=[ContextType.GUILD])
     @slash_option(
         name="cours",
         description="Quel cours",
@@ -89,7 +89,6 @@ class ExamCommand(Extension):
             if cours.start_timestamp.strftime("%d-%m-%Y %H:%M") == f"{jour} {heure}":
                 uid = cours.uid
 
-        argument  = await self.tool.get_arguement()
         exam_card = {
             "description": description,
             "uid": uid,
@@ -97,14 +96,15 @@ class ExamCommand(Extension):
             "source": ctx.author.display_name
         }
 
-        argument.get("exam_list")[uid] = exam_card
+        # argument  = await self.tool.get_arguement()
+        # argument.get("exam_list")[uid] = exam_card
+        #
+        # with open("argument.json", 'w', encoding='utf-8') as file:
+        #     json.dump(argument, file, ensure_ascii=False, indent=4)
 
-        with open("argument.json", 'w', encoding='utf-8') as file:
-            json.dump(argument, file, ensure_ascii=False, indent=4)
-
-        await send(get_arguement_chan(), f"Le cours est : {cours}, le groupe est {role.name}, le jour est {jour}, l'heure est {heure}, \n {exam_card}", ephemeral=False, auto_ephemeral=False, files=["argument.json"])
-        await send(ctx, "C'est ajouté.")
-        os.remove("argument.json")
+        # await send(get_arguement_chan(), f"Le cours est : {cours}, le groupe est {role.name}, le jour est {jour}, l'heure est {heure}, \n {exam_card}", ephemeral=False, auto_ephemeral=False, files=["argument.json"])
+        await send(ctx, f"Le cours est : {cours}, le groupe est {role.name}, le jour est {jour}, l'heure est {heure} va etre ajouter par un admin, \n {exam_card}", ephemeral=False, auto_ephemeral=False)
+        # os.remove("argument.json")
 
 
 
@@ -183,7 +183,7 @@ class ExamCommand(Extension):
 
 
 
-    @slash_command(name="delete_exam", description="Permet de supprimer un exam")
+    @slash_command(name="delete_exam", description="Permet de supprimer un exam", contexts=[ContextType.GUILD])
     async def delete_exam(self,ctx : SlashContext):
 
         list_exam = get_calendar().get_exams()
@@ -219,14 +219,15 @@ class ExamCommand(Extension):
     @component_callback(re.compile("delete_exam"))
     async def responseMenu(self, ctx: ComponentContext) -> None:
         argument = await self.tool.get_arguement()
-
-        exam_delete = argument.get("exam_list").pop(ctx.values[0].removeprefix("delete_exam:"))
-
-        with open("argument.json", 'w', encoding='utf-8') as file:
-            json.dump(argument, file, ensure_ascii=False, indent=4)
-
-        await send(get_arguement_chan(),
-                   f"Le cours est : {exam_delete} n'est plus un exam",
-                   ephemeral=False, auto_ephemeral=False, files=["argument.json"])
-        await send(ctx, "C'est supprimer.")
-        os.remove("argument.json")
+        exam_delete = argument.get("exam_list").get(ctx.values[0].removeprefix("delete_exam:"))
+        await send(ctx, f"Le cours est : {exam_delete} n'est plus un exam", ephemeral=False, auto_ephemeral=False)
+        # exam_delete = argument.get("exam_list").pop(ctx.values[0].removeprefix("delete_exam:"))
+        #
+        # with open("argument.json", 'w', encoding='utf-8') as file:
+        #     json.dump(argument, file, ensure_ascii=False, indent=4)
+        #
+        # await send(get_arguement_chan(),
+        #            f"Le cours est : {exam_delete} n'est plus un exam",
+        #            ephemeral=False, auto_ephemeral=False, files=["argument.json"])
+        # await send(ctx, "C'est supprimer.")
+        # os.remove("argument.json")
