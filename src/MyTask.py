@@ -13,9 +13,8 @@ from Event import Event
 from UserBase import get_user_base
 from Tool import get_tool
 from Enums import Subscription, RoleEnum
-from sender import send, get_error_log_chan
+from sender import send, get_error_log_chan, send_error
 from Enums import Filiere
-from src.sender import send_error
 
 load_dotenv("keys.env")
 
