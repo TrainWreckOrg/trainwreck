@@ -204,11 +204,11 @@ class Calendar:
             )
             base_event : Event
             if override_event["uid"] in events.keys():
-                base_event = events.get(override_event["uid"])
-                base_event.override = over_event
+                over_event.old_event = events.get(override_event["uid"])
+                events[over_event.old_event.uid] = over_event
             if override_event["uid"] in exams.keys():
-                base_event = exams.get(override_event["uid"])
-                base_event.override = over_event
+                over_event.old_event = exams.get(override_event["uid"])
+                events[over_event.old_event.uid] = over_event
 
         return events,exams
 

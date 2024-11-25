@@ -8,7 +8,7 @@ from sender import send_error_non_async
 
 class Event:
     """Classe utilisée pour gérer les objets événements"""
-    def __init__(self, start:datetime, end:datetime, subject:str, group:Group, location:str, teacher:str, isINGE:bool, isMIAGE:bool, uid:str, isEXAM:bool=False, isAdd:bool=False,isDelete:bool=False, override = None, isSpecial : bool = False, description : str="") -> None:
+    def __init__(self, start:datetime, end:datetime, subject:str, group:Group, location:str, teacher:str, isINGE:bool, isMIAGE:bool, uid:str, isEXAM:bool=False, isAdd:bool=False, isDelete:bool=False, old_event = None, isSpecial : bool = False, description : str= "") -> None:
         self.start_timestamp = start
         self.end_timestamp = end
         self.location = location
@@ -24,7 +24,7 @@ class Event:
         self.isSpecial = isSpecial
         self.isAdd = isAdd
         self.isDelete = isDelete
-        self.override = override
+        self.old_event = old_event
         self.description = description
         self.description_personnel = ""
 
@@ -68,8 +68,8 @@ class Event:
             event = f":white_check_mark: Cette Event à été ajouter manuellement {event}"
         if self.isDelete:
             event = f":x: Cette Event à été supprimer manuellement {event}"
-        if self.override is not None:
-            event = f":pencil2: {self.override.__str__()} Cette event remplace {event}"
+        if self.old_event is not None:
+            event = f":pencil2: {event} Cette event remplace {self.old_event.__str__()}"
         event = event.replace(":INFORMATION_SOURCE:",":information_source:")
         return event
 
@@ -137,8 +137,8 @@ class Event:
             texte = f":white_check_mark: Cette Event à été ajouter manuellement {texte}"
         if self.isDelete:
             texte = f":x: Cette Event à été supprimer manuellement {texte}"
-        if self.override is not None:
-            texte = f":information_source: {self.override.__str__()} Cette event remplace {texte}"
+        if self.old_event is not None:
+            texte = f":pencil2: {texte} Cette event remplace {self.old_event.__str__()}"
 
         texte = texte.replace(":INFORMATION_SOURCE:",":information_source:")
         return texte
