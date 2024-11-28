@@ -67,7 +67,7 @@ class MyTask(Extension):
 
         embeds, ping_list_str = self.get_embeds_maj(sup, add, mod, overlap_list)
 
-        await self.site_fac_exam()
+        # await self.site_fac_exam()
 
         if len(embeds):
             ping_chan = self.bot.get_channel(os.getenv("PING_CHANGE_CHANNEL_ID"))
