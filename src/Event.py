@@ -185,7 +185,12 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
     # subject_split = descsplit[3].split(" GR")
     # subject = subjects_table[subject_split[0]] if subject_split[0] in subjects_table.keys() else descsplit[3]
     subject_split = sum.split(" - ")
-    subject_split[1] = subject_split[1].replace(" ","")
+    group_brut : str = ""
+    if len(subject_split) == 3:
+        group_brut = subject_split[2].removeprefix("GR")
+    else:
+        group_brut = subject_split[1].replace(" ","")
+
     subject = subjects_table[subject_split[0]] if subject_split[0] in subjects_table.keys() else sum
     if "L3 INFORMATIQUE" in subject:
         subject = descsplit[2]
@@ -199,7 +204,7 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
     isMIAGE = False
     isINGE  = False
     group   = Group.CM
-    if subject_split[1] in ["CM","HM", "CC-"]:
+    if group_brut in ["CM","HM", "CC-"]:
         group = Group.CM
         if "L3 INFO - INGENIERIE" in descsplit and "MIAGE" not in sum:
             isINGE = True
@@ -209,7 +214,7 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
         if "MIAGE" in sum :
             # ex : Anglais - TD3 MIAGE
             isMIAGE = True
-            match subject_split[1][2]: #sum[12]
+            match group_brut[2]: #sum[12]
                 case "1":
                     group = Group.TDA1M
                 case "2":
@@ -227,7 +232,7 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
         else:
             # ex : Anglais - TD 1
             isINGE = True
-            match subject_split[1][2]: #sum[13]
+            match group_brut[2]: #sum[13]
                 case "1":
                     group = Group.TDA1I
                 case "2":
@@ -253,7 +258,7 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
         #if descsplit[2].startswith("Gr"):
         if isINGE:
             isMIAGE = False
-            match subject_split[1][:3]: # subject_split[0]
+            match group_brut[:3]: # subject_split[0]
                 case "TD1":
                     group = Group.TD1I
                 case "TD2":
@@ -278,12 +283,13 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
                     # Ce cas ne devrait pas arriver et devrait être fix rapidement.
                     group = Group.UKNW
                     try:
+                        print(end)
                         raise ValueError("Groupe inconnue cours ingé dans get_event_from_data")
                     except BaseException as exception:
                         send_error_non_async(exception)
 
         else:
-            match subject_split[1][:3] :  #descsplit[2][3:]:
+            match group_brut[:3] :  #descsplit[2][3:]:
                 case "TD1":
                     group = Group.TD1M
                 case "TD2":
