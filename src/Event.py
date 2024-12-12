@@ -187,7 +187,7 @@ def get_event_from_data(start:datetime, end:datetime, sum:str, loc:str, desc:str
     subject_split = sum.split(" - ")
     group_brut : str = ""
     if len(subject_split) == 3:
-        group_brut = subject_split[2].removeprefix("GR")
+        group_brut = subject_split[2].removeprefix("GR").replace(" ","")
     else:
         group_brut = subject_split[1].replace(" ","")
 
