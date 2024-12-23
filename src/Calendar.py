@@ -7,6 +7,7 @@ from Filter import Filter, TimeFilter, filter_events
 from Enums import url, Timing
 from Event import *
 from sender import send_error_non_async
+from parser import entry_point
 
 import os
 
@@ -84,7 +85,7 @@ class Calendar:
                 event = {"DTSTART":"", "DTEND":"", "SUMMARY":"", "LOCATION":"", "DESCRIPTION":"", "UID":""}
             # Balise Fermante, envoie les informations récoltées (Timestamps début et fin, le summary (titre), la salle et la description) et on obtient l'Event.
             elif line.startswith("END:VEVENT"):
-                e = get_event_from_data(
+                e = entry_point(
                     self.convert_timestamp(event["DTSTART"]),
                     self.convert_timestamp(event["DTEND"]),
                     event["SUMMARY"],
