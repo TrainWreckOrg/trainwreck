@@ -33,7 +33,14 @@ subjects_table = {
     "Statistique":"Statistique",
     "Gestion comptable":"Gestion comptable",
     "Système d’information" : "Système d’information",
-    "Techniques de comm" : "Techniques de comm"
+    "Techniques de communicat°" : "Techniques de comm",
+    "Framework Web 2" : "Framework Web 2",
+    "Programmation N-Tiers" : "Programmation N-Tiers",
+    "Programmation Logique IA" : "Programmation Logique pour l'IA",
+    "Fondements du calcul" : "Fondements du calcul",
+    "Réseaux 2" : "Réseaux 2",
+    "Algorithmique avancée" : "Algorithmique avancée",
+    "Droit" : "Droit",
 }
 
 # Liste des couleurs pour les embeds.
