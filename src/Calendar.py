@@ -93,6 +93,8 @@ class Calendar:
                     event["DESCRIPTION"],
                     event["UID"]
                 )
+                if e == None or e.uid == None:
+                    print("test")
                 events[e.uid] = e
 
             # La description est sur plusieurs lignes et commence par un espace.
