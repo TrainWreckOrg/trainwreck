@@ -1,30 +1,15 @@
 from datetime import datetime
 
-from Event import Event, ancien_parseur
+from Event import Event, get_event_from_data
 from Enums import subjects_table, Group
 from sender import send_error_non_async
 from pytz import timezone
 
 
 def entry_point(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str) -> Event:
-    # Événements spéciaux.
-    if sum == "Réunion rentrée - L3 INGENIERIE INFORMATIQUE":
-        return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", True, False,"ADE60323032342d323032352d31323639382d302d30")
-    elif sum == "HAPPY CAMPUS DAY":
-        return Event(start, end, sum, Group.CM, "Campus", "Équipe Enseignante", True, True,"ADE60323032342d323032352d32323835332d302d30")
-    elif sum == "Réunion rentrée - L3 MIAGE":
-        return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", False, True,"ADE60323032342d323032352d31333132352d302d30")
-    elif sum == "Sensibilisation au handicap dans le développement d'application":
-        return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", True, False,"ADE60323032342d323032352d39303132382d302d30")
-    elif sum == "Réunion d'information - Alternance L3 MIAGE":
-        return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", False, True,"ADE60323032342d323032352d37353935352d302d30")
-    elif sum == "Sensibilisation à la cyber sécurité":
-        return Event(start, end, sum, Group.CM, loc, "EXBRAYAT", True, True,"ADE60323032342d323032352d39303838382d302d30")
-
-
     tmp = datetime(2025, 1, 12, 0, 0, tzinfo=timezone("Europe/Paris"))
     if start < tmp:
-        return ancien_parseur(start, end, sum, loc, desc, uid)
+        return get_event_from_data(start, end, sum, loc, desc, uid)
     else:
          return nouveau_parseur(start, end, sum, loc, desc, uid)
 
