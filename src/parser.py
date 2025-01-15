@@ -69,7 +69,7 @@ def nouveau_parseur(start:datetime, end:datetime, sum:str, loc:str, desc:str, ui
         isINGE = True
         isMIAGE = False
         group = get_Inge(group_brut)
-    elif(subject in ["Algorithmique avancée", "Droit", "Eco", "Projet Web"]):
+    elif(subject in ["Algorithmique avancée", "Droit", "Environnement Économique", "Projet Web"]):
         isINGE = False
         isMIAGE = True
         group = get_Miage(group_brut)
