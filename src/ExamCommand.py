@@ -96,18 +96,42 @@ class ExamCommand(Extension):
             "source": ctx.author.display_name
         }
 
-        # argument  = await self.tool.get_arguement()
-        # argument.get("exam_list")[uid] = exam_card
-        #
-        # with open("argument.json", 'w', encoding='utf-8') as file:
-        #     json.dump(argument, file, ensure_ascii=False, indent=4)
+        string_exam = f'"{uid}" : ' + str(exam_card).replace("'",'"')
 
         # await send(get_arguement_chan(), f"Le cours est : {cours}, le groupe est {role.name}, le jour est {jour}, l'heure est {heure}, \n {exam_card}", ephemeral=False, auto_ephemeral=False, files=["argument.json"])
-        await send(ctx, f"Le cours est : {cours}, le groupe est {role.name}, le jour est {jour}, l'heure est {heure} va etre ajouter par un admin, \n {exam_card}", ephemeral=False, auto_ephemeral=False)
+        await send(ctx, f"Le cours est : {cours}, le groupe est {role.name}, le jour est {jour}, l'heure est {heure} va etre ajouter par un admin, \n {string_exam}", ephemeral=False, auto_ephemeral=False)
         # os.remove("argument.json")
 
+    #@slash_command(name="test", description="Permet d'ajouter un exam", contexts=[ContextType.GUILD])
+    async def test(self, ctx: SlashContext) -> None:
+        """Commande qui permet de bot la création d'exam pour un certaine matière et le cours numéro x"""
+        for group in [Group.TPAI, Group.TPBI, Group.TPCI, Group.TPDI, Group.TP1M, Group.TP2M, Group.TP3M]:
+            liste_cours = filter_events(get_calendar().get_events(), [GroupFilter([group])])
 
+            list_pnt = []
+            for cours in liste_cours:
+                if cours.subject == "Programmation N-Tiers":
+                    list_pnt.append(cours)
 
+            list_pnt = sorted(list_pnt,key=lambda event: event.start_timestamp)
+            export = ""
+            compteur = 1
+            for num in [4,9,14]:
+                event = list_pnt[num]
+                exam_card = {
+                    "description": f"CC{compteur} PNT {group}",
+                    "uid": event.uid,
+                    "text": "",
+                    "source": "Mail Prof (Dany)"
+                }
+                compteur+=1
+
+                string_exam = f'"{event.uid}" : ' + str(exam_card).replace("'",'"')
+                export += "\n" + string_exam
+
+            await send(ctx, export, ephemeral=False, auto_ephemeral=False)
+        # await send(get_arguement_chan(), f"Le cours est : {cours}, le groupe est {role.name}, le jour est {jour}, l'heure est {heure}, \n {exam_card}", ephemeral=False, auto_ephemeral=False, files=["argument.json"])
+        # os.remove("argument.json")
 
     @add_exam.autocomplete("jour")
     async def jour(self, ctx: AutocompleteContext):
