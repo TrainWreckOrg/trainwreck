@@ -24,6 +24,8 @@ def entry_point(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:st
             return Event(start, end, sum, Group.CM, loc, "EXBRAYAT", True, True,"ADE60323032342d323032352d39303838382d302d30")
         elif sum == "Forum des Masters":
             return Event(start, end, sum, Group.CM, "Amphi S, S104, Salle des thèses", "Équipe Enseignante", True, True,"ADE60323032342d323032352d38343633372d302d30")
+        elif sum == "Présentation de l'Apprentissage en Master MIAGE":
+            return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", False, True,"ADE60323032342d323032352d36313533322d302d30")
 
         tmp = datetime(2025, 1, 12, 0, 0, tzinfo=timezone("Europe/Paris"))
         if start < tmp:
