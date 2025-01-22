@@ -116,7 +116,7 @@ def nouveau_parseur_commun(subject : str, group_brut : str, sum : str):
 def nouveau_parseur_FW_PNT(group_brut : str, sum : str):
     isINGE = False
     isMIAGE = False
-    if ("CM" in sum):
+    if ("CM" in sum or "CC" in sum):
         group = Group.CM
         isINGE = True
         isMIAGE = True
@@ -135,7 +135,7 @@ def nouveau_parseur_REZO(group_brut : str, sum : str):
     isINGE = False
     isMIAGE = False
     group = Group.UKNW
-    if ("CM" in sum):
+    if ("CM" in sum or "CC" in sum):
         group = Group.CM
         isINGE = True
         isMIAGE = True
