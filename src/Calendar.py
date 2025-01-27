@@ -91,7 +91,8 @@ class Calendar:
                     event["SUMMARY"],
                     event["LOCATION"],
                     event["DESCRIPTION"],
-                    event["UID"]
+                    event["UID"],
+                    argument
                 )
                 if e == None or e.uid == None:
                     print("test")

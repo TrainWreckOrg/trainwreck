@@ -1,5 +1,4 @@
 from datetime import datetime
-from logging import exception
 
 from Event import Event, get_event_from_data
 from Enums import subjects_table, Group
@@ -7,25 +6,11 @@ from sender import send_error_non_async
 from pytz import timezone
 
 
-def entry_point(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str) -> Event:
+def entry_point(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str, arguement) -> Event:
     try:
-        # Événements spéciaux.
-        if sum == "Réunion rentrée - L3 INGENIERIE INFORMATIQUE":
-            return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", True, False,"ADE60323032342d323032352d31323639382d302d30")
-        elif sum == "HAPPY CAMPUS DAY":
-            return Event(start, end, sum, Group.CM, "Campus", "Équipe Enseignante", True, True,"ADE60323032342d323032352d32323835332d302d30")
-        elif sum == "Réunion rentrée - L3 MIAGE":
-            return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", False, True,"ADE60323032342d323032352d31333132352d302d30")
-        elif sum == "Sensibilisation au handicap dans le développement d'application":
-            return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", True, False,"ADE60323032342d323032352d39303132382d302d30")
-        elif sum == "Réunion d'information - Alternance L3 MIAGE":
-            return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", False, True,"ADE60323032342d323032352d37353935352d302d30")
-        elif sum == "Sensibilisation à la cyber sécurité":
-            return Event(start, end, sum, Group.CM, loc, "EXBRAYAT", True, True,"ADE60323032342d323032352d39303838382d302d30")
-        elif sum == "Forum des Masters":
-            return Event(start, end, sum, Group.CM, "Amphi S, S104, Salle des thèses", "Équipe Enseignante", True, True,"ADE60323032342d323032352d38343633372d302d30")
-        elif sum == "Présentation de l'Apprentissage en Master MIAGE":
-            return Event(start, end, sum, Group.CM, loc, "Équipe Enseignante", False, True,"ADE60323032342d323032352d36313533322d302d30")
+        debug = get_debug(start, end, sum, loc, desc, uid, arguement)
+        if debug is not None:
+            return debug
 
         tmp = datetime(2025, 1, 12, 0, 0, tzinfo=timezone("Europe/Paris"))
         if start < tmp:
@@ -35,6 +20,49 @@ def entry_point(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:st
     except BaseException as exception:
         send_error_non_async(exception)
 
+def convert_timestamp(input: str) -> datetime:
+    """Permet de convertir les timestamp en ISO-8601, et les passer en UTC+2.
+    Input : Une str contenant une date."""
+    # 20241105T143000Z -> 2024-11-05T14:30:00Z
+    iso_date = f"{input[0:4]}-{input[4:6]}-{input[6:11]}:{input[11:13]}:{input[13:]}"
+    return datetime.fromisoformat(iso_date).astimezone(timezone("Europe/Paris"))
+
+def get_debug(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str, arguement:dict[str:dict[str:str]]):
+    debug_list : dict[str:str] = arguement["debug_list"]
+    for sum_debug in list(debug_list.keys()):
+        if sum_debug == sum:
+            debug :dict[str:str]= debug_list[sum_debug]
+            new_start : datetime = start
+            new_end : datetime = end
+            new_subject : str = sum
+            new_group : Group = Group.UKNW
+            new_location : str = loc
+            new_teacher : str = "Équipe Enseignante"
+            new_isINGE : bool = debug["isINGE"] == "True"
+            new_isMIAGE :bool = debug["isMIAGE"] == "True"
+            new_uid : str = uid
+
+
+            if debug["start"] != "":
+                new_start = convert_timestamp(debug["start"])
+            if debug["end"] != "":
+                new_end = convert_timestamp(debug["end"])
+            if debug["subject"] != "":
+                new_subject = debug["subject"]
+            if debug["subject"] != "":
+                new_group = Group.UKNW
+                for g in Group:
+                    if g.value == debug["group"]:
+                        new_group = g
+            if debug["location"] != "":
+                new_location = debug["location"]
+            if debug["teacher"] != "":
+                new_teacher = debug["teacher"]
+            if debug["uid"] != "":
+                new_uid = debug["uid"]
+
+            return Event(new_start, new_end, new_subject, new_group, new_location, new_teacher, new_isINGE, new_isMIAGE,new_uid)
+    return None
 
 def nouveau_parseur(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str) -> Event:
     # Descsplit contient les informations correspondant à la description de l'événement, séparé par lignes.
