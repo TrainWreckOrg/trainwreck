@@ -42,6 +42,7 @@ subjects_table = {
     "Algorithmique avancée" : "Algorithmique avancée",
     "Droit" : "Droit",
     "Environnement Économique" : "Environnement Économique",
+    "La recherche en info." : "Recherche en info"
 }
 
 # Liste des couleurs pour les embeds.
