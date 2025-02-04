@@ -95,7 +95,7 @@ def nouveau_parseur(start:datetime, end:datetime, sum:str, loc:str, desc:str, ui
         group, isINGE, isMIAGE = nouveau_parseur_anglais(group_brut)
     elif(subject in ["Framework Web 2", "Programmation N-Tiers", "Réseaux 2"]):
         group, isINGE, isMIAGE = nouveau_parseur_commun(subject, group_brut, sum)
-    elif(subject in ["Programmation Logique pour l'IA", "Fondements du calcul", "Techniques de comm", "Recherche"]):
+    elif(subject in ["Programmation Logique pour l'IA", "Fondements du calcul", "Techniques de comm", "Recherche en info"]):
         isINGE = True
         isMIAGE = False
         group = get_Inge(group_brut)
