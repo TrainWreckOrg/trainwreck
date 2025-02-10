@@ -8,3 +8,4 @@ keys.env
 keys_prod.env
 /.env/
 /.run/
+data/*.ics
