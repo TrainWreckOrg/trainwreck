@@ -30,7 +30,7 @@ def convert_timestamp(input: str) -> datetime:
 def get_debug(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str, arguement:dict[str:dict[str:str]]):
     debug_list : dict[str:str] = arguement["debug_list"]
     for sum_debug in list(debug_list.keys()):
-        if sum_debug == sum:
+        if sum_debug == sum or uid == debug_list[sum_debug]["uid"]:
             debug :dict[str:str]= debug_list[sum_debug]
             new_start : datetime = start
             new_end : datetime = end
@@ -49,7 +49,7 @@ def get_debug(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str,
                 new_end = convert_timestamp(debug["end"])
             if debug["subject"] != "":
                 new_subject = debug["subject"]
-            if debug["subject"] != "":
+            if debug["group"] != "":
                 new_group = Group.UKNW
                 for g in Group:
                     if g.value == debug["group"]:
