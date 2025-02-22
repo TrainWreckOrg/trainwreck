@@ -105,31 +105,39 @@ class ExamCommand(Extension):
     #@slash_command(name="test", description="Permet d'ajouter un exam", contexts=[ContextType.GUILD])
     async def test(self, ctx: SlashContext) -> None:
         """Commande qui permet de bot la création d'exam pour un certaine matière et le cours numéro x"""
-        for group in [Group.TPAI, Group.TPBI, Group.TPCI, Group.TPDI, Group.TP1M, Group.TP2M, Group.TP3M]:
+        for group in [Group.TDA1I, Group.TDA2I, Group.TDA3I, Group.TDA4I, Group.TDA1M, Group.TDA2M, Group.TDA3M]:
             liste_cours = filter_events(get_calendar().get_events(), [GroupFilter([group])])
 
-            list_pnt = []
+            list_cours_cible = []
             for cours in liste_cours:
-                if cours.subject == "Programmation N-Tiers":
-                    list_pnt.append(cours)
+                if cours.subject == "Anglais":
+                    list_cours_cible.append(cours)
 
-            list_pnt = sorted(list_pnt,key=lambda event: event.start_timestamp)
+            list_cours_cible = sorted(list_cours_cible,key=lambda event: event.start_timestamp)
+            print(f"Il y a {len(list_cours_cible)} pour le groupe {group.value}")
             export = ""
             compteur = 1
-            for num in [4,9,14]:
-                event = list_pnt[num]
+            content = ["Oral comprehension / vocabulary / grammar / synthesis", "Débat","Débat"]
+            for num in [5,6,7]:
+                event = list_cours_cible[num]
                 exam_card = {
-                    "description": f"CC{compteur} PNT {group}",
+                    "description": f"CC{compteur} Anglais {group}",
                     "uid": event.uid,
-                    "text": "",
-                    "source": "Mail Prof (Dany)"
+                    "text": content[compteur-1],
+                    "source": "Livret (Dany)"
                 }
                 compteur+=1
 
                 string_exam = f'"{event.uid}" : ' + str(exam_card).replace("'",'"')
                 export += "\n" + string_exam
 
-            await send(ctx, export, ephemeral=False, auto_ephemeral=False)
+            # Define the file path
+            file_path = "export.txt"
+
+            # Write the variable export to the file
+            with open(file_path, "a", encoding="utf-8") as file:
+                file.write(export)
+            await send(ctx, "C'est dans le fichier", ephemeral=True, auto_ephemeral=False)
         # await send(get_arguement_chan(), f"Le cours est : {cours}, le groupe est {role.name}, le jour est {jour}, l'heure est {heure}, \n {exam_card}", ephemeral=False, auto_ephemeral=False, files=["argument.json"])
         # os.remove("argument.json")
 
