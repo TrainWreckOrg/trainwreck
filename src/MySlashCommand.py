@@ -97,6 +97,14 @@ class MySlashCommand(Extension):
         action_row = ActionRow(repo, vincent)
         await send(ctx, embeds=[embed], components=action_row, auto_ephemeral=True)
 
+
+    @slash_command(name="mcc", description="Envoie le lien des MCC.")
+    async def mcc(self, ctx: SlashContext) -> None:
+        """Envoie le lien des MCC."""
+        await send(ctx, content="Voici le lien vers les MCC : https://www.univ-orleans.fr/upload/public/2024-11/UFR%20ST%20M3C%20LICENCE%20INFORMATIQUE%2024-25.R_0.pdf\n(Faut scroller dans les pages :wink: )")
+
+
+
     @slash_command(name="ics", description="Envoie un fichier ICS importable dans la plupart des applications de calendrier.")
     @slash_option(
         name="debut",
