@@ -145,6 +145,18 @@ class Event:
 
     def ics(self) -> str:
         """Permet d'avoir l'Event au format ICS."""
+        decorateur=""
+        if self.isEXAM:
+            decorateur += f"[EXAM] "
+        if self.isSpecial:
+            decorateur += f"[SPECIAL]"
+        if self.isAdd:
+            decorateur += f"[ADD] "
+        if self.isDelete:
+            decorateur += f"[DELETE] "
+        if self.old_event is not None:
+            decorateur += f"[EDIT]"
+
         ics = "BEGIN:VEVENT\n"
         stamp = str(datetime.now().replace(microsecond=0).astimezone(timezone("UTC")).isoformat()).replace("-", "").replace(":", "").replace("+0000","Z")
         ics += "DTSTAMP:" + stamp + "\n"
@@ -152,7 +164,7 @@ class Event:
         ics += "DTSTART:" + start + "\n"
         end = str(self.end_timestamp.astimezone(timezone("UTC")).isoformat()).replace("-", "").replace(":", "").replace("+0000","Z")
         ics += "DTEND:" + end + "\n"
-        ics += "SUMMARY:" + self.subject + "\n"
+        ics += "SUMMARY:" + decorateur + self.subject + "\n"
         ics += "LOCATION:" + self.location + "\n"
         ics += f"DESCRIPTION:Groupe : {self.group.value}{f" {"INGE" if self.isINGE else ""}{"-" if self.isINGE and self.isMIAGE else ""}{"MIAGE" if self.isMIAGE else ""}" if self.group == Group.CM else ""}\\nDurée : {str(self.duree).split(":")[0]}h{str(self.duree).split(":")[1]}\\nEnseignant : {self.teacher}\\nExporté le {datetime.now().strftime("%d/%m/%Y à %Hh%M")}, via EDT Bot\n"
         ics += "UID:" + self.uid + "\n"
