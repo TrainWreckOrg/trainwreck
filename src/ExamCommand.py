@@ -105,26 +105,26 @@ class ExamCommand(Extension):
     #@slash_command(name="test", description="Permet d'ajouter un exam", contexts=[ContextType.GUILD])
     async def test(self, ctx: SlashContext) -> None:
         """Commande qui permet de bot la création d'exam pour un certaine matière et le cours numéro x"""
-        for group in [Group.TDA1I, Group.TDA2I, Group.TDA3I, Group.TDA4I, Group.TDA1M, Group.TDA2M, Group.TDA3M]:
+        for group in [Group.TPAI, Group.TPBI, Group.TPCI, Group.TPDI, Group.TP1M, Group.TP2M, Group.TP3M]:
             liste_cours = filter_events(get_calendar().get_events(), [GroupFilter([group])])
 
             list_cours_cible = []
             for cours in liste_cours:
-                if cours.subject == "Anglais":
+                if cours.subject == "Réseaux 2":
                     list_cours_cible.append(cours)
 
             list_cours_cible = sorted(list_cours_cible,key=lambda event: event.start_timestamp)
             print(f"Il y a {len(list_cours_cible)} pour le groupe {group.value}")
             export = ""
             compteur = 1
-            content = ["Oral comprehension / vocabulary / grammar / synthesis", "Débat","Débat"]
-            for num in [5,6,7]:
+            content = ["Question sur le DM", "Couche transport et application"]
+            for num in [3,4]:
                 event = list_cours_cible[num]
                 exam_card = {
-                    "description": f"CC{compteur} Anglais {group}",
+                    "description": f"CC{compteur} Réseaux 2 {group}",
                     "uid": event.uid,
                     "text": content[compteur-1],
-                    "source": "Livret (Dany)"
+                    "source": "Mail prof"
                 }
                 compteur+=1
 

@@ -6,9 +6,12 @@ from sender import send_error_non_async
 from pytz import timezone
 
 
-def entry_point(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str, arguement) -> Event:
+def entry_point(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str, arguement) -> Event|bool:
     try:
         debug = get_debug(start, end, sum, loc, desc, uid, arguement)
+        hide = get_hide(uid, arguement)
+        if hide:
+            return True
         if debug is not None:
             return debug
 
@@ -63,6 +66,10 @@ def get_debug(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str,
 
             return Event(new_start, new_end, new_subject, new_group, new_location, new_teacher, new_isINGE, new_isMIAGE,new_uid)
     return None
+
+def get_hide(uid,arguement) -> bool:
+    hide :dict[str:dict[str:str]] = arguement['hidden_event']
+    return uid in hide
 
 def nouveau_parseur(start:datetime, end:datetime, sum:str, loc:str, desc:str, uid:str) -> Event:
     # Descsplit contient les informations correspondant à la description de l'événement, séparé par lignes.
