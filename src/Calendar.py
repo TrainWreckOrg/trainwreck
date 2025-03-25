@@ -94,6 +94,8 @@ class Calendar:
                     event["UID"],
                     argument
                 )
+                if e == True:
+                    continue
                 if e == None or e.uid == None:
                     print("test")
                 events[e.uid] = e
