@@ -36,12 +36,17 @@ class MyListen(Extension):
         await self.bot.synchronise_interactions()
         nuke()
         await self.tool.userscan(get_error_log_chan())
-        if not MyTask.daily_morning_update.running:
-            MyTask.daily_morning_update.start()
-            await send(get_error_log_chan(), "Démarrage de la Task `daily_morning_update`")
-        if not MyTask.update_calendar.running:
-            MyTask.update_calendar.start()
-            await send(get_error_log_chan(), "Démarrage de la Task `update_calendar`")
+        if MyTask.daily_morning_update.running:
+            MyTask.daily_morning_update.stop()
+        if MyTask.update_calendar.running:
+            MyTask.update_calendar.stop()
+
+        # if not MyTask.daily_morning_update.running:
+        #     MyTask.daily_morning_update.start()
+        #     await send(get_error_log_chan(), "Démarrage de la Task `daily_morning_update`")
+        # if not MyTask.update_calendar.running:
+        #     MyTask.update_calendar.start()
+        #     await send(get_error_log_chan(), "Démarrage de la Task `update_calendar`")
         await MyTask.update_calendar()
         print(f"Ready\nThis bot is owned by {self.bot.owner}")
         await send(get_error_log_chan(), "Démarrage du bot fini")
